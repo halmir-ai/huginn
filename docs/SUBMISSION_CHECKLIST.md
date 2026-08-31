@@ -6,11 +6,12 @@ Source: the Devpost registration email received August 30, 2026. Deadline:
 
 ## Access and runtime
 
-- [ ] Public HTTPS URL opens without judge setup or credentials.
-- [ ] ChatGPT's in-app browser discovers and successfully calls the WebMCP tools.
+- [x] Public HTTPS URL opens without judge setup or credentials:
+  <https://halmir-ai.github.io/huginn/>.
+- [x] ChatGPT's in-app browser discovers and successfully calls the WebMCP tools.
 - [ ] Chrome 149+ with `chrome://flags/#enable-webmcp-testing` discovers and
   successfully calls the same tools.
-- [ ] A clean-session rehearsal confirms assets, gameplay, snapshot/restore,
+- [x] A clean-session rehearsal confirms assets, gameplay, snapshot/restore,
   and the golden experiment work on the deployed origin.
 
 ## Public repository

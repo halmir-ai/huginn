@@ -3,6 +3,8 @@
 Huginn turns a running browser game into a controlled experiment an AI agent can
 conduct while its human collaborator watches.
 
+**Live demo:** <https://halmir-ai.github.io/huginn/>
+
 Canvas games hide their meaningful state from the DOM: the current board, legal
 moves, economy, RNG state, and save timeline live in JavaScript memory. Huginn
 exposes that state through WebMCP as bounded, typed tools. An agent can inspect
