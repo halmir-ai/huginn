@@ -5,6 +5,8 @@
 Make one idea unforgettable in under three minutes: Huginn lets a designer ask
 an agent to run a controlled experiment on live canvas-game state, watch every
 action happen, and compare counterfactuals from the same snapshot and RNG seed.
+The same contract works when retrofitted onto an existing game and when designed
+into a new agent-built game from the start.
 
 Target runtime is 2:35–2:45. The hard limit is three minutes, but the edit should
 not depend on the final seconds. The working product must appear in the first
@@ -34,14 +36,14 @@ for seeing what does not land and recording it again.
   visibly. No logo animation, setup, live typing, or terminal.
 - On-screen promise: “Controlled playtests on live browser-game state.”
 
-### 0:12–0:28 — Problem
+### 0:12–0:26 — Problem
 
 - Explain that a canvas exposes pixels, not the live board, legal moves, economy,
   RNG state, or save timeline an agent needs.
 - Show one brief before/after contrast: opaque canvas versus Huginn's structured
   state and legal actions.
 
-### 0:28–1:22 — Complete experiment
+### 0:26–1:17 — Existing-game experiment
 
 - Let the agent call `describe_game` and obtain metric semantics.
 - Show `list_legal_actions`; make the anti-hallucination constraint explicit.
@@ -50,7 +52,7 @@ for seeing what does not land and recording it again.
 - Keep the UI framed around the game, current tool, turn, and key metric. Avoid
   scrolling through raw JSON.
 
-### 1:22–2:05 — Counterfactual and proof
+### 1:17–1:51 — Counterfactual and proof
 
 - Snapshot the same live state, run opening A, restore, then run opening B with
   identical seed and conditions.
@@ -58,7 +60,18 @@ for seeing what does not land and recording it again.
 - Show matching replay checksums and one meaningful divergence in the chosen
   metric. Explain what the designer learned in a single sentence.
 
-### 2:05–2:30 — Why WebMCP
+### 1:51–2:19 — Born agent-legible
+
+- Cut to Brawl Lab, a new three-exchange game built with the Huginn contract
+  from its first reducer and clearly identified as new hackathon-period code.
+- Use the same `describe_game`, `list_legal_actions`,
+  `apply_action_sequence`, `snapshot`, and `restore` tools.
+- Show one fast branch comparison that exposes a dominant action and verifies a
+  better counter-policy. Keep this to one visual payoff, not a second tutorial.
+- Briefly label the accepted Tankard art as reused assets with documented
+  provenance; the game, adapter, and WebMCP work are new.
+
+### 2:19–2:34 — Why WebMCP
 
 - Show the seven registered WebMCP tools in the supported browser and a tight
   code crop around `document.modelContext.registerTool`.
@@ -67,11 +80,11 @@ for seeing what does not land and recording it again.
 - Mention bounded actions, cancellation, snapshot fidelity, and deterministic
   replay as visible trust features—not as an architecture inventory.
 
-### 2:30–2:40 — Close
+### 2:34–2:42 — Close
 
 - Return to the result, not a README.
-- Closing line: “Huginn turns a game an agent can only see into an experiment a
-  designer and agent can run together.”
+- Closing line: “Retrofit it or build with it—Huginn turns a browser game into
+  an experiment a designer and agent can run together.”
 - Show project name, live URL, and public repository briefly.
 
 ## Capture and edit standard
@@ -102,9 +115,12 @@ Every spoken claim needs a visible receipt:
 | The comparison is controlled | Same snapshot, seed, stop rule, and action inputs |
 | A replay is deterministic | Matching per-step events, metrics, and checksums |
 | WebMCP is essential | Live tool invocation plus registered-tool code |
+| The contract generalizes | Same named tools running against both real adapters |
+| Brawl Lab is new work | Hackathon-dated source history plus provenance notes |
 
-Do not claim multi-game generality unless a second real adapter is working and
-shown after the first complete cut. Do not call the fixture a finished game.
+Do not claim multi-game generality unless Brawl Lab passes the two-game scope
+fuse and both adapters work in the production browser. Do not call the fixture
+a finished game or imply WebMCP itself edits source code.
 
 ## Review gates
 
