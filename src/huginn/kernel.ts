@@ -165,8 +165,19 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     this.runningRequestId = input.request_id;
     try {
       const currentChecksum = await this.currentChecksum();
-      if (input.expected_base_checksum && input.expected_base_checksum !== currentChecksum) {
-        throw new Error("The live game changed since the caller inspected it.");
+      if (input.expected_base_checksum) {
+        let actualBaseChecksum = currentChecksum;
+        if (input.base_snapshot_id) {
+          const baseSnapshot = this.snapshots.get(input.base_snapshot_id);
+          if (!baseSnapshot) throw new Error(`Unknown snapshot: ${input.base_snapshot_id}`);
+          actualBaseChecksum = await checksum(baseSnapshot.value);
+          if (actualBaseChecksum !== baseSnapshot.checksum) {
+            throw new Error(`Snapshot checksum mismatch: ${input.base_snapshot_id}`);
+          }
+        }
+        if (input.expected_base_checksum !== actualBaseChecksum) {
+          throw new Error("The experiment base changed since the caller inspected it.");
+        }
       }
 
       const rollback = await this.createSnapshot();

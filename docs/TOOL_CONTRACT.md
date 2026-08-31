@@ -23,6 +23,11 @@ set for the then-current state. On cancellation, a stop condition, or an invalid
 action, the exact successful prefix remains committed and is returned. Huginn
 auto-snapshots the base state so the user can undo or branch deliberately.
 
+When a sequence names `base_snapshot_id`, `expected_base_checksum` guards that
+snapshot rather than whatever branch currently happens to be rendered. This is
+what permits several counterfactuals to start from one verified base after an
+earlier branch has changed the live state.
+
 The first release caps a request at 50 actions and a visible speed of 80–250 ms
 per step. Tool schemas reject unknown properties and do not accept executable
 predicates, DOM selectors, URLs, or external I/O.

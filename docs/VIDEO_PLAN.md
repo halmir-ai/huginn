@@ -62,14 +62,15 @@ for seeing what does not land and recording it again.
 
 ### 1:51–2:19 — Born agent-legible
 
-- Cut to Brawl Lab, a new three-exchange game built with the Huginn contract
-  from its first reducer and clearly identified as new hackathon-period code.
+- Cut to RTS Lab, a new 16×12 strategy game built with the Huginn contract from
+  its first reducer and clearly identified as new hackathon-period code.
 - Use the same `describe_game`, `list_legal_actions`,
   `apply_action_sequence`, `snapshot`, and `restore` tools.
-- Show one fast branch comparison that exposes a dominant action and verifies a
-  better counter-policy. Keep this to one visual payoff, not a second tutorial.
-- Briefly label the accepted Tankard art as reused assets with documented
-  provenance; the game, adapter, and WebMCP work are new.
+- Show one fast economy-first versus military-rush comparison that exposes a
+  dominant build order and verifies a balance change from the same seed. Keep
+  this to one visual payoff, not a second tutorial.
+- Briefly label the selected original generated strategy art as reused under
+  CC BY 4.0 with documented provenance; game, adapter, and WebMCP work are new.
 
 ### 2:19–2:34 — Why WebMCP
 
@@ -116,9 +117,9 @@ Every spoken claim needs a visible receipt:
 | A replay is deterministic | Matching per-step events, metrics, and checksums |
 | WebMCP is essential | Live tool invocation plus registered-tool code |
 | The contract generalizes | Same named tools running against both real adapters |
-| Brawl Lab is new work | Hackathon-dated source history plus provenance notes |
+| RTS Lab is new work | Hackathon-dated source history plus provenance notes |
 
-Do not claim multi-game generality unless Brawl Lab passes the two-game scope
+Do not claim multi-game generality unless RTS Lab passes the two-game scope
 fuse and both adapters work in the production browser. Do not call the fixture
 a finished game or imply WebMCP itself edits source code.
 

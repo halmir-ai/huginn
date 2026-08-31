@@ -9,6 +9,8 @@ useful to a human game designer.
 ## Product boundary
 
 - Dawn of People is the hero integration.
+- RTS Lab is the conditional greenfield proof and must reuse the same core tools;
+  it never grows into a full RTS or a Battle Craft port.
 - The deterministic kernel is authoritative; rendering never mutates sim state.
 - Every mutation must validate against the current legal-action set.
 - WebMCP sequences use prefix semantics: stop before the first invalid action and
@@ -17,6 +19,8 @@ useful to a human game designer.
   simulation transition.
 - Keep tool inputs bounded and closed-schema. Do not accept code, selectors,
   arbitrary predicates, URLs, filesystem paths, or network targets.
+- Code is MIT. Only explicitly selected, hashed, provenance-tracked art under
+  `public/assets/rts-lab/` is licensed CC BY 4.0.
 
 ## Verify
 
