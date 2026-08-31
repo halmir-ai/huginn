@@ -1,0 +1,25 @@
+{
+  "name": "@halmir/huginn",
+  "version": "0.1.0",
+  "description": "Visible, deterministic in-browser game experiments through WebMCP.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "tsc --noEmit && vitest run"
+  },
+  "keywords": [
+    "webmcp",
+    "game-development",
+    "playtesting",
+    "determinism"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
+  }
+}
