@@ -8,13 +8,14 @@ useful to a human game designer.
 
 ## Product boundary
 
-- RTS Lab is the working strategy example; Tideglass Relay is the integrated
-  logistics example. Dawn remains a future
-  retrofit, not a shipped integration. Neither sample grows into a full RTS
-  or a Battle Craft port.
-- All examples reuse the same kernel and seven WebMCP tools. The `webmcp=off`
-  comparison mode disables registration only; ordinary human controls and
-  game rules remain equivalent. Page-command counts are not model tokens.
+- RTS Lab and Tideglass retain historical experiments. Emberfall and Ironwood
+  were rejected as submission candidates after owner review. Current game-first
+  candidates are COIL (evolved Snake) and STARFALL (three-ball pinball). Human
+  playability must pass before paired feature-authoring trials begin.
+- Integrated examples reuse the same kernel and seven WebMCP tools. Arcade
+  `/plain/` builds exclude the protocol runtime entirely; the older `webmcp=off`
+  pilot disables registration only. Do not conflate these controls.
+  Page-command counts are not model tokens or feature-authoring measurements.
 - The deterministic kernel is authoritative; rendering never mutates sim state.
 - Every mutation must validate against the current legal-action set.
 - WebMCP sequences use prefix semantics: stop before the first invalid action and

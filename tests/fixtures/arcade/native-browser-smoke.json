@@ -1,0 +1,2838 @@
+{
+  "format": "huginn/arcade-native-browser-smoke-v1",
+  "browser": "Codex in-app browser",
+  "baseUrl": "http://127.0.0.1:4195",
+  "measurement": "Native WebMCP correctness smoke; not an efficiency or token comparison",
+  "coil": [
+    {
+      "name": "describe_game",
+      "input": {},
+      "result": {
+        "capabilities": {
+          "cancellation": true,
+          "maxActionsPerSequence": 50,
+          "seededReplay": true,
+          "sequenceSemantics": "committed-prefix",
+          "snapshotLimit": 12,
+          "snapshotRetention": "latest-explicit-checkpoint",
+          "snapshots": true,
+          "visibleExecution": true
+        },
+        "current": {
+          "checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+          "legalActionCount": 5,
+          "metrics": {
+            "alive": true,
+            "bonusStepsLeft": 0,
+            "bonusesEaten": 0,
+            "foodsEaten": 0,
+            "length": 5,
+            "level": 1,
+            "score": 0,
+            "stepDurationMs": 148,
+            "tick": 0
+          },
+          "seed": 12
+        },
+        "game": {
+          "actions": [
+            {
+              "description": "Queue one perpendicular direction for the next cell. Advance before turning again.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "direction": {
+                    "enum": [
+                      "n",
+                      "e",
+                      "s",
+                      "w"
+                    ],
+                    "type": "string"
+                  },
+                  "type": {
+                    "const": "turn"
+                  }
+                },
+                "required": [
+                  "type",
+                  "direction"
+                ],
+                "type": "object"
+              },
+              "type": "turn"
+            },
+            {
+              "description": "Advance 1, 5, or 10 fixed cells in the chosen direction, stopping at death.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "steps": {
+                    "enum": [
+                      1,
+                      5,
+                      10
+                    ],
+                    "type": "integer"
+                  },
+                  "type": {
+                    "const": "advance"
+                  }
+                },
+                "required": [
+                  "type",
+                  "steps"
+                ],
+                "type": "object"
+              },
+              "type": "advance"
+            }
+          ],
+          "failureConditions": [
+            "The head enters a wall or an occupied body cell, except a tail vacating on that same step."
+          ],
+          "id": "coil",
+          "metrics": [
+            {
+              "description": "10 points per coral fruit plus 50 per golden fruit.",
+              "key": "score",
+              "label": "Score"
+            },
+            {
+              "description": "Number of occupied snake cells, including the head.",
+              "key": "length",
+              "label": "Length"
+            },
+            {
+              "description": "Coral fruits eaten; each fifth fruit raises speed.",
+              "key": "foodsEaten",
+              "label": "Fruit"
+            },
+            {
+              "description": "Golden fruits collected before expiry.",
+              "key": "bonusesEaten",
+              "label": "Gold"
+            },
+            {
+              "description": "One plus the number of complete sets of five coral fruits eaten.",
+              "key": "level",
+              "label": "Speed level"
+            },
+            {
+              "description": "Human play milliseconds per fixed cell, decreasing from 148 to a minimum of 64.",
+              "key": "stepDurationMs",
+              "label": "Cell interval"
+            },
+            {
+              "description": "Fixed movement steps left before golden fruit expires; zero when absent.",
+              "key": "bonusStepsLeft",
+              "label": "Gold timer"
+            },
+            {
+              "description": "Total movement steps, including the final collision step.",
+              "key": "tick",
+              "label": "Cells attempted"
+            },
+            {
+              "badWhen": "false",
+              "description": "Whether the snake can still move.",
+              "key": "alive",
+              "label": "Alive"
+            }
+          ],
+          "rules": [
+            "Each advance moves one or more fixed cells. Turns take effect on the next cell; never reverse.",
+            "Coral fruit grows the snake by one cell and earns 10 points.",
+            "Every five coral fruits increases speed and reveals a golden fruit worth 50 points for 52 cell steps.",
+            "Golden fruit does not grow the snake. Touching a wall or your own body ends the run.",
+            "There is no score quota: chase your personal best. Pausing and animation are outside the simulation."
+          ],
+          "summary": "After-hours Snake. Stay alive, grow your coil, and risk the shortcut for gold.",
+          "title": "COIL",
+          "version": "1.0.0",
+          "victoryConditions": []
+        },
+        "protocolVersion": "huginn/experiment-v1"
+      }
+    },
+    {
+      "name": "get_game_state",
+      "input": {},
+      "result": {
+        "checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+        "state": {
+          "bonus": null,
+          "bonusesEaten": 0,
+          "death": null,
+          "direction": "e",
+          "food": {
+            "x": 8,
+            "y": 19
+          },
+          "foodsEaten": 0,
+          "pendingDirection": null,
+          "phase": "playing",
+          "rng": 1033878523,
+          "score": 0,
+          "seed": 12,
+          "snake": [
+            {
+              "x": 10,
+              "y": 11
+            },
+            {
+              "x": 9,
+              "y": 11
+            },
+            {
+              "x": 8,
+              "y": 11
+            },
+            {
+              "x": 7,
+              "y": 11
+            },
+            {
+              "x": 6,
+              "y": 11
+            }
+          ],
+          "tick": 0,
+          "version": 1
+        }
+      }
+    },
+    {
+      "name": "list_legal_actions",
+      "input": {},
+      "result": {
+        "actions": [
+          {
+            "action": {
+              "direction": "n",
+              "type": "turn"
+            },
+            "label": "Turn up",
+            "reason": "Queue a perpendicular turn for the next cell. A second turn requires advancing first."
+          },
+          {
+            "action": {
+              "direction": "s",
+              "type": "turn"
+            },
+            "label": "Turn down",
+            "reason": "Queue a perpendicular turn for the next cell. A second turn requires advancing first."
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "label": "Advance 1 cell",
+            "reason": "Move straight by fixed cells; stop immediately on collision."
+          },
+          {
+            "action": {
+              "steps": 5,
+              "type": "advance"
+            },
+            "label": "Advance 5 cells",
+            "reason": "Move straight by fixed cells; stop immediately on collision."
+          },
+          {
+            "action": {
+              "steps": 10,
+              "type": "advance"
+            },
+            "label": "Advance 10 cells",
+            "reason": "Move straight by fixed cells; stop immediately on collision."
+          }
+        ],
+        "checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5"
+      }
+    },
+    {
+      "name": "snapshot_game",
+      "input": {},
+      "result": {
+        "checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+        "format": "huginn/canonical-state-v1",
+        "id": "snapshot-1-2806f87cb4",
+        "seed": 12,
+        "value": {
+          "bonus": null,
+          "bonusesEaten": 0,
+          "death": null,
+          "direction": "e",
+          "food": {
+            "x": 8,
+            "y": 19
+          },
+          "foodsEaten": 0,
+          "pendingDirection": null,
+          "phase": "playing",
+          "rng": 1033878523,
+          "score": 0,
+          "seed": 12,
+          "snake": [
+            {
+              "x": 10,
+              "y": 11
+            },
+            {
+              "x": 9,
+              "y": 11
+            },
+            {
+              "x": 8,
+              "y": 11
+            },
+            {
+              "x": 7,
+              "y": 11
+            },
+            {
+              "x": 6,
+              "y": 11
+            }
+          ],
+          "tick": 0,
+          "version": 1
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "arcade-native-coil-food",
+        "base_snapshot_id": "snapshot-1-2806f87cb4",
+        "expected_base_checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+        "actions": [
+          {
+            "type": "turn",
+            "direction": "s"
+          },
+          {
+            "type": "advance",
+            "steps": 5
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "turn",
+            "direction": "w"
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          }
+        ],
+        "speed": "watch"
+      },
+      "result": {
+        "appliedSteps": 8,
+        "finalChecksum": "8347a00860a06fdf11418ac5046a9d3e0d10972f7a649d0d3d56f15111ce8779",
+        "metrics": {
+          "alive": true,
+          "bonusStepsLeft": 0,
+          "bonusesEaten": 0,
+          "foodsEaten": 1,
+          "length": 6,
+          "level": 1,
+          "score": 10,
+          "stepDurationMs": 148,
+          "tick": 10
+        },
+        "requestId": "arcade-native-coil-food",
+        "rollbackSnapshotId": "snapshot-2-2806f87cb4",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "direction": "s",
+              "type": "turn"
+            },
+            "afterChecksum": "6c426f91dfb821ace9b6d3d7375eb728150aade95d05d4aa34e4d021f68ad5aa",
+            "beforeChecksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+            "events": [],
+            "index": 0,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 0
+            }
+          },
+          {
+            "action": {
+              "steps": 5,
+              "type": "advance"
+            },
+            "afterChecksum": "7f388ad49cb2ebc536e2f74264ee4158930008164d637fa52b9af9db6b109697",
+            "beforeChecksum": "6c426f91dfb821ace9b6d3d7375eb728150aade95d05d4aa34e4d021f68ad5aa",
+            "events": [],
+            "index": 1,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 5
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "2ea4eb317b35f93ff2d7df498f37a006f6f490feea09840e1df98ad67264e7b2",
+            "beforeChecksum": "7f388ad49cb2ebc536e2f74264ee4158930008164d637fa52b9af9db6b109697",
+            "events": [],
+            "index": 2,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 6
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "1108b69d5fc1170c3ff2bf5b13fa9823aae58fdb5ffccff3c88e2723c9311e98",
+            "beforeChecksum": "2ea4eb317b35f93ff2d7df498f37a006f6f490feea09840e1df98ad67264e7b2",
+            "events": [],
+            "index": 3,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 7
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "e2257c7fdd93a65b60463075e6b7a638c8f7b64e241a6ac3a72edf58e7520a34",
+            "beforeChecksum": "1108b69d5fc1170c3ff2bf5b13fa9823aae58fdb5ffccff3c88e2723c9311e98",
+            "events": [],
+            "index": 4,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 8
+            }
+          },
+          {
+            "action": {
+              "direction": "w",
+              "type": "turn"
+            },
+            "afterChecksum": "8f7a03740328950c58ece3442b6b087d3df40a340fc5f04acea9de82e9e2589d",
+            "beforeChecksum": "e2257c7fdd93a65b60463075e6b7a638c8f7b64e241a6ac3a72edf58e7520a34",
+            "events": [],
+            "index": 5,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 8
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "07a54fa769d4813df592a8dce574b8e419b4ba6d510f797e98a954a2d5174967",
+            "beforeChecksum": "8f7a03740328950c58ece3442b6b087d3df40a340fc5f04acea9de82e9e2589d",
+            "events": [],
+            "index": 6,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 9
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "8347a00860a06fdf11418ac5046a9d3e0d10972f7a649d0d3d56f15111ce8779",
+            "beforeChecksum": "07a54fa769d4813df592a8dce574b8e419b4ba6d510f797e98a954a2d5174967",
+            "events": [
+              {
+                "points": 10,
+                "type": "food",
+                "x": 8,
+                "y": 19
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 1,
+              "length": 6,
+              "level": 1,
+              "score": 10,
+              "stepDurationMs": 148,
+              "tick": 10
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      }
+    },
+    {
+      "name": "get_metrics",
+      "input": {},
+      "result": {
+        "checksum": "8347a00860a06fdf11418ac5046a9d3e0d10972f7a649d0d3d56f15111ce8779",
+        "metrics": {
+          "alive": true,
+          "bonusStepsLeft": 0,
+          "bonusesEaten": 0,
+          "foodsEaten": 1,
+          "length": 6,
+          "level": 1,
+          "score": 10,
+          "stepDurationMs": 148,
+          "tick": 10
+        }
+      }
+    },
+    {
+      "name": "restore_game",
+      "input": {
+        "snapshot_id": "snapshot-1-2806f87cb4",
+        "expected_checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5"
+      },
+      "result": {
+        "checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+        "id": "snapshot-1-2806f87cb4",
+        "metrics": {
+          "alive": true,
+          "bonusStepsLeft": 0,
+          "bonusesEaten": 0,
+          "foodsEaten": 0,
+          "length": 5,
+          "level": 1,
+          "score": 0,
+          "stepDurationMs": 148,
+          "tick": 0
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "arcade-native-coil-fresh",
+        "seed": 12,
+        "actions": [
+          {
+            "type": "turn",
+            "direction": "s"
+          },
+          {
+            "type": "advance",
+            "steps": 5
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "turn",
+            "direction": "w"
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          }
+        ],
+        "speed": "fast"
+      },
+      "result": {
+        "appliedSteps": 8,
+        "finalChecksum": "8347a00860a06fdf11418ac5046a9d3e0d10972f7a649d0d3d56f15111ce8779",
+        "metrics": {
+          "alive": true,
+          "bonusStepsLeft": 0,
+          "bonusesEaten": 0,
+          "foodsEaten": 1,
+          "length": 6,
+          "level": 1,
+          "score": 10,
+          "stepDurationMs": 148,
+          "tick": 10
+        },
+        "requestId": "arcade-native-coil-fresh",
+        "rollbackSnapshotId": "snapshot-3-2806f87cb4",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "direction": "s",
+              "type": "turn"
+            },
+            "afterChecksum": "6c426f91dfb821ace9b6d3d7375eb728150aade95d05d4aa34e4d021f68ad5aa",
+            "beforeChecksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+            "events": [],
+            "index": 0,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 0
+            }
+          },
+          {
+            "action": {
+              "steps": 5,
+              "type": "advance"
+            },
+            "afterChecksum": "7f388ad49cb2ebc536e2f74264ee4158930008164d637fa52b9af9db6b109697",
+            "beforeChecksum": "6c426f91dfb821ace9b6d3d7375eb728150aade95d05d4aa34e4d021f68ad5aa",
+            "events": [],
+            "index": 1,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 5
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "2ea4eb317b35f93ff2d7df498f37a006f6f490feea09840e1df98ad67264e7b2",
+            "beforeChecksum": "7f388ad49cb2ebc536e2f74264ee4158930008164d637fa52b9af9db6b109697",
+            "events": [],
+            "index": 2,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 6
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "1108b69d5fc1170c3ff2bf5b13fa9823aae58fdb5ffccff3c88e2723c9311e98",
+            "beforeChecksum": "2ea4eb317b35f93ff2d7df498f37a006f6f490feea09840e1df98ad67264e7b2",
+            "events": [],
+            "index": 3,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 7
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "e2257c7fdd93a65b60463075e6b7a638c8f7b64e241a6ac3a72edf58e7520a34",
+            "beforeChecksum": "1108b69d5fc1170c3ff2bf5b13fa9823aae58fdb5ffccff3c88e2723c9311e98",
+            "events": [],
+            "index": 4,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 8
+            }
+          },
+          {
+            "action": {
+              "direction": "w",
+              "type": "turn"
+            },
+            "afterChecksum": "8f7a03740328950c58ece3442b6b087d3df40a340fc5f04acea9de82e9e2589d",
+            "beforeChecksum": "e2257c7fdd93a65b60463075e6b7a638c8f7b64e241a6ac3a72edf58e7520a34",
+            "events": [],
+            "index": 5,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 8
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "07a54fa769d4813df592a8dce574b8e419b4ba6d510f797e98a954a2d5174967",
+            "beforeChecksum": "8f7a03740328950c58ece3442b6b087d3df40a340fc5f04acea9de82e9e2589d",
+            "events": [],
+            "index": 6,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 9
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "8347a00860a06fdf11418ac5046a9d3e0d10972f7a649d0d3d56f15111ce8779",
+            "beforeChecksum": "07a54fa769d4813df592a8dce574b8e419b4ba6d510f797e98a954a2d5174967",
+            "events": [
+              {
+                "points": 10,
+                "type": "food",
+                "x": 8,
+                "y": 19
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 1,
+              "length": 6,
+              "level": 1,
+              "score": 10,
+              "stepDurationMs": 148,
+              "tick": 10
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      }
+    },
+    {
+      "name": "snapshot_game",
+      "input": {},
+      "result": {
+        "checksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+        "format": "huginn/canonical-state-v1",
+        "id": "snapshot-1-2806f87cb4",
+        "seed": 12,
+        "value": {
+          "bonus": null,
+          "bonusesEaten": 0,
+          "death": null,
+          "direction": "e",
+          "food": {
+            "x": 8,
+            "y": 19
+          },
+          "foodsEaten": 0,
+          "pendingDirection": null,
+          "phase": "playing",
+          "rng": 1033878523,
+          "score": 0,
+          "seed": 12,
+          "snake": [
+            {
+              "x": 10,
+              "y": 11
+            },
+            {
+              "x": 9,
+              "y": 11
+            },
+            {
+              "x": 8,
+              "y": 11
+            },
+            {
+              "x": 7,
+              "y": 11
+            },
+            {
+              "x": 6,
+              "y": 11
+            }
+          ],
+          "tick": 0,
+          "version": 1
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "arcade-takeover-food",
+        "seed": 12,
+        "actions": [
+          {
+            "type": "turn",
+            "direction": "s"
+          },
+          {
+            "type": "advance",
+            "steps": 5
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "turn",
+            "direction": "w"
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          },
+          {
+            "type": "advance",
+            "steps": 1
+          }
+        ],
+        "speed": "fast"
+      },
+      "result": {
+        "appliedSteps": 8,
+        "finalChecksum": "8347a00860a06fdf11418ac5046a9d3e0d10972f7a649d0d3d56f15111ce8779",
+        "metrics": {
+          "alive": true,
+          "bonusStepsLeft": 0,
+          "bonusesEaten": 0,
+          "foodsEaten": 1,
+          "length": 6,
+          "level": 1,
+          "score": 10,
+          "stepDurationMs": 148,
+          "tick": 10
+        },
+        "requestId": "arcade-takeover-food",
+        "rollbackSnapshotId": "snapshot-2-2806f87cb4",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "direction": "s",
+              "type": "turn"
+            },
+            "afterChecksum": "6c426f91dfb821ace9b6d3d7375eb728150aade95d05d4aa34e4d021f68ad5aa",
+            "beforeChecksum": "2806f87cb46da299e8ef3631ea98be1a5ef21a7c4cdb54bb652338691f9e9fb5",
+            "events": [],
+            "index": 0,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 0
+            }
+          },
+          {
+            "action": {
+              "steps": 5,
+              "type": "advance"
+            },
+            "afterChecksum": "7f388ad49cb2ebc536e2f74264ee4158930008164d637fa52b9af9db6b109697",
+            "beforeChecksum": "6c426f91dfb821ace9b6d3d7375eb728150aade95d05d4aa34e4d021f68ad5aa",
+            "events": [],
+            "index": 1,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 5
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "2ea4eb317b35f93ff2d7df498f37a006f6f490feea09840e1df98ad67264e7b2",
+            "beforeChecksum": "7f388ad49cb2ebc536e2f74264ee4158930008164d637fa52b9af9db6b109697",
+            "events": [],
+            "index": 2,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 6
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "1108b69d5fc1170c3ff2bf5b13fa9823aae58fdb5ffccff3c88e2723c9311e98",
+            "beforeChecksum": "2ea4eb317b35f93ff2d7df498f37a006f6f490feea09840e1df98ad67264e7b2",
+            "events": [],
+            "index": 3,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 7
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "e2257c7fdd93a65b60463075e6b7a638c8f7b64e241a6ac3a72edf58e7520a34",
+            "beforeChecksum": "1108b69d5fc1170c3ff2bf5b13fa9823aae58fdb5ffccff3c88e2723c9311e98",
+            "events": [],
+            "index": 4,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 8
+            }
+          },
+          {
+            "action": {
+              "direction": "w",
+              "type": "turn"
+            },
+            "afterChecksum": "8f7a03740328950c58ece3442b6b087d3df40a340fc5f04acea9de82e9e2589d",
+            "beforeChecksum": "e2257c7fdd93a65b60463075e6b7a638c8f7b64e241a6ac3a72edf58e7520a34",
+            "events": [],
+            "index": 5,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 8
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "07a54fa769d4813df592a8dce574b8e419b4ba6d510f797e98a954a2d5174967",
+            "beforeChecksum": "8f7a03740328950c58ece3442b6b087d3df40a340fc5f04acea9de82e9e2589d",
+            "events": [],
+            "index": 6,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 0,
+              "length": 5,
+              "level": 1,
+              "score": 0,
+              "stepDurationMs": 148,
+              "tick": 9
+            }
+          },
+          {
+            "action": {
+              "steps": 1,
+              "type": "advance"
+            },
+            "afterChecksum": "8347a00860a06fdf11418ac5046a9d3e0d10972f7a649d0d3d56f15111ce8779",
+            "beforeChecksum": "07a54fa769d4813df592a8dce574b8e419b4ba6d510f797e98a954a2d5174967",
+            "events": [
+              {
+                "points": 10,
+                "type": "food",
+                "x": 8,
+                "y": 19
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "alive": true,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 1,
+              "length": 6,
+              "level": 1,
+              "score": 10,
+              "stepDurationMs": 148,
+              "tick": 10
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "arcade-agent-collision",
+        "actions": [
+          {
+            "type": "advance",
+            "steps": 10
+          }
+        ],
+        "speed": "fast"
+      },
+      "result": {
+        "appliedSteps": 1,
+        "finalChecksum": "f5e2a4d4ddd41fd081f77a80f70ea724460a5ceab3b21492e1fc177b3425544b",
+        "metrics": {
+          "alive": false,
+          "bonusStepsLeft": 0,
+          "bonusesEaten": 0,
+          "foodsEaten": 1,
+          "length": 6,
+          "level": 1,
+          "score": 10,
+          "stepDurationMs": 148,
+          "tick": 19
+        },
+        "requestId": "arcade-agent-collision",
+        "rollbackSnapshotId": "snapshot-4-518c8b0e2b",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "steps": 10,
+              "type": "advance"
+            },
+            "afterChecksum": "f5e2a4d4ddd41fd081f77a80f70ea724460a5ceab3b21492e1fc177b3425544b",
+            "beforeChecksum": "518c8b0e2b8f58c54755202c0d27ba5e87cf7f5741e0dfbf23e8e22786ce267e",
+            "events": [
+              {
+                "cause": "wall",
+                "type": "death",
+                "x": -1,
+                "y": 19
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "alive": false,
+              "bonusStepsLeft": 0,
+              "bonusesEaten": 0,
+              "foodsEaten": 1,
+              "length": 6,
+              "level": 1,
+              "score": 10,
+              "stepDurationMs": 148,
+              "tick": 19
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      }
+    }
+  ],
+  "starfall": [
+    {
+      "name": "describe_game",
+      "input": {},
+      "result": {
+        "capabilities": {
+          "cancellation": true,
+          "maxActionsPerSequence": 50,
+          "seededReplay": true,
+          "sequenceSemantics": "committed-prefix",
+          "snapshotLimit": 12,
+          "snapshotRetention": "latest-explicit-checkpoint",
+          "snapshots": true,
+          "visibleExecution": true
+        },
+        "current": {
+          "checksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec",
+          "legalActionCount": 1,
+          "metrics": {
+            "ballsRemaining": 3,
+            "bumperHits": 0,
+            "drains": 0,
+            "flipperHits": 0,
+            "lights": 0,
+            "maxSpeed": 0,
+            "multiplier": 1,
+            "phase": "ready",
+            "score": 0,
+            "simulationSeconds": 0,
+            "slingHits": 0
+          },
+          "seed": 12
+        },
+        "game": {
+          "actions": [
+            {
+              "description": "Release the spring plunger when a ball is waiting in the shooter lane.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "const": "launch"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "launch"
+            },
+            {
+              "description": "Advance 4, 15, or 30 fixed 1/120-second physics frames with the chosen flippers held. Input only moves the physical bats.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "frames": {
+                    "enum": [
+                      4,
+                      15,
+                      30
+                    ],
+                    "type": "integer"
+                  },
+                  "left": {
+                    "type": "boolean"
+                  },
+                  "right": {
+                    "type": "boolean"
+                  },
+                  "type": {
+                    "const": "advance"
+                  }
+                },
+                "required": [
+                  "type",
+                  "frames",
+                  "left",
+                  "right"
+                ],
+                "type": "object"
+              },
+              "type": "advance"
+            }
+          ],
+          "failureConditions": [
+            "The third ball drains and the session ends."
+          ],
+          "id": "starfall",
+          "metrics": [
+            {
+              "description": "Points earned from physical bumper and slingshot contacts and completed light banks.",
+              "key": "score",
+              "label": "Score"
+            },
+            {
+              "description": "Includes the current ball; starts at three and decreases at each drain.",
+              "key": "ballsRemaining",
+              "label": "Balls left"
+            },
+            {
+              "description": "Current scoring multiplier, raised by lighting all three bumpers.",
+              "key": "multiplier",
+              "label": "Multiplier"
+            },
+            {
+              "description": "Approaching, cooldown-ready physical bumper contacts.",
+              "key": "bumperHits",
+              "label": "Bumper hits"
+            },
+            {
+              "description": "Physical bat contacts changing ball velocity by at least 40 table units/s. Button presses and tiny resting corrections do not count.",
+              "key": "flipperHits",
+              "label": "Flipper impacts"
+            },
+            {
+              "description": "Balls that crossed the bottom drain.",
+              "key": "drains",
+              "label": "Drains"
+            },
+            {
+              "description": "Fixed physics time; excludes waiting at the plunger and pause time.",
+              "key": "simulationSeconds",
+              "label": "Play time"
+            },
+            {
+              "description": "Highest simulated ball speed in table units per second, capped at 1600 for collision stability.",
+              "key": "maxSpeed",
+              "label": "Peak speed"
+            }
+          ],
+          "rules": [
+            "Launch from the shooter lane. Time the left and right flippers to keep the ball in play.",
+            "Each bumper scores 100 times the multiplier. Light all three to raise it, up to 5×, and collect a constellation bonus.",
+            "Slingshots score 25 times the multiplier. Scores and multiplier carry across three balls.",
+            "A ball passing below the table drains. Launch the next ball manually. The game ends after the third drain."
+          ],
+          "summary": "A three-ball space-age pinball table. Physical flippers, live bumpers, and one more high-score chase.",
+          "title": "STARFALL",
+          "version": "1.0.0",
+          "victoryConditions": [
+            "There is no fixed win quota. Finish a three-ball session and try to beat your best score."
+          ]
+        },
+        "protocolVersion": "huginn/experiment-v1"
+      }
+    },
+    {
+      "name": "get_game_state",
+      "input": {},
+      "result": {
+        "checksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec",
+        "state": {
+          "ball": {
+            "vx": 0,
+            "vy": 0,
+            "x": 510,
+            "y": 712
+          },
+          "ballsRemaining": 3,
+          "bumperCooldowns": [
+            0,
+            0,
+            0
+          ],
+          "bumperLights": [
+            false,
+            false,
+            false
+          ],
+          "flippers": {
+            "leftAngle": 0.4,
+            "leftHeld": false,
+            "rightAngle": 2.741592653589793,
+            "rightHeld": false
+          },
+          "lastBankTick": -360,
+          "lastEvent": "Launch your first ball",
+          "lastScoreTick": -120,
+          "multiplier": 1,
+          "phase": "ready",
+          "score": 0,
+          "seed": 12,
+          "slingCooldowns": [
+            0,
+            0
+          ],
+          "stats": {
+            "bumperHits": 0,
+            "drains": 0,
+            "flipperHits": 0,
+            "launches": 0,
+            "maxSpeed": 0,
+            "slingHits": 0,
+            "wallHits": 0
+          },
+          "tick": 0
+        }
+      }
+    },
+    {
+      "name": "list_legal_actions",
+      "input": {},
+      "result": {
+        "actions": [
+          {
+            "action": {
+              "type": "launch"
+            },
+            "label": "Launch ball",
+            "reason": "The ball is resting in the shooter lane."
+          }
+        ],
+        "checksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec"
+      }
+    },
+    {
+      "name": "snapshot_game",
+      "input": {},
+      "result": {
+        "checksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec",
+        "format": "huginn/canonical-state-v1",
+        "id": "snapshot-1-e482bcf350",
+        "seed": 12,
+        "value": {
+          "ball": {
+            "vx": 0,
+            "vy": 0,
+            "x": 510,
+            "y": 712
+          },
+          "ballsRemaining": 3,
+          "bumperCooldowns": [
+            0,
+            0,
+            0
+          ],
+          "bumperLights": [
+            false,
+            false,
+            false
+          ],
+          "flippers": {
+            "leftAngle": 0.4,
+            "leftHeld": false,
+            "rightAngle": 2.741592653589793,
+            "rightHeld": false
+          },
+          "lastBankTick": -360,
+          "lastEvent": "Launch your first ball",
+          "lastScoreTick": -120,
+          "multiplier": 1,
+          "phase": "ready",
+          "score": 0,
+          "seed": 12,
+          "slingCooldowns": [
+            0,
+            0
+          ],
+          "stats": {
+            "bumperHits": 0,
+            "drains": 0,
+            "flipperHits": 0,
+            "launches": 0,
+            "maxSpeed": 0,
+            "slingHits": 0,
+            "wallHits": 0
+          },
+          "tick": 0
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "arcade-native-starfall-play",
+        "base_snapshot_id": "snapshot-1-e482bcf350",
+        "expected_base_checksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec",
+        "actions": [
+          {
+            "type": "launch"
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          }
+        ],
+        "stop_when": {
+          "metric": "drains",
+          "operator": "gte",
+          "value": 1
+        },
+        "speed": "watch"
+      },
+      "result": {
+        "appliedSteps": 16,
+        "finalChecksum": "87c42fca97a2bf7ccde33f1ac4b9947363a9ea31cfabcfa5887b3cf3defb93e6",
+        "metrics": {
+          "ballsRemaining": 2,
+          "bumperHits": 4,
+          "drains": 1,
+          "flipperHits": 0,
+          "lights": 2,
+          "maxSpeed": 1096,
+          "multiplier": 1,
+          "phase": "ready",
+          "score": 425,
+          "simulationSeconds": 3.6,
+          "slingHits": 1
+        },
+        "requestId": "arcade-native-starfall-play",
+        "rollbackSnapshotId": "snapshot-2-e482bcf350",
+        "status": "stopped",
+        "steps": [
+          {
+            "action": {
+              "type": "launch"
+            },
+            "afterChecksum": "3f9b7db8bb4ebb2db0d47114c9ece69cb24da8c9e94014ecf7775c592a94fedb",
+            "beforeChecksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec",
+            "events": [
+              {
+                "tick": 0,
+                "type": "launch",
+                "value": 1,
+                "x": 510,
+                "y": 712
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 0,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "1b1e02722aecb5cfe5f7cb5bc663206947404a1b01ebbb40c266d81a3b348bd5",
+            "beforeChecksum": "3f9b7db8bb4ebb2db0d47114c9ece69cb24da8c9e94014ecf7775c592a94fedb",
+            "events": [],
+            "index": 1,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0.3,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "a827f0c675d1156652b2179eac0815400a3c9a0b3d6d4286d006702f5f3efae9",
+            "beforeChecksum": "1b1e02722aecb5cfe5f7cb5bc663206947404a1b01ebbb40c266d81a3b348bd5",
+            "events": [],
+            "index": 2,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0.5,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "cf900bbf397a81c519f431f81cf44a1acd61f7e30a460830e2985bf9d5b3648d",
+            "beforeChecksum": "a827f0c675d1156652b2179eac0815400a3c9a0b3d6d4286d006702f5f3efae9",
+            "events": [],
+            "index": 3,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0.8,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "b845577eba4494b82ff3f1ca86113c870b062f76a57204d90e68fcff70535763",
+            "beforeChecksum": "cf900bbf397a81c519f431f81cf44a1acd61f7e30a460830e2985bf9d5b3648d",
+            "events": [],
+            "index": 4,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 1,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "9fdbcf8ec8117fa7e1919c27fbe7c20155b69dc8c700c99529161a47ef463a9d",
+            "beforeChecksum": "b845577eba4494b82ff3f1ca86113c870b062f76a57204d90e68fcff70535763",
+            "events": [
+              {
+                "tick": 141,
+                "type": "bumper",
+                "value": 100,
+                "x": 225.30321308836855,
+                "y": 209.43036682406972
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 1,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 1,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 100,
+              "simulationSeconds": 1.3,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "71146d4fd69fb4400d4e70f87722f20201fd857d52ff290ba0535766de4e3594",
+            "beforeChecksum": "9fdbcf8ec8117fa7e1919c27fbe7c20155b69dc8c700c99529161a47ef463a9d",
+            "events": [
+              {
+                "tick": 179,
+                "type": "bumper",
+                "value": 100,
+                "x": 365.7175698911509,
+                "y": 210.0444283017628
+              }
+            ],
+            "index": 6,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 2,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 200,
+              "simulationSeconds": 1.5,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "7daeadaceacb1e18a003b207309ccee06ca741f4061eea3c2b59ba499fc5377d",
+            "beforeChecksum": "71146d4fd69fb4400d4e70f87722f20201fd857d52ff290ba0535766de4e3594",
+            "events": [
+              {
+                "tick": 210,
+                "type": "bumper",
+                "value": 100,
+                "x": 371.90047838319066,
+                "y": 233.9485527509774
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 300,
+              "simulationSeconds": 1.8,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "a56cd1bb76132fa80d34d49b8e35ba1b05270a88ce935aa98e1ba36012ed7f1a",
+            "beforeChecksum": "7daeadaceacb1e18a003b207309ccee06ca741f4061eea3c2b59ba499fc5377d",
+            "events": [],
+            "index": 8,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 300,
+              "simulationSeconds": 2,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "841b6feb89dba7755726e7d04d3e8400d7c1df4e71e525a3505b0bb6e410a100",
+            "beforeChecksum": "a56cd1bb76132fa80d34d49b8e35ba1b05270a88ce935aa98e1ba36012ed7f1a",
+            "events": [],
+            "index": 9,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 300,
+              "simulationSeconds": 2.3,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "97c36a684f2cbbfdc610935ec537d7e596bd12807e7f6330022efe0676e71ba1",
+            "beforeChecksum": "841b6feb89dba7755726e7d04d3e8400d7c1df4e71e525a3505b0bb6e410a100",
+            "events": [
+              {
+                "tick": 285,
+                "type": "sling",
+                "value": 25,
+                "x": 144.04551620746682,
+                "y": 504.6080907879022
+              }
+            ],
+            "index": 10,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 325,
+              "simulationSeconds": 2.5,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "f0a9db9dcaa3fb2f3e3260983d38bb058777ea341c902fc56270568f1101554a",
+            "beforeChecksum": "97c36a684f2cbbfdc610935ec537d7e596bd12807e7f6330022efe0676e71ba1",
+            "events": [],
+            "index": 11,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 325,
+              "simulationSeconds": 2.8,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "a3e13ce188d5d0c08c9b220b249940c69bf75378106e83b5feb5b353cf95eeb9",
+            "beforeChecksum": "f0a9db9dcaa3fb2f3e3260983d38bb058777ea341c902fc56270568f1101554a",
+            "events": [
+              {
+                "tick": 360,
+                "type": "bumper",
+                "value": 100,
+                "x": 361.3147167677075,
+                "y": 257.43948700145137
+              }
+            ],
+            "index": 12,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 4,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 425,
+              "simulationSeconds": 3,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "636d0c0b03765aaeff311980c4a68cc9a30240702c36e8261598eec1a294f308",
+            "beforeChecksum": "a3e13ce188d5d0c08c9b220b249940c69bf75378106e83b5feb5b353cf95eeb9",
+            "events": [],
+            "index": 13,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 4,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 425,
+              "simulationSeconds": 3.3,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "9433b806c6d4ab74028ecd8a4f8e6952e202495b751bfb9c595474559ac22f96",
+            "beforeChecksum": "636d0c0b03765aaeff311980c4a68cc9a30240702c36e8261598eec1a294f308",
+            "events": [],
+            "index": 14,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 4,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 425,
+              "simulationSeconds": 3.5,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "87c42fca97a2bf7ccde33f1ac4b9947363a9ea31cfabcfa5887b3cf3defb93e6",
+            "beforeChecksum": "9433b806c6d4ab74028ecd8a4f8e6952e202495b751bfb9c595474559ac22f96",
+            "events": [
+              {
+                "tick": 436,
+                "type": "drain",
+                "value": 0,
+                "x": 373.1270051711751,
+                "y": 780.4141683901604
+              }
+            ],
+            "index": 15,
+            "metrics": {
+              "ballsRemaining": 2,
+              "bumperHits": 4,
+              "drains": 1,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "ready",
+              "score": 425,
+              "simulationSeconds": 3.6,
+              "slingHits": 1
+            }
+          }
+        ],
+        "stopReason": "stop-condition-met"
+      }
+    },
+    {
+      "name": "get_metrics",
+      "input": {},
+      "result": {
+        "checksum": "87c42fca97a2bf7ccde33f1ac4b9947363a9ea31cfabcfa5887b3cf3defb93e6",
+        "metrics": {
+          "ballsRemaining": 2,
+          "bumperHits": 4,
+          "drains": 1,
+          "flipperHits": 0,
+          "lights": 2,
+          "maxSpeed": 1096,
+          "multiplier": 1,
+          "phase": "ready",
+          "score": 425,
+          "simulationSeconds": 3.6,
+          "slingHits": 1
+        }
+      }
+    },
+    {
+      "name": "restore_game",
+      "input": {
+        "snapshot_id": "snapshot-1-e482bcf350",
+        "expected_checksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec"
+      },
+      "result": {
+        "checksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec",
+        "id": "snapshot-1-e482bcf350",
+        "metrics": {
+          "ballsRemaining": 3,
+          "bumperHits": 0,
+          "drains": 0,
+          "flipperHits": 0,
+          "lights": 0,
+          "maxSpeed": 0,
+          "multiplier": 1,
+          "phase": "ready",
+          "score": 0,
+          "simulationSeconds": 0,
+          "slingHits": 0
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "arcade-native-starfall-fresh",
+        "seed": 12,
+        "actions": [
+          {
+            "type": "launch"
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": true
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": true,
+            "right": false
+          },
+          {
+            "type": "advance",
+            "frames": 30,
+            "left": false,
+            "right": false
+          }
+        ],
+        "stop_when": {
+          "metric": "drains",
+          "operator": "gte",
+          "value": 1
+        },
+        "speed": "fast"
+      },
+      "result": {
+        "appliedSteps": 16,
+        "finalChecksum": "87c42fca97a2bf7ccde33f1ac4b9947363a9ea31cfabcfa5887b3cf3defb93e6",
+        "metrics": {
+          "ballsRemaining": 2,
+          "bumperHits": 4,
+          "drains": 1,
+          "flipperHits": 0,
+          "lights": 2,
+          "maxSpeed": 1096,
+          "multiplier": 1,
+          "phase": "ready",
+          "score": 425,
+          "simulationSeconds": 3.6,
+          "slingHits": 1
+        },
+        "requestId": "arcade-native-starfall-fresh",
+        "rollbackSnapshotId": "snapshot-3-e482bcf350",
+        "status": "stopped",
+        "steps": [
+          {
+            "action": {
+              "type": "launch"
+            },
+            "afterChecksum": "3f9b7db8bb4ebb2db0d47114c9ece69cb24da8c9e94014ecf7775c592a94fedb",
+            "beforeChecksum": "e482bcf350a3c6e425c4e43c6074771003ef790667ebccc224dca5a46b0086ec",
+            "events": [
+              {
+                "tick": 0,
+                "type": "launch",
+                "value": 1,
+                "x": 510,
+                "y": 712
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 0,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "1b1e02722aecb5cfe5f7cb5bc663206947404a1b01ebbb40c266d81a3b348bd5",
+            "beforeChecksum": "3f9b7db8bb4ebb2db0d47114c9ece69cb24da8c9e94014ecf7775c592a94fedb",
+            "events": [],
+            "index": 1,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0.3,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "a827f0c675d1156652b2179eac0815400a3c9a0b3d6d4286d006702f5f3efae9",
+            "beforeChecksum": "1b1e02722aecb5cfe5f7cb5bc663206947404a1b01ebbb40c266d81a3b348bd5",
+            "events": [],
+            "index": 2,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0.5,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "cf900bbf397a81c519f431f81cf44a1acd61f7e30a460830e2985bf9d5b3648d",
+            "beforeChecksum": "a827f0c675d1156652b2179eac0815400a3c9a0b3d6d4286d006702f5f3efae9",
+            "events": [],
+            "index": 3,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 0.8,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "b845577eba4494b82ff3f1ca86113c870b062f76a57204d90e68fcff70535763",
+            "beforeChecksum": "cf900bbf397a81c519f431f81cf44a1acd61f7e30a460830e2985bf9d5b3648d",
+            "events": [],
+            "index": 4,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 0,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 0,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 0,
+              "simulationSeconds": 1,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "9fdbcf8ec8117fa7e1919c27fbe7c20155b69dc8c700c99529161a47ef463a9d",
+            "beforeChecksum": "b845577eba4494b82ff3f1ca86113c870b062f76a57204d90e68fcff70535763",
+            "events": [
+              {
+                "tick": 141,
+                "type": "bumper",
+                "value": 100,
+                "x": 225.30321308836855,
+                "y": 209.43036682406972
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 1,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 1,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 100,
+              "simulationSeconds": 1.3,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "71146d4fd69fb4400d4e70f87722f20201fd857d52ff290ba0535766de4e3594",
+            "beforeChecksum": "9fdbcf8ec8117fa7e1919c27fbe7c20155b69dc8c700c99529161a47ef463a9d",
+            "events": [
+              {
+                "tick": 179,
+                "type": "bumper",
+                "value": 100,
+                "x": 365.7175698911509,
+                "y": 210.0444283017628
+              }
+            ],
+            "index": 6,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 2,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 200,
+              "simulationSeconds": 1.5,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "7daeadaceacb1e18a003b207309ccee06ca741f4061eea3c2b59ba499fc5377d",
+            "beforeChecksum": "71146d4fd69fb4400d4e70f87722f20201fd857d52ff290ba0535766de4e3594",
+            "events": [
+              {
+                "tick": 210,
+                "type": "bumper",
+                "value": 100,
+                "x": 371.90047838319066,
+                "y": 233.9485527509774
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 300,
+              "simulationSeconds": 1.8,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "a56cd1bb76132fa80d34d49b8e35ba1b05270a88ce935aa98e1ba36012ed7f1a",
+            "beforeChecksum": "7daeadaceacb1e18a003b207309ccee06ca741f4061eea3c2b59ba499fc5377d",
+            "events": [],
+            "index": 8,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 300,
+              "simulationSeconds": 2,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "841b6feb89dba7755726e7d04d3e8400d7c1df4e71e525a3505b0bb6e410a100",
+            "beforeChecksum": "a56cd1bb76132fa80d34d49b8e35ba1b05270a88ce935aa98e1ba36012ed7f1a",
+            "events": [],
+            "index": 9,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 300,
+              "simulationSeconds": 2.3,
+              "slingHits": 0
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "97c36a684f2cbbfdc610935ec537d7e596bd12807e7f6330022efe0676e71ba1",
+            "beforeChecksum": "841b6feb89dba7755726e7d04d3e8400d7c1df4e71e525a3505b0bb6e410a100",
+            "events": [
+              {
+                "tick": 285,
+                "type": "sling",
+                "value": 25,
+                "x": 144.04551620746682,
+                "y": 504.6080907879022
+              }
+            ],
+            "index": 10,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 325,
+              "simulationSeconds": 2.5,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "f0a9db9dcaa3fb2f3e3260983d38bb058777ea341c902fc56270568f1101554a",
+            "beforeChecksum": "97c36a684f2cbbfdc610935ec537d7e596bd12807e7f6330022efe0676e71ba1",
+            "events": [],
+            "index": 11,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 3,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 325,
+              "simulationSeconds": 2.8,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "a3e13ce188d5d0c08c9b220b249940c69bf75378106e83b5feb5b353cf95eeb9",
+            "beforeChecksum": "f0a9db9dcaa3fb2f3e3260983d38bb058777ea341c902fc56270568f1101554a",
+            "events": [
+              {
+                "tick": 360,
+                "type": "bumper",
+                "value": 100,
+                "x": 361.3147167677075,
+                "y": 257.43948700145137
+              }
+            ],
+            "index": 12,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 4,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 425,
+              "simulationSeconds": 3,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": true,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "636d0c0b03765aaeff311980c4a68cc9a30240702c36e8261598eec1a294f308",
+            "beforeChecksum": "a3e13ce188d5d0c08c9b220b249940c69bf75378106e83b5feb5b353cf95eeb9",
+            "events": [],
+            "index": 13,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 4,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 425,
+              "simulationSeconds": 3.3,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": false,
+              "type": "advance"
+            },
+            "afterChecksum": "9433b806c6d4ab74028ecd8a4f8e6952e202495b751bfb9c595474559ac22f96",
+            "beforeChecksum": "636d0c0b03765aaeff311980c4a68cc9a30240702c36e8261598eec1a294f308",
+            "events": [],
+            "index": 14,
+            "metrics": {
+              "ballsRemaining": 3,
+              "bumperHits": 4,
+              "drains": 0,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "playing",
+              "score": 425,
+              "simulationSeconds": 3.5,
+              "slingHits": 1
+            }
+          },
+          {
+            "action": {
+              "frames": 30,
+              "left": false,
+              "right": true,
+              "type": "advance"
+            },
+            "afterChecksum": "87c42fca97a2bf7ccde33f1ac4b9947363a9ea31cfabcfa5887b3cf3defb93e6",
+            "beforeChecksum": "9433b806c6d4ab74028ecd8a4f8e6952e202495b751bfb9c595474559ac22f96",
+            "events": [
+              {
+                "tick": 436,
+                "type": "drain",
+                "value": 0,
+                "x": 373.1270051711751,
+                "y": 780.4141683901604
+              }
+            ],
+            "index": 15,
+            "metrics": {
+              "ballsRemaining": 2,
+              "bumperHits": 4,
+              "drains": 1,
+              "flipperHits": 0,
+              "lights": 2,
+              "maxSpeed": 1096,
+              "multiplier": 1,
+              "phase": "ready",
+              "score": 425,
+              "simulationSeconds": 3.6,
+              "slingHits": 1
+            }
+          }
+        ],
+        "stopReason": "stop-condition-met"
+      }
+    }
+  ]
+}

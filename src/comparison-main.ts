@@ -26,7 +26,7 @@ try {
   const card = (game: Trial) => {
     const strategy = game.game === "rts-lab";
     const name = strategy ? "Ashenbanner RTS Lab" : "Tideglass Relay";
-    const path = strategy ? "" : "tideglass/";
+    const path = strategy ? "lab/" : "tideglass/";
     return `<article class="game-card ${strategy ? "strategy" : "courier"}">
       <p class="kicker">${strategy ? "01 / STRATEGY" : "02 / LOGISTICS PUZZLE"}</p>
       <h2>${name}</h2>

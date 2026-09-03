@@ -1,5 +1,11 @@
 # Huginn: record this, in this order
 
+**Historical recording guide.** The current game candidates are COIL and
+STARFALL. Their ordinary-play and native-tool evidence is in
+[ARCADE_PLAYTEST.md](ARCADE_PLAYTEST.md), and their paired feature briefs are
+in [ARCADE_FEATURE_PROTOCOL.md](ARCADE_FEATURE_PROTOCOL.md). The RTS/Tideglass
+counts and narration below belong to the earlier prototype, not those games.
+
 **The pitch:** Coding agents can build a game. Huginn helps a designer and agent
 investigate how it actually plays—through visible, repeatable experiments.
 

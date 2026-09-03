@@ -33,8 +33,9 @@ app.innerHTML = `
   <main class="shell">
     <nav class="game-nav" aria-label="Example games">
       <a href="./" aria-current="page">RTS Lab · strategy</a>
-      <a href="./tideglass/">Tideglass Relay · logistics</a>
-      <a href="./compare/">Examples &amp; evidence</a>
+      <a href="../tideglass/">Tideglass Relay · logistics</a>
+      <a href="../compare/">Historical examples &amp; evidence</a>
+      <a href="../">New playable games</a>
       <a href="#play-controls">Play yourself</a>
       <a id="mode-switch" href="${siteToolsEnabled ? "?webmcp=off" : "./"}">${siteToolsEnabled ? "Compare: WebMCP off" : "Enable WebMCP"}</a>
     </nav>
@@ -203,14 +204,14 @@ let manualRunning = false;
 let manualRequestCounter = 0;
 
 const assetPaths = {
-  terrain: "./assets/rts-lab/terrain.png",
-  worker: "./assets/rts-lab/worker.png",
-  vanguard: "./assets/rts-lab/vanguard.png",
-  raider: "./assets/rts-lab/raider.png",
-  townhall: "./assets/rts-lab/townhall.png",
-  barracks: "./assets/rts-lab/barracks.png",
-  resource: "./assets/rts-lab/resource.png",
-  attack: "./assets/rts-lab/attack-vfx.png",
+  terrain: "../assets/rts-lab/terrain.png",
+  worker: "../assets/rts-lab/worker.png",
+  vanguard: "../assets/rts-lab/vanguard.png",
+  raider: "../assets/rts-lab/raider.png",
+  townhall: "../assets/rts-lab/townhall.png",
+  barracks: "../assets/rts-lab/barracks.png",
+  resource: "../assets/rts-lab/resource.png",
+  attack: "../assets/rts-lab/attack-vfx.png",
 } as const;
 
 type AssetName = keyof typeof assetPaths;

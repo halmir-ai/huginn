@@ -3,8 +3,13 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "./",
   build: {
+    manifest: true,
     rollupOptions: {
-      input: { main: "index.html", tideglass: "tideglass/index.html", comparison: "compare/index.html" },
+      input: {
+        main: "index.html", lab: "lab/index.html", tideglass: "tideglass/index.html", comparison: "compare/index.html", trials: "trials/index.html",
+        coil: "games/coil/index.html", coilPlain: "games/coil/plain/index.html",
+        starfall: "games/starfall/index.html", starfallPlain: "games/starfall/plain/index.html",
+      },
     },
   },
   server: {
