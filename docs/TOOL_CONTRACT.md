@@ -20,6 +20,13 @@ Snapshots retain both canonical simulation state (including adapter RNG state)
 and the kernel's seed metadata. Both restore paths validate canonical
 round-tripping before committing state and seed together.
 
+The page retains at most 12 snapshots. The latest explicit checkpoint (from
+`snapshot_game` or the equivalent human control) is protected from automatic
+rollback eviction until another explicit checkpoint replaces it. Remaining
+entries expire oldest-first. A named sequence base is also protected while
+that sequence prepares its rollback. This gives single-click and batched
+experiments the same dependable checkpoint without unbounded memory growth.
+
 The live notebook observes started/completed/failed WebMCP calls. It records
 real sequence results without changing them; observer failures cannot change
 the kernel's return value. The canvas render supplies current seed/checksum and

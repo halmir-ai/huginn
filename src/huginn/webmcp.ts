@@ -73,7 +73,7 @@ export function buildToolDefinitions<State, Action, Event, GameMetrics extends M
     {
       name: "snapshot_game",
       title: "Snapshot game",
-      description: "Store a bounded canonical snapshot of the live game in page memory so an experiment can be restored or branched.",
+      description: "Store a canonical snapshot of the live game in page memory. The latest explicit checkpoint is protected from automatic rollback eviction; older snapshots share a bounded 12-entry store.",
       inputSchema: emptySchema,
       execute: async () => kernel.createSnapshot(),
     },

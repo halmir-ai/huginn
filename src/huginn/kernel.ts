@@ -26,6 +26,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
   private state: State;
   private seed: number;
   private snapshots = new Map<string, SnapshotRecord>();
+  private retainedSnapshotId: string | null = null;
   private requestCache = new Map<string, { fingerprint: string; result: SequenceResult<Action, Event, GameMetrics> }>();
   private snapshotCounter = 0;
   private runningRequestId: string | null = null;
@@ -55,6 +56,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         sequenceSemantics: "committed-prefix",
         maxActionsPerSequence: MAX_ACTIONS,
         snapshotLimit: MAX_SNAPSHOTS,
+        snapshotRetention: "latest-explicit-checkpoint",
       },
       current: {
         seed: this.seed,
@@ -90,6 +92,10 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
   }
 
   async createSnapshot(): Promise<SnapshotRecord> {
+    return this.captureSnapshot(true);
+  }
+
+  private async captureSnapshot(retain: boolean, sequenceBaseId?: string): Promise<SnapshotRecord> {
     const value = this.adapter.serialize(this.state);
     const stateChecksum = await checksum(value);
     const id = `snapshot-${++this.snapshotCounter}-${stateChecksum.slice(0, 10)}`;
@@ -102,8 +108,13 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     };
 
     this.snapshots.set(id, snapshot);
+    if (retain) this.retainedSnapshotId = id;
     while (this.snapshots.size > MAX_SNAPSHOTS) {
-      const oldestId = this.snapshots.keys().next().value as string | undefined;
+      // Automatic rollback receipts must not evict the user's latest saved
+      // checkpoint, or the named base this sequence is about to restore.
+      const oldestId = [...this.snapshots.keys()].find(
+        (candidate) => candidate !== this.retainedSnapshotId && candidate !== sequenceBaseId,
+      );
       if (oldestId) this.snapshots.delete(oldestId);
     }
 
@@ -178,7 +189,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         }
       }
 
-      const rollback = await this.createSnapshot();
+      const rollback = await this.captureSnapshot(false, input.base_snapshot_id);
 
       if (input.seed !== undefined) {
         this.assertSeed(input.seed);

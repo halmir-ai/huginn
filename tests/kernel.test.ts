@@ -81,6 +81,59 @@ describe("HuginnKernel", () => {
     expect((await kernel.describeGame()).current.seed).toBe(12);
   });
 
+  it("retains the latest explicit checkpoint across many automatic rollback snapshots", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, noDelay);
+    const checkpoint = await kernel.createSnapshot();
+    const rollbackIds: string[] = [];
+    for (let index = 0; index < 24; index += 1) {
+      const result = await kernel.applyActionSequence({
+        request_id: `single-click-${index}`, actions: [{ type: "gather_food" }],
+      });
+      rollbackIds.push(result.rollbackSnapshotId);
+    }
+
+    expect((await kernel.restoreSnapshot(checkpoint.id, checkpoint.checksum)).checksum).toBe(checkpoint.checksum);
+    await expect(kernel.restoreSnapshot(rollbackIds[0])).rejects.toThrow("Unknown snapshot");
+    await expect(kernel.restoreSnapshot(rollbackIds.at(-1)!)).resolves.toBeDefined();
+  });
+
+  it("keeps only the newest explicit checkpoint protected and the total store bounded", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, noDelay);
+    const oldCheckpoint = await kernel.createSnapshot();
+    const checkpoint = await kernel.createSnapshot();
+    const rollbackIds: string[] = [];
+    for (let index = 0; index < 14; index += 1) {
+      const result = await kernel.applyActionSequence({ request_id: `bounded-${index}`, actions: [] });
+      rollbackIds.push(result.rollbackSnapshotId);
+    }
+
+    await expect(kernel.restoreSnapshot(oldCheckpoint.id)).rejects.toThrow("Unknown snapshot");
+    await expect(kernel.restoreSnapshot(checkpoint.id)).resolves.toBeDefined();
+    let retainedRollbacks = 0;
+    for (const id of rollbackIds) {
+      try { await kernel.restoreSnapshot(id); retainedRollbacks += 1; }
+      catch (error) { expect(String(error)).toContain("Unknown snapshot"); }
+    }
+    expect(retainedRollbacks).toBe(11);
+  });
+
+  it("does not evict a sequence's named base while preparing its rollback", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, noDelay);
+    const original = await kernel.getState();
+    const first = await kernel.applyActionSequence({ request_id: "oldest-base", actions: [] });
+    for (let index = 0; index < 11; index += 1) {
+      await kernel.applyActionSequence({ request_id: `fill-store-${index}`, actions: [] });
+    }
+    const result = await kernel.applyActionSequence({
+      request_id: "branch-oldest",
+      base_snapshot_id: first.rollbackSnapshotId,
+      expected_base_checksum: original.checksum,
+      actions: [{ type: "gather_food" }],
+    });
+    expect(result.status).toBe("completed");
+    expect(result.steps[0].beforeChecksum).toBe(original.checksum);
+  });
+
   it("restores the base snapshot seed before branching a sequence", async () => {
     const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, noDelay);
     const snapshot = await kernel.createSnapshot();
