@@ -1,8 +1,15 @@
 # Huginn — final-film script
 
-**Use this version today.** Target 2:35. Read only the quoted paragraphs.
+**RTS-only base cut.** Target 2:35. Read only the quoted paragraphs.
 Timing is an editing target, not the measured duration of a finished film.
 Say “HOO-gin” consistently. Say “Web M C P” and “A P I.”
+
+September 2 update: the [Tideglass authoring revision](TIDEGLASS_REFINEMENT.md)
+and [paired replay evidence](COMPARISON_RESULTS.md) now exist. This document
+preserves the earlier base cut. Its generic alternate below must not be read
+as a description of the actual Tideglass baseline, which passed its original
+target. A two-game edit should use the documented new-target story and replace,
+not append to, the authoring slot.
 
 ## 0:00–0:12 · Hook: show the result first
 

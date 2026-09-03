@@ -1,0 +1,1195 @@
+{
+  "format": "huginn/paired-replay-trial-v1",
+  "sourceCommit": "e902cc0",
+  "game": "tideglass-relay",
+  "mode": "webmcp-off",
+  "caller": "Preplanned replay through Codex browser UI controls; not a fresh-agent solving trial",
+  "seed": 12,
+  "gameCommands": 27,
+  "inspectorReads": 28,
+  "controlWaits": 27,
+  "envelopeCount": 3,
+  "runs": [
+    {
+      "plan": "signal",
+      "steps": [
+        {
+          "label": "Sail to Relay Isle",
+          "checksum": "81a036cb713bda9df35edfc6d94da92a302adfe80305bda5876f744de381306e",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3244428,
+            "watch": 1,
+            "battery": 9,
+            "station": "relay_isle",
+            "relay": false,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 1,
+            "watches_left": 7,
+            "delivered": 0,
+            "battery": 9,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "relay_isle",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deploy relay",
+          "checksum": "9c7752464c52adab78199335e477144313900610ee7e16ddc33590780004b524",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 805513228,
+            "watch": 2,
+            "battery": 8,
+            "station": "relay_isle",
+            "relay": true,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 2,
+            "watches_left": 6,
+            "delivered": 0,
+            "battery": 8,
+            "relay_online": true,
+            "sea": "rough",
+            "station": "relay_isle",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Saltmill",
+          "checksum": "ba085b44a9ae7a197e75a8c6db8d3d4914b9e6e6878399445c868aeeea96e712",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 4115845933,
+            "watch": 3,
+            "battery": 7,
+            "station": "saltmill",
+            "relay": true,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 3,
+            "watches_left": 5,
+            "delivered": 0,
+            "battery": 7,
+            "relay_online": true,
+            "sea": "calm",
+            "station": "saltmill",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Saltmill",
+          "checksum": "b4dbc817edb9ef1bcc6e4cc81635853831d15e6ef91bd1f13e2828383ed23384",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 1238610550,
+            "watch": 4,
+            "battery": 7,
+            "station": "saltmill",
+            "relay": true,
+            "delivered": {
+              "saltmill": true,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 4,
+            "watches_left": 4,
+            "delivered": 1,
+            "battery": 7,
+            "relay_online": true,
+            "sea": "calm",
+            "station": "saltmill",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Lantern",
+          "checksum": "7c0d64068c66089dd428b4e2eb9b5a326bc4e0daecd6e270d0be3c7b4d86454e",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3425753784,
+            "watch": 5,
+            "battery": 6,
+            "station": "lantern",
+            "relay": true,
+            "delivered": {
+              "saltmill": true,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 5,
+            "watches_left": 3,
+            "delivered": 1,
+            "battery": 6,
+            "relay_online": true,
+            "sea": "rough",
+            "station": "lantern",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Lantern",
+          "checksum": "d902ba27bcb67cdb5c1810fdafe434af364026ebc7d7268c0944735975822d0a",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 999395435,
+            "watch": 6,
+            "battery": 6,
+            "station": "lantern",
+            "relay": true,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 6,
+            "watches_left": 2,
+            "delivered": 2,
+            "battery": 6,
+            "relay_online": true,
+            "sea": "calm",
+            "station": "lantern",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Breakwater",
+          "checksum": "5ff2938c915e40c679972e6d7abb4df76cb7c8eef4e326b1f2cf0f64cd975456",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 973234181,
+            "watch": 7,
+            "battery": 5,
+            "station": "breakwater",
+            "relay": true,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 7,
+            "watches_left": 1,
+            "delivered": 2,
+            "battery": 5,
+            "relay_online": true,
+            "sea": "calm",
+            "station": "breakwater",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Breakwater",
+          "checksum": "ad3847b07a7e3bf830952893283aea632355183e34cc0f92a47fdec1e4e0a902",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3059587972,
+            "watch": 8,
+            "battery": 5,
+            "station": "breakwater",
+            "relay": true,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": true
+            }
+          },
+          "metrics": {
+            "watch": 8,
+            "watches_left": 0,
+            "delivered": 3,
+            "battery": 5,
+            "relay_online": true,
+            "sea": "rough",
+            "station": "breakwater",
+            "target_met": true,
+            "storm_closed": true
+          }
+        }
+      ]
+    },
+    {
+      "plan": "unassisted",
+      "steps": [
+        {
+          "label": "Sail to Relay Isle",
+          "checksum": "81a036cb713bda9df35edfc6d94da92a302adfe80305bda5876f744de381306e",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3244428,
+            "watch": 1,
+            "battery": 9,
+            "station": "relay_isle",
+            "relay": false,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 1,
+            "watches_left": 7,
+            "delivered": 0,
+            "battery": 9,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "relay_isle",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Wait one watch",
+          "checksum": "28463c14ec568b2f2af7b064561672c9b2eb86dcbe7df75366264c8fa3137798",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 805513228,
+            "watch": 2,
+            "battery": 9,
+            "station": "relay_isle",
+            "relay": false,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 2,
+            "watches_left": 6,
+            "delivered": 0,
+            "battery": 9,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "relay_isle",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Saltmill",
+          "checksum": "05046a787a65f6f772fc7865645b53a9f95ef504b05e72f54427b9f3b125adee",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 4115845933,
+            "watch": 3,
+            "battery": 6,
+            "station": "saltmill",
+            "relay": false,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 3,
+            "watches_left": 5,
+            "delivered": 0,
+            "battery": 6,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "saltmill",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Saltmill",
+          "checksum": "1b7aecf2113482327a4db0f425ea47d0a05a26873b22ffeb13a7a8c5464f471f",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 1238610550,
+            "watch": 4,
+            "battery": 6,
+            "station": "saltmill",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 4,
+            "watches_left": 4,
+            "delivered": 1,
+            "battery": 6,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "saltmill",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Lantern",
+          "checksum": "7c4002c98e87a48026370091867ac1c1e60bbbcc77bf2a4f7f24e18983b16924",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3425753784,
+            "watch": 5,
+            "battery": 4,
+            "station": "lantern",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 5,
+            "watches_left": 3,
+            "delivered": 1,
+            "battery": 4,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "lantern",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Lantern",
+          "checksum": "dda8a6e26bb8c43267027a3c6e694e58f357abf348278679d4a0f47bc8108017",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 999395435,
+            "watch": 6,
+            "battery": 4,
+            "station": "lantern",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 6,
+            "watches_left": 2,
+            "delivered": 2,
+            "battery": 4,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "lantern",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Breakwater",
+          "checksum": "7dd1bf351ba4b0ef300c978b0d53b288e705f80f82842ad053e2f2476a031694",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 973234181,
+            "watch": 7,
+            "battery": 2,
+            "station": "breakwater",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 7,
+            "watches_left": 1,
+            "delivered": 2,
+            "battery": 2,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "breakwater",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Breakwater",
+          "checksum": "66bef7a0629aa0c6b8eb062f6f0b3e81591111d2ff50a1ac4eaf03f8842e4a28",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3059587972,
+            "watch": 8,
+            "battery": 2,
+            "station": "breakwater",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": true
+            }
+          },
+          "metrics": {
+            "watch": 8,
+            "watches_left": 0,
+            "delivered": 3,
+            "battery": 2,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "breakwater",
+            "target_met": true,
+            "storm_closed": true
+          }
+        }
+      ]
+    },
+    {
+      "plan": "unassisted-replay",
+      "steps": [
+        {
+          "label": "Sail to Relay Isle",
+          "checksum": "81a036cb713bda9df35edfc6d94da92a302adfe80305bda5876f744de381306e",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3244428,
+            "watch": 1,
+            "battery": 9,
+            "station": "relay_isle",
+            "relay": false,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 1,
+            "watches_left": 7,
+            "delivered": 0,
+            "battery": 9,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "relay_isle",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Wait one watch",
+          "checksum": "28463c14ec568b2f2af7b064561672c9b2eb86dcbe7df75366264c8fa3137798",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 805513228,
+            "watch": 2,
+            "battery": 9,
+            "station": "relay_isle",
+            "relay": false,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 2,
+            "watches_left": 6,
+            "delivered": 0,
+            "battery": 9,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "relay_isle",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Saltmill",
+          "checksum": "05046a787a65f6f772fc7865645b53a9f95ef504b05e72f54427b9f3b125adee",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 4115845933,
+            "watch": 3,
+            "battery": 6,
+            "station": "saltmill",
+            "relay": false,
+            "delivered": {
+              "saltmill": false,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 3,
+            "watches_left": 5,
+            "delivered": 0,
+            "battery": 6,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "saltmill",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Saltmill",
+          "checksum": "1b7aecf2113482327a4db0f425ea47d0a05a26873b22ffeb13a7a8c5464f471f",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 1238610550,
+            "watch": 4,
+            "battery": 6,
+            "station": "saltmill",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 4,
+            "watches_left": 4,
+            "delivered": 1,
+            "battery": 6,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "saltmill",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Lantern",
+          "checksum": "7c4002c98e87a48026370091867ac1c1e60bbbcc77bf2a4f7f24e18983b16924",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3425753784,
+            "watch": 5,
+            "battery": 4,
+            "station": "lantern",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": false,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 5,
+            "watches_left": 3,
+            "delivered": 1,
+            "battery": 4,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "lantern",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Lantern",
+          "checksum": "dda8a6e26bb8c43267027a3c6e694e58f357abf348278679d4a0f47bc8108017",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 999395435,
+            "watch": 6,
+            "battery": 4,
+            "station": "lantern",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 6,
+            "watches_left": 2,
+            "delivered": 2,
+            "battery": 4,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "lantern",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Sail to Breakwater",
+          "checksum": "7dd1bf351ba4b0ef300c978b0d53b288e705f80f82842ad053e2f2476a031694",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 973234181,
+            "watch": 7,
+            "battery": 2,
+            "station": "breakwater",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": false
+            }
+          },
+          "metrics": {
+            "watch": 7,
+            "watches_left": 1,
+            "delivered": 2,
+            "battery": 2,
+            "relay_online": false,
+            "sea": "calm",
+            "station": "breakwater",
+            "target_met": false,
+            "storm_closed": false
+          }
+        },
+        {
+          "label": "Deliver to Breakwater",
+          "checksum": "66bef7a0629aa0c6b8eb062f6f0b3e81591111d2ff50a1ac4eaf03f8842e4a28",
+          "state": {
+            "format": "tideglass/state-v1",
+            "version": "0.2.0-refinement",
+            "seed": 12,
+            "rng": 3059587972,
+            "watch": 8,
+            "battery": 2,
+            "station": "breakwater",
+            "relay": false,
+            "delivered": {
+              "saltmill": true,
+              "lantern": true,
+              "breakwater": true
+            }
+          },
+          "metrics": {
+            "watch": 8,
+            "watches_left": 0,
+            "delivered": 3,
+            "battery": 2,
+            "relay_online": false,
+            "sea": "rough",
+            "station": "breakwater",
+            "target_met": true,
+            "storm_closed": true
+          }
+        }
+      ]
+    }
+  ],
+  "restores": [
+    {
+      "checksum": "214e8d0afad2814393a86b2264bfb35f53c82fa7b45162f514548f9d17234cbc",
+      "state": {
+        "format": "tideglass/state-v1",
+        "version": "0.2.0-refinement",
+        "seed": 12,
+        "rng": 12,
+        "watch": 0,
+        "battery": 12,
+        "station": "haven",
+        "relay": false,
+        "delivered": {
+          "saltmill": false,
+          "lantern": false,
+          "breakwater": false
+        }
+      },
+      "metrics": {
+        "watch": 0,
+        "watches_left": 8,
+        "delivered": 0,
+        "battery": 12,
+        "relay_online": false,
+        "sea": "rough",
+        "station": "haven",
+        "target_met": false,
+        "storm_closed": false
+      }
+    },
+    {
+      "checksum": "214e8d0afad2814393a86b2264bfb35f53c82fa7b45162f514548f9d17234cbc",
+      "state": {
+        "format": "tideglass/state-v1",
+        "version": "0.2.0-refinement",
+        "seed": 12,
+        "rng": 12,
+        "watch": 0,
+        "battery": 12,
+        "station": "haven",
+        "relay": false,
+        "delivered": {
+          "saltmill": false,
+          "lantern": false,
+          "breakwater": false
+        }
+      },
+      "metrics": {
+        "watch": 0,
+        "watches_left": 8,
+        "delivered": 0,
+        "battery": 12,
+        "relay_online": false,
+        "sea": "rough",
+        "station": "haven",
+        "target_met": false,
+        "storm_closed": false
+      }
+    }
+  ],
+  "errors": [],
+  "agentTokenUsage": null,
+  "editTestIterations": null,
+  "initial": {
+    "checksum": "214e8d0afad2814393a86b2264bfb35f53c82fa7b45162f514548f9d17234cbc",
+    "state": {
+      "format": "tideglass/state-v1",
+      "version": "0.2.0-refinement",
+      "seed": 12,
+      "rng": 12,
+      "watch": 0,
+      "battery": 12,
+      "station": "haven",
+      "relay": false,
+      "delivered": {
+        "saltmill": false,
+        "lantern": false,
+        "breakwater": false
+      }
+    },
+    "metrics": {
+      "watch": 0,
+      "watches_left": 8,
+      "delivered": 0,
+      "battery": 12,
+      "relay_online": false,
+      "sea": "rough",
+      "station": "haven",
+      "target_met": false,
+      "storm_closed": false
+    }
+  },
+  "pageLedger": {
+    "format": "huginn/page-interactions-v1",
+    "game": "huginn-tideglass-relay",
+    "webmcpEnabled": false,
+    "scope": "Commands received by this page since load. Excludes browser discovery, observations, assistant reasoning, code edits, and transport envelopes. Not a token-cost benchmark.",
+    "counts": {
+      "uiCommands": 27,
+      "webmcpCalls": 0,
+      "committedActions": 24,
+      "rejectedCommands": 0,
+      "cachedResponses": 0
+    },
+    "webmcpJsonBytes": {
+      "request": 0,
+      "response": 0
+    },
+    "agentTokenUsage": null,
+    "agentToolCallEnvelopes": null,
+    "editTestIterations": null,
+    "events": [
+      {
+        "source": "UI",
+        "name": "snapshot_game",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "snapshot_game",
+        "phase": "completed",
+        "actions": 0,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "restore_game",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "restore_game",
+        "phase": "completed",
+        "actions": 0,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "restore_game",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "restore_game",
+        "phase": "completed",
+        "actions": 0,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "started"
+      },
+      {
+        "source": "UI",
+        "name": "apply_action_sequence",
+        "phase": "completed",
+        "actions": 1,
+        "cached": false
+      }
+    ],
+    "omittedEvents": 0
+  },
+  "errorPanelReads": 27,
+  "browserSetup": {
+    "tabCreations": 1,
+    "capabilityDiscoveries": 1,
+    "gameDisclosureClicks": 2
+  },
+  "sameReplaySteps": true
+}

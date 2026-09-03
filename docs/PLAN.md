@@ -1,5 +1,20 @@
 # Submission plan
 
+## Current implementation checkpoint — September 2, late evening Pacific
+
+RTS Lab and Tideglass Relay are now playable examples sharing the same seven
+tools. Tideglass was authored in an isolated Codex task, followed by an
+explicitly requested, measured battery-budget revision. Both games have full
+ordinary controls and WebMCP-off comparison modes. The paired browser probe
+matched all 46 state transitions; see [results](demo/COMPARISON_RESULTS.md),
+[authoring baseline](demo/TIDEGLASS_RELAY.md), and
+[actual revision](demo/TIDEGLASS_REFINEMENT.md).
+
+Keep the scope at these two examples and protect the filming window. The
+original Dawn retrofit and broad engine-generality claim remain unfulfilled.
+The earlier recovery checkpoint and original schedule below are history, not
+current delivery requirements. No token or coding-iteration savings are claimed.
+
 ## Recovery checkpoint — September 2, evening Pacific
 
 The original two-game milestones below were missed during the offline period.

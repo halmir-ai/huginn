@@ -8,8 +8,8 @@ useful to a human game designer.
 
 ## Product boundary
 
-- RTS Lab is the working strategy example; Tideglass Relay is the isolated
-  logistics example being added for the submission. Dawn remains a future
+- RTS Lab is the working strategy example; Tideglass Relay is the integrated
+  logistics example. Dawn remains a future
   retrofit, not a shipped integration. Neither sample grows into a full RTS
   or a Battle Craft port.
 - All examples reuse the same kernel and seven WebMCP tools. The `webmcp=off`

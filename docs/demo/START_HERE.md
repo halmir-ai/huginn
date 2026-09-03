@@ -3,9 +3,12 @@
 **The pitch:** Coding agents can build a game. Huginn helps a designer and agent
 investigate how it actually plays—through visible, repeatable experiments.
 
-This is the production guide, not a submitted Devpost entry. The live app is
-[RTS Lab](https://halmir-ai.github.io/huginn/). No second game, existing-game
-retrofit, or source-change/retest demonstration is claimed in the default film.
+This is the production guide, not a submitted Devpost entry. The original
+default film below is the verified RTS flow. There are now two playable games:
+[RTS Lab](https://halmir-ai.github.io/huginn/) and
+[Tideglass Relay](https://halmir-ai.github.io/huginn/tideglass/), plus the
+[paired comparison](https://halmir-ai.github.io/huginn/compare/). A measured
+source revision now exists; an existing-game retrofit still does not.
 
 ## The three things to open
 
@@ -84,17 +87,21 @@ action/event/metric/checksum records, not merely the final prefix.
 - If a segment fails twice, use its recovery instruction and move on. Do not
   replace real calls with the `Try page preset` button without labeling it.
 
-## Optional stronger authoring segment
+## Authoring evidence now available
 
-[AUTHORING_SESSION.md](AUTHORING_SESSION.md) is a fresh-task brief and a
-three-prompt recording plan. It is optional, not yet evidence. A small new
-logistics game is a better deadline bet than porting Dawn, Regnara, or Battle
-Craft. Keep it on a separate page/worktree; do not replace the working RTS.
+[AUTHORING_SESSION.md](AUTHORING_SESSION.md) preserves the original brief.
+The task has now built Tideglass and measured a real revision. Use
+[TIDEGLASS_REFINEMENT.md](TIDEGLASS_REFINEMENT.md) for actual before/after values,
+source delta and action lists. The original Signal route passed. A new goal
+then required two battery on the no-relay route; changing capacity 10 → 12
+yielded Unassisted 0 → 2 and Signal 3 → 5, at the same seed and horizon.
 
-Use the alternate 26-second segment **only after** the new game, live tool
-calls, actual source change, and repeatable before/after result all work. If
-that gate is not met before editing, use the complete default script. An
-unfinished second demo must not consume the first complete cut.
+The evidence gate is met, but the final film still needs actual footage and
+your narration. Do not read the generic “first build fails” line from the old
+alternate over this example: the original baseline passed, and the target
+changed explicitly. Keep the full film under three minutes; do not append a
+second unedited demonstration. The [comparison results](COMPARISON_RESULTS.md)
+support page-command counts only, not token or iteration savings.
 
 ## Final review — ask someone who has never seen Huginn
 

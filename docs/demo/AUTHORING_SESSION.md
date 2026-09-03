@@ -1,8 +1,13 @@
-# Optional fresh Codex authoring session
+# Fresh Codex authoring session — original brief and current status
 
-**Status: a launch brief, not completed demo evidence.** Do not imply this
-session, new game, or improvement already exists. The authoring task must
-run in its own workspace and must not edit the working RTS submission page.
+**Status update, September 2:** this task was launched and completed in an
+isolated worktree. Tideglass Relay is built, and a separately declared
+resource-budget revision was measured through actual browser tools. See the
+[baseline](TIDEGLASS_RELAY.md), [revision and exact source delta](TIDEGLASS_REFINEMENT.md),
+and [paired UI/WebMCP pilot](COMPARISON_RESULTS.md). The original Signal target
+passed; the later revision is not a discovered bug. The launch brief below is
+preserved as planning context; its hypothetical steps are not additional
+completed work. The actual measured base/version are recorded in the receipts.
 
 ## What to build
 

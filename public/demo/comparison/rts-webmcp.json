@@ -1,0 +1,1976 @@
+{
+  "format": "huginn/paired-replay-trial-v1",
+  "sourceCommit": "90aee14",
+  "game": "rts-lab",
+  "mode": "webmcp-on",
+  "caller": "Preplanned replay through actual registered WebMCP tools in Codex in-app browser; not a fresh-agent solving trial",
+  "seed": 12,
+  "toolCalls": [
+    {
+      "name": "describe_game",
+      "input": {},
+      "response": {
+        "capabilities": {
+          "cancellation": true,
+          "maxActionsPerSequence": 50,
+          "seededReplay": true,
+          "sequenceSemantics": "committed-prefix",
+          "snapshotLimit": 12,
+          "snapshotRetention": "latest-explicit-checkpoint",
+          "snapshots": true,
+          "visibleExecution": true
+        },
+        "current": {
+          "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+          "legalActionCount": 4,
+          "metrics": {
+            "army_value": 0,
+            "crown_gold": 37,
+            "cycle": 0,
+            "economy_value": 92,
+            "enemy_damage": 0,
+            "heartwood": 55,
+            "strategy_score": 146,
+            "sunforge_base_hp": 100,
+            "thornmaw_base_hp": 100
+          },
+          "seed": 12
+        },
+        "game": {
+          "actions": [
+            {
+              "description": "Move one worker to Heartwood or Crown Gold.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "resource": {
+                    "enum": [
+                      "heartwood",
+                      "crown_gold"
+                    ]
+                  },
+                  "type": {
+                    "const": "assign_worker"
+                  }
+                },
+                "required": [
+                  "type",
+                  "resource"
+                ],
+                "type": "object"
+              },
+              "type": "assign_worker"
+            },
+            {
+              "description": "Gather resources and resolve enemy pressure.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "const": "advance_cycle"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "advance_cycle"
+            },
+            {
+              "description": "Spend 50 Heartwood to unlock vanguard training.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "const": "build_barracks"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "build_barracks"
+            },
+            {
+              "description": "Spend 35 Heartwood to reduce incoming raid damage.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "const": "build_watchtower"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "build_watchtower"
+            },
+            {
+              "description": "Spend 30 Crown Gold to train a vanguard.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "const": "train_vanguard"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "train_vanguard"
+            },
+            {
+              "description": "Send all vanguards against the Thornmaw stronghold.",
+              "inputSchema": {
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "const": "launch_attack"
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "launch_attack"
+            }
+          ],
+          "failureConditions": [
+            "The Sunforge stronghold reaches 0 HP."
+          ],
+          "id": "huginn-rts-lab",
+          "metrics": [
+            {
+              "description": "Completed economy and pressure cycles.",
+              "key": "cycle",
+              "label": "Cycle"
+            },
+            {
+              "description": "Construction resource held by Sunforge.",
+              "key": "heartwood",
+              "label": "Heartwood"
+            },
+            {
+              "description": "Training resource held by Sunforge.",
+              "key": "crown_gold",
+              "label": "Crown Gold"
+            },
+            {
+              "description": "Heartwood plus Crown Gold.",
+              "key": "economy_value",
+              "label": "Economy value"
+            },
+            {
+              "description": "Surviving vanguards valued at 30 each.",
+              "key": "army_value",
+              "label": "Army value"
+            },
+            {
+              "badWhen": "Below 40.",
+              "description": "Health remaining on the player's stronghold.",
+              "key": "sunforge_base_hp",
+              "label": "Sunforge HP"
+            },
+            {
+              "description": "Health remaining on the enemy stronghold.",
+              "key": "thornmaw_base_hp",
+              "label": "Thornmaw HP"
+            },
+            {
+              "description": "Total damage dealt to Thornmaw.",
+              "key": "enemy_damage",
+              "label": "Enemy damage"
+            },
+            {
+              "description": "Illustrative heuristic only: round(enemy_damage * 2 + army_value + economy_value * 0.5 + sunforge_base_hp - cycle * 3). Not a victory condition or validated balance measure; compare equal-cycle outcomes and individual metrics.",
+              "key": "strategy_score",
+              "label": "Strategy score"
+            }
+          ],
+          "rules": [
+            "Two workers can be reassigned between Heartwood and Crown Gold.",
+            "Advancing a cycle gathers deterministic resources and resolves Thornmaw pressure.",
+            "A barracks costs 50 Heartwood; a watchtower costs 35 Heartwood.",
+            "A vanguard costs 30 Crown Gold and requires a barracks.",
+            "Launching an attack commits all trained vanguards against the Thornmaw stronghold.",
+            "This small experiment slice advances time only with advance_cycle. Building, training, and attacks are instantaneous; it is not a full real-time RTS.",
+            "Compare build orders at the same ending cycle and inspect damage, economy, and surviving base HP together. One seed does not establish game balance.",
+            "Snapshots include RNG state. Repeating the same actions reproduces the same draws; different action lists may consume those draws differently."
+          ],
+          "summary": "A deterministic strategy-game slice for comparing build orders from the same live snapshot and seed.",
+          "title": "Ashenbanner RTS Lab",
+          "version": "0.1.0",
+          "victoryConditions": [
+            "Reduce the Thornmaw stronghold to 0 HP while the Sunforge stronghold survives."
+          ]
+        },
+        "protocolVersion": "huginn/experiment-v1"
+      }
+    },
+    {
+      "name": "get_game_state",
+      "input": {},
+      "response": {
+        "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+        "state": {
+          "barracksBuilt": false,
+          "crownGold": 37,
+          "cycle": 0,
+          "frontline": 2,
+          "heartwood": 55,
+          "raiders": 1,
+          "rng": 12,
+          "seed": 12,
+          "sunforgeBaseHp": 100,
+          "thornmawBaseHp": 100,
+          "vanguards": 0,
+          "watchtowerBuilt": false,
+          "workersOnGold": 0,
+          "workersOnHeartwood": 2
+        }
+      }
+    },
+    {
+      "name": "list_legal_actions",
+      "input": {},
+      "response": {
+        "actions": [
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "label": "Advance cycle",
+            "reason": "Resolve gathering and enemy pressure."
+          },
+          {
+            "action": {
+              "resource": "crown_gold",
+              "type": "assign_worker"
+            },
+            "label": "Reassign to Crown Gold",
+            "reason": "At least one worker is gathering Heartwood."
+          },
+          {
+            "action": {
+              "type": "build_barracks"
+            },
+            "label": "Build barracks",
+            "reason": "At least 50 Heartwood is available."
+          },
+          {
+            "action": {
+              "type": "build_watchtower"
+            },
+            "label": "Build watchtower",
+            "reason": "At least 35 Heartwood is available."
+          }
+        ],
+        "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a"
+      }
+    },
+    {
+      "name": "snapshot_game",
+      "input": {},
+      "response": {
+        "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+        "format": "huginn/canonical-state-v1",
+        "id": "snapshot-1-35e2bab995",
+        "seed": 12,
+        "value": {
+          "barracksBuilt": false,
+          "crownGold": 37,
+          "cycle": 0,
+          "frontline": 2,
+          "heartwood": 55,
+          "raiders": 1,
+          "rng": 12,
+          "seed": 12,
+          "sunforgeBaseHp": 100,
+          "thornmawBaseHp": 100,
+          "vanguards": 0,
+          "watchtowerBuilt": false,
+          "workersOnGold": 0,
+          "workersOnHeartwood": 2
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "rts-paired-rush",
+        "expected_base_checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+        "actions": [
+          {
+            "type": "build_barracks"
+          },
+          {
+            "type": "train_vanguard"
+          },
+          {
+            "type": "launch_attack"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "advance_cycle"
+          }
+        ],
+        "speed": "fast"
+      },
+      "response": {
+        "appliedSteps": 6,
+        "finalChecksum": "1d4b1269940e00f02557ce4d0899eaaefec22d1d91029a385cef51088f277683",
+        "metrics": {
+          "army_value": 30,
+          "crown_gold": 7,
+          "cycle": 3,
+          "economy_value": 72,
+          "enemy_damage": 34,
+          "heartwood": 65,
+          "strategy_score": 221,
+          "sunforge_base_hp": 96,
+          "thornmaw_base_hp": 66
+        },
+        "requestId": "rts-paired-rush",
+        "rollbackSnapshotId": "snapshot-2-35e2bab995",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "type": "build_barracks"
+            },
+            "afterChecksum": "e0ca215ae3f181293e02eb2645ca0c133d9a607666f60057fe31307b02d981c1",
+            "beforeChecksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+            "events": [
+              {
+                "structure": "barracks",
+                "type": "structure_built"
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 37,
+              "cycle": 0,
+              "economy_value": 42,
+              "enemy_damage": 0,
+              "heartwood": 5,
+              "strategy_score": 121,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "29ea05f4101a44217025d532bae39ee4cfc0a5e37b344575f5f313b1e32ee1b5",
+            "beforeChecksum": "e0ca215ae3f181293e02eb2645ca0c133d9a607666f60057fe31307b02d981c1",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 1,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 0,
+              "economy_value": 12,
+              "enemy_damage": 0,
+              "heartwood": 5,
+              "strategy_score": 136,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "launch_attack"
+            },
+            "afterChecksum": "c8b707811fa92ec62d0e50283678b2d625e770c75c7dfe2da91684ccf826b8c6",
+            "beforeChecksum": "29ea05f4101a44217025d532bae39ee4cfc0a5e37b344575f5f313b1e32ee1b5",
+            "events": [
+              {
+                "damage": 34,
+                "losses": 0,
+                "raidersDefeated": 1,
+                "type": "attack_resolved"
+              }
+            ],
+            "index": 2,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 0,
+              "economy_value": 12,
+              "enemy_damage": 34,
+              "heartwood": 5,
+              "strategy_score": 204,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 66
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "73fec983b7938dcb2baaa78d9cc3c9dbb797f0e33d35ef5fafe5712351dea430",
+            "beforeChecksum": "c8b707811fa92ec62d0e50283678b2d625e770c75c7dfe2da91684ccf826b8c6",
+            "events": [
+              {
+                "crownGold": 0,
+                "heartwood": 20,
+                "incomingDamage": 0,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 3,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 1,
+              "economy_value": 32,
+              "enemy_damage": 34,
+              "heartwood": 25,
+              "strategy_score": 211,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 66
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "1a978e35def203051592be39407917b41b739cc088b77655db90d806649d2501",
+            "beforeChecksum": "73fec983b7938dcb2baaa78d9cc3c9dbb797f0e33d35ef5fafe5712351dea430",
+            "events": [
+              {
+                "crownGold": 0,
+                "heartwood": 20,
+                "incomingDamage": 0,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 4,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 2,
+              "economy_value": 52,
+              "enemy_damage": 34,
+              "heartwood": 45,
+              "strategy_score": 218,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 66
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "1d4b1269940e00f02557ce4d0899eaaefec22d1d91029a385cef51088f277683",
+            "beforeChecksum": "1a978e35def203051592be39407917b41b739cc088b77655db90d806649d2501",
+            "events": [
+              {
+                "crownGold": 0,
+                "heartwood": 20,
+                "incomingDamage": 4,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 3,
+              "economy_value": 72,
+              "enemy_damage": 34,
+              "heartwood": 65,
+              "strategy_score": 221,
+              "sunforge_base_hp": 96,
+              "thornmaw_base_hp": 66
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      }
+    },
+    {
+      "name": "get_game_state",
+      "input": {},
+      "response": {
+        "checksum": "1d4b1269940e00f02557ce4d0899eaaefec22d1d91029a385cef51088f277683",
+        "state": {
+          "barracksBuilt": true,
+          "crownGold": 7,
+          "cycle": 3,
+          "frontline": 4,
+          "heartwood": 65,
+          "raiders": 1,
+          "rng": 973234181,
+          "seed": 12,
+          "sunforgeBaseHp": 96,
+          "thornmawBaseHp": 66,
+          "vanguards": 1,
+          "watchtowerBuilt": false,
+          "workersOnGold": 0,
+          "workersOnHeartwood": 2
+        }
+      }
+    },
+    {
+      "name": "restore_game",
+      "input": {
+        "snapshot_id": "snapshot-1-35e2bab995",
+        "expected_checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a"
+      },
+      "response": {
+        "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+        "id": "snapshot-1-35e2bab995",
+        "metrics": {
+          "army_value": 0,
+          "crown_gold": 37,
+          "cycle": 0,
+          "economy_value": 92,
+          "enemy_damage": 0,
+          "heartwood": 55,
+          "strategy_score": 146,
+          "sunforge_base_hp": 100,
+          "thornmaw_base_hp": 100
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "rts-paired-economy",
+        "expected_base_checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+        "actions": [
+          {
+            "type": "assign_worker",
+            "resource": "crown_gold"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "build_barracks"
+          },
+          {
+            "type": "train_vanguard"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "train_vanguard"
+          },
+          {
+            "type": "launch_attack"
+          }
+        ],
+        "speed": "fast"
+      },
+      "response": {
+        "appliedSteps": 8,
+        "finalChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "metrics": {
+          "army_value": 60,
+          "crown_gold": 1,
+          "cycle": 3,
+          "economy_value": 40,
+          "enemy_damage": 54,
+          "heartwood": 39,
+          "strategy_score": 254,
+          "sunforge_base_hp": 75,
+          "thornmaw_base_hp": 46
+        },
+        "requestId": "rts-paired-economy",
+        "rollbackSnapshotId": "snapshot-3-35e2bab995",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "resource": "crown_gold",
+              "type": "assign_worker"
+            },
+            "afterChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "beforeChecksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+            "events": [
+              {
+                "resource": "crown_gold",
+                "type": "worker_reassigned"
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 37,
+              "cycle": 0,
+              "economy_value": 92,
+              "enemy_damage": 0,
+              "heartwood": 55,
+              "strategy_score": 146,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "beforeChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 10,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 1,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 45,
+              "cycle": 1,
+              "economy_value": 110,
+              "enemy_damage": 0,
+              "heartwood": 65,
+              "strategy_score": 145,
+              "sunforge_base_hp": 93,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "beforeChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 2,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 130,
+              "enemy_damage": 0,
+              "heartwood": 77,
+              "strategy_score": 145,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "build_barracks"
+            },
+            "afterChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "beforeChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "events": [
+              {
+                "structure": "barracks",
+                "type": "structure_built"
+              }
+            ],
+            "index": 3,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 80,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 120,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "beforeChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 4,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 23,
+              "cycle": 2,
+              "economy_value": 50,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 135,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "beforeChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 11,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 31,
+              "cycle": 3,
+              "economy_value": 70,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 131,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "beforeChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 6,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 146,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "launch_attack"
+            },
+            "afterChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+            "beforeChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "events": [
+              {
+                "damage": 54,
+                "losses": 0,
+                "raidersDefeated": 2,
+                "type": "attack_resolved"
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 54,
+              "heartwood": 39,
+              "strategy_score": 254,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 46
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      }
+    },
+    {
+      "name": "get_game_state",
+      "input": {},
+      "response": {
+        "checksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "state": {
+          "barracksBuilt": true,
+          "crownGold": 1,
+          "cycle": 3,
+          "frontline": 6,
+          "heartwood": 39,
+          "raiders": 0,
+          "rng": 973234181,
+          "seed": 12,
+          "sunforgeBaseHp": 75,
+          "thornmawBaseHp": 46,
+          "vanguards": 2,
+          "watchtowerBuilt": false,
+          "workersOnGold": 1,
+          "workersOnHeartwood": 1
+        }
+      }
+    },
+    {
+      "name": "restore_game",
+      "input": {
+        "snapshot_id": "snapshot-1-35e2bab995",
+        "expected_checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a"
+      },
+      "response": {
+        "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+        "id": "snapshot-1-35e2bab995",
+        "metrics": {
+          "army_value": 0,
+          "crown_gold": 37,
+          "cycle": 0,
+          "economy_value": 92,
+          "enemy_damage": 0,
+          "heartwood": 55,
+          "strategy_score": 146,
+          "sunforge_base_hp": 100,
+          "thornmaw_base_hp": 100
+        }
+      }
+    },
+    {
+      "name": "apply_action_sequence",
+      "input": {
+        "request_id": "rts-paired-economy-replay",
+        "expected_base_checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+        "actions": [
+          {
+            "type": "assign_worker",
+            "resource": "crown_gold"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "build_barracks"
+          },
+          {
+            "type": "train_vanguard"
+          },
+          {
+            "type": "advance_cycle"
+          },
+          {
+            "type": "train_vanguard"
+          },
+          {
+            "type": "launch_attack"
+          }
+        ],
+        "speed": "fast"
+      },
+      "response": {
+        "appliedSteps": 8,
+        "finalChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "metrics": {
+          "army_value": 60,
+          "crown_gold": 1,
+          "cycle": 3,
+          "economy_value": 40,
+          "enemy_damage": 54,
+          "heartwood": 39,
+          "strategy_score": 254,
+          "sunforge_base_hp": 75,
+          "thornmaw_base_hp": 46
+        },
+        "requestId": "rts-paired-economy-replay",
+        "rollbackSnapshotId": "snapshot-4-35e2bab995",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "resource": "crown_gold",
+              "type": "assign_worker"
+            },
+            "afterChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "beforeChecksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+            "events": [
+              {
+                "resource": "crown_gold",
+                "type": "worker_reassigned"
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 37,
+              "cycle": 0,
+              "economy_value": 92,
+              "enemy_damage": 0,
+              "heartwood": 55,
+              "strategy_score": 146,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "beforeChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 10,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 1,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 45,
+              "cycle": 1,
+              "economy_value": 110,
+              "enemy_damage": 0,
+              "heartwood": 65,
+              "strategy_score": 145,
+              "sunforge_base_hp": 93,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "beforeChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 2,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 130,
+              "enemy_damage": 0,
+              "heartwood": 77,
+              "strategy_score": 145,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "build_barracks"
+            },
+            "afterChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "beforeChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "events": [
+              {
+                "structure": "barracks",
+                "type": "structure_built"
+              }
+            ],
+            "index": 3,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 80,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 120,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "beforeChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 4,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 23,
+              "cycle": 2,
+              "economy_value": 50,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 135,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "beforeChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 11,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 31,
+              "cycle": 3,
+              "economy_value": 70,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 131,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "beforeChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 6,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 146,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "launch_attack"
+            },
+            "afterChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+            "beforeChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "events": [
+              {
+                "damage": 54,
+                "losses": 0,
+                "raidersDefeated": 2,
+                "type": "attack_resolved"
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 54,
+              "heartwood": 39,
+              "strategy_score": 254,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 46
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      }
+    },
+    {
+      "name": "get_game_state",
+      "input": {},
+      "response": {
+        "checksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "state": {
+          "barracksBuilt": true,
+          "crownGold": 1,
+          "cycle": 3,
+          "frontline": 6,
+          "heartwood": 39,
+          "raiders": 0,
+          "rng": 973234181,
+          "seed": 12,
+          "sunforgeBaseHp": 75,
+          "thornmawBaseHp": 46,
+          "vanguards": 2,
+          "watchtowerBuilt": false,
+          "workersOnGold": 1,
+          "workersOnHeartwood": 1
+        }
+      }
+    },
+    {
+      "name": "get_metrics",
+      "input": {},
+      "response": {
+        "checksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "metrics": {
+          "army_value": 60,
+          "crown_gold": 1,
+          "cycle": 3,
+          "economy_value": 40,
+          "enemy_damage": 54,
+          "heartwood": 39,
+          "strategy_score": 254,
+          "sunforge_base_hp": 75,
+          "thornmaw_base_hp": 46
+        }
+      }
+    }
+  ],
+  "runs": [
+    {
+      "plan": "rush",
+      "result": {
+        "appliedSteps": 6,
+        "finalChecksum": "1d4b1269940e00f02557ce4d0899eaaefec22d1d91029a385cef51088f277683",
+        "metrics": {
+          "army_value": 30,
+          "crown_gold": 7,
+          "cycle": 3,
+          "economy_value": 72,
+          "enemy_damage": 34,
+          "heartwood": 65,
+          "strategy_score": 221,
+          "sunforge_base_hp": 96,
+          "thornmaw_base_hp": 66
+        },
+        "requestId": "rts-paired-rush",
+        "rollbackSnapshotId": "snapshot-2-35e2bab995",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "type": "build_barracks"
+            },
+            "afterChecksum": "e0ca215ae3f181293e02eb2645ca0c133d9a607666f60057fe31307b02d981c1",
+            "beforeChecksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+            "events": [
+              {
+                "structure": "barracks",
+                "type": "structure_built"
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 37,
+              "cycle": 0,
+              "economy_value": 42,
+              "enemy_damage": 0,
+              "heartwood": 5,
+              "strategy_score": 121,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "29ea05f4101a44217025d532bae39ee4cfc0a5e37b344575f5f313b1e32ee1b5",
+            "beforeChecksum": "e0ca215ae3f181293e02eb2645ca0c133d9a607666f60057fe31307b02d981c1",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 1,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 0,
+              "economy_value": 12,
+              "enemy_damage": 0,
+              "heartwood": 5,
+              "strategy_score": 136,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "launch_attack"
+            },
+            "afterChecksum": "c8b707811fa92ec62d0e50283678b2d625e770c75c7dfe2da91684ccf826b8c6",
+            "beforeChecksum": "29ea05f4101a44217025d532bae39ee4cfc0a5e37b344575f5f313b1e32ee1b5",
+            "events": [
+              {
+                "damage": 34,
+                "losses": 0,
+                "raidersDefeated": 1,
+                "type": "attack_resolved"
+              }
+            ],
+            "index": 2,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 0,
+              "economy_value": 12,
+              "enemy_damage": 34,
+              "heartwood": 5,
+              "strategy_score": 204,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 66
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "73fec983b7938dcb2baaa78d9cc3c9dbb797f0e33d35ef5fafe5712351dea430",
+            "beforeChecksum": "c8b707811fa92ec62d0e50283678b2d625e770c75c7dfe2da91684ccf826b8c6",
+            "events": [
+              {
+                "crownGold": 0,
+                "heartwood": 20,
+                "incomingDamage": 0,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 3,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 1,
+              "economy_value": 32,
+              "enemy_damage": 34,
+              "heartwood": 25,
+              "strategy_score": 211,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 66
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "1a978e35def203051592be39407917b41b739cc088b77655db90d806649d2501",
+            "beforeChecksum": "73fec983b7938dcb2baaa78d9cc3c9dbb797f0e33d35ef5fafe5712351dea430",
+            "events": [
+              {
+                "crownGold": 0,
+                "heartwood": 20,
+                "incomingDamage": 0,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 4,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 2,
+              "economy_value": 52,
+              "enemy_damage": 34,
+              "heartwood": 45,
+              "strategy_score": 218,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 66
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "1d4b1269940e00f02557ce4d0899eaaefec22d1d91029a385cef51088f277683",
+            "beforeChecksum": "1a978e35def203051592be39407917b41b739cc088b77655db90d806649d2501",
+            "events": [
+              {
+                "crownGold": 0,
+                "heartwood": 20,
+                "incomingDamage": 4,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 7,
+              "cycle": 3,
+              "economy_value": 72,
+              "enemy_damage": 34,
+              "heartwood": 65,
+              "strategy_score": 221,
+              "sunforge_base_hp": 96,
+              "thornmaw_base_hp": 66
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      },
+      "finalState": {
+        "checksum": "1d4b1269940e00f02557ce4d0899eaaefec22d1d91029a385cef51088f277683",
+        "state": {
+          "barracksBuilt": true,
+          "crownGold": 7,
+          "cycle": 3,
+          "frontline": 4,
+          "heartwood": 65,
+          "raiders": 1,
+          "rng": 973234181,
+          "seed": 12,
+          "sunforgeBaseHp": 96,
+          "thornmawBaseHp": 66,
+          "vanguards": 1,
+          "watchtowerBuilt": false,
+          "workersOnGold": 0,
+          "workersOnHeartwood": 2
+        }
+      }
+    },
+    {
+      "plan": "economy",
+      "result": {
+        "appliedSteps": 8,
+        "finalChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "metrics": {
+          "army_value": 60,
+          "crown_gold": 1,
+          "cycle": 3,
+          "economy_value": 40,
+          "enemy_damage": 54,
+          "heartwood": 39,
+          "strategy_score": 254,
+          "sunforge_base_hp": 75,
+          "thornmaw_base_hp": 46
+        },
+        "requestId": "rts-paired-economy",
+        "rollbackSnapshotId": "snapshot-3-35e2bab995",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "resource": "crown_gold",
+              "type": "assign_worker"
+            },
+            "afterChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "beforeChecksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+            "events": [
+              {
+                "resource": "crown_gold",
+                "type": "worker_reassigned"
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 37,
+              "cycle": 0,
+              "economy_value": 92,
+              "enemy_damage": 0,
+              "heartwood": 55,
+              "strategy_score": 146,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "beforeChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 10,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 1,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 45,
+              "cycle": 1,
+              "economy_value": 110,
+              "enemy_damage": 0,
+              "heartwood": 65,
+              "strategy_score": 145,
+              "sunforge_base_hp": 93,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "beforeChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 2,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 130,
+              "enemy_damage": 0,
+              "heartwood": 77,
+              "strategy_score": 145,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "build_barracks"
+            },
+            "afterChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "beforeChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "events": [
+              {
+                "structure": "barracks",
+                "type": "structure_built"
+              }
+            ],
+            "index": 3,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 80,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 120,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "beforeChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 4,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 23,
+              "cycle": 2,
+              "economy_value": 50,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 135,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "beforeChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 11,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 31,
+              "cycle": 3,
+              "economy_value": 70,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 131,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "beforeChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 6,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 146,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "launch_attack"
+            },
+            "afterChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+            "beforeChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "events": [
+              {
+                "damage": 54,
+                "losses": 0,
+                "raidersDefeated": 2,
+                "type": "attack_resolved"
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 54,
+              "heartwood": 39,
+              "strategy_score": 254,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 46
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      },
+      "finalState": {
+        "checksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "state": {
+          "barracksBuilt": true,
+          "crownGold": 1,
+          "cycle": 3,
+          "frontline": 6,
+          "heartwood": 39,
+          "raiders": 0,
+          "rng": 973234181,
+          "seed": 12,
+          "sunforgeBaseHp": 75,
+          "thornmawBaseHp": 46,
+          "vanguards": 2,
+          "watchtowerBuilt": false,
+          "workersOnGold": 1,
+          "workersOnHeartwood": 1
+        }
+      }
+    },
+    {
+      "plan": "economy-replay",
+      "result": {
+        "appliedSteps": 8,
+        "finalChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "metrics": {
+          "army_value": 60,
+          "crown_gold": 1,
+          "cycle": 3,
+          "economy_value": 40,
+          "enemy_damage": 54,
+          "heartwood": 39,
+          "strategy_score": 254,
+          "sunforge_base_hp": 75,
+          "thornmaw_base_hp": 46
+        },
+        "requestId": "rts-paired-economy-replay",
+        "rollbackSnapshotId": "snapshot-4-35e2bab995",
+        "status": "completed",
+        "steps": [
+          {
+            "action": {
+              "resource": "crown_gold",
+              "type": "assign_worker"
+            },
+            "afterChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "beforeChecksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+            "events": [
+              {
+                "resource": "crown_gold",
+                "type": "worker_reassigned"
+              }
+            ],
+            "index": 0,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 37,
+              "cycle": 0,
+              "economy_value": 92,
+              "enemy_damage": 0,
+              "heartwood": 55,
+              "strategy_score": 146,
+              "sunforge_base_hp": 100,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "beforeChecksum": "8bd155665bfb59ed38921d61d070b42f2f7b8bd95cde54b903d1719f1e000646",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 10,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 1,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 45,
+              "cycle": 1,
+              "economy_value": 110,
+              "enemy_damage": 0,
+              "heartwood": 65,
+              "strategy_score": 145,
+              "sunforge_base_hp": 93,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "beforeChecksum": "4b57e2aab44fd863333cc130111da3a8d037fb06e6a81556118e8061d158573e",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 7,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 2,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 130,
+              "enemy_damage": 0,
+              "heartwood": 77,
+              "strategy_score": 145,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "build_barracks"
+            },
+            "afterChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "beforeChecksum": "eaf486e885f69f68f9e1467ca241e760b9a8fe8da183c7708372bf9601b8127b",
+            "events": [
+              {
+                "structure": "barracks",
+                "type": "structure_built"
+              }
+            ],
+            "index": 3,
+            "metrics": {
+              "army_value": 0,
+              "crown_gold": 53,
+              "cycle": 2,
+              "economy_value": 80,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 120,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "beforeChecksum": "492501546988705d2f86731f9509728a96182c6aaedf1ced1cf4e1475ce387dc",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 4,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 23,
+              "cycle": 2,
+              "economy_value": 50,
+              "enemy_damage": 0,
+              "heartwood": 27,
+              "strategy_score": 135,
+              "sunforge_base_hp": 86,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "advance_cycle"
+            },
+            "afterChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "beforeChecksum": "325e9d82d4d736c4f953811981070ad1ac71774f38d26e4158c73549e1880ea0",
+            "events": [
+              {
+                "crownGold": 8,
+                "heartwood": 12,
+                "incomingDamage": 11,
+                "type": "resources_gathered"
+              }
+            ],
+            "index": 5,
+            "metrics": {
+              "army_value": 30,
+              "crown_gold": 31,
+              "cycle": 3,
+              "economy_value": 70,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 131,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "train_vanguard"
+            },
+            "afterChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "beforeChecksum": "815774268a2dfa08b0bacbc24c754284b7e81fd4e74a6a23fe6eaa452ca2e783",
+            "events": [
+              {
+                "type": "unit_trained",
+                "unit": "vanguard"
+              }
+            ],
+            "index": 6,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 0,
+              "heartwood": 39,
+              "strategy_score": 146,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 100
+            }
+          },
+          {
+            "action": {
+              "type": "launch_attack"
+            },
+            "afterChecksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+            "beforeChecksum": "3668637011972259dde78ed231798027076111516a64af19405e9ea66385dd44",
+            "events": [
+              {
+                "damage": 54,
+                "losses": 0,
+                "raidersDefeated": 2,
+                "type": "attack_resolved"
+              }
+            ],
+            "index": 7,
+            "metrics": {
+              "army_value": 60,
+              "crown_gold": 1,
+              "cycle": 3,
+              "economy_value": 40,
+              "enemy_damage": 54,
+              "heartwood": 39,
+              "strategy_score": 254,
+              "sunforge_base_hp": 75,
+              "thornmaw_base_hp": 46
+            }
+          }
+        ],
+        "stopReason": "all-actions-applied"
+      },
+      "finalState": {
+        "checksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+        "state": {
+          "barracksBuilt": true,
+          "crownGold": 1,
+          "cycle": 3,
+          "frontline": 6,
+          "heartwood": 39,
+          "raiders": 0,
+          "rng": 973234181,
+          "seed": 12,
+          "sunforgeBaseHp": 75,
+          "thornmawBaseHp": 46,
+          "vanguards": 2,
+          "watchtowerBuilt": false,
+          "workersOnGold": 1,
+          "workersOnHeartwood": 1
+        }
+      }
+    }
+  ],
+  "restores": [
+    {
+      "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+      "id": "snapshot-1-35e2bab995",
+      "metrics": {
+        "army_value": 0,
+        "crown_gold": 37,
+        "cycle": 0,
+        "economy_value": 92,
+        "enemy_damage": 0,
+        "heartwood": 55,
+        "strategy_score": 146,
+        "sunforge_base_hp": 100,
+        "thornmaw_base_hp": 100
+      }
+    },
+    {
+      "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+      "id": "snapshot-1-35e2bab995",
+      "metrics": {
+        "army_value": 0,
+        "crown_gold": 37,
+        "cycle": 0,
+        "economy_value": 92,
+        "enemy_damage": 0,
+        "heartwood": 55,
+        "strategy_score": 146,
+        "sunforge_base_hp": 100,
+        "thornmaw_base_hp": 100
+      }
+    }
+  ],
+  "errors": [],
+  "actionEnvelopes": 3,
+  "agentTokenUsage": null,
+  "editTestIterations": null,
+  "initial": {
+    "checksum": "35e2bab995b2e1d3d48d33a4c786deb75c57add009aa9af64f1c0795d563ee0a",
+    "state": {
+      "barracksBuilt": false,
+      "crownGold": 37,
+      "cycle": 0,
+      "frontline": 2,
+      "heartwood": 55,
+      "raiders": 1,
+      "rng": 12,
+      "seed": 12,
+      "sunforgeBaseHp": 100,
+      "thornmawBaseHp": 100,
+      "vanguards": 0,
+      "watchtowerBuilt": false,
+      "workersOnGold": 0,
+      "workersOnHeartwood": 2
+    }
+  },
+  "finalMetrics": {
+    "checksum": "0b4cd39339b5cd3c007ec7485e92f6ea6bc8c2179be7bd956e32b4519f5f1e22",
+    "metrics": {
+      "army_value": 60,
+      "crown_gold": 1,
+      "cycle": 3,
+      "economy_value": 40,
+      "enemy_damage": 54,
+      "heartwood": 39,
+      "strategy_score": 254,
+      "sunforge_base_hp": 75,
+      "thornmaw_base_hp": 46
+    }
+  },
+  "sameReplaySteps": true,
+  "parity": [
+    {
+      "plan": "rush",
+      "stepsMatchUi": true,
+      "finalChecksumMatchesUi": true
+    },
+    {
+      "plan": "economy",
+      "stepsMatchUi": true,
+      "finalChecksumMatchesUi": true
+    },
+    {
+      "plan": "economy-replay",
+      "stepsMatchUi": true,
+      "finalChecksumMatchesUi": true
+    }
+  ],
+  "mutatingToolCalls": 6,
+  "pageLedgerText": "UI commands\n0\nWebMCP calls\n13\nCommitted actions\n22\nRejected commands\n0\nModel tokens\nUnknown",
+  "browserSetup": {
+    "tabCreations": 1,
+    "capabilityDiscoveries": 1,
+    "orientationEnvelopes": 1,
+    "gameDisclosureClicks": 1
+  },
+  "evidenceOnlyEnvelopes": 1
+}
