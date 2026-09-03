@@ -1,9 +1,10 @@
 # Game-first feature trials
 
-Status: COIL pair completed; STARFALL pair in progress. The frozen feature
+Status: both pairs completed and independently accepted. The frozen feature
 briefs below are independent of the tools used to implement them. See
-[COIL_FEATURE_TRIAL_RESULTS.md](COIL_FEATURE_TRIAL_RESULTS.md) for the first
-honest result, including the unfavorable efficiency measurements.
+[COIL_FEATURE_TRIAL_RESULTS.md](COIL_FEATURE_TRIAL_RESULTS.md) and
+[STARFALL_FEATURE_TRIAL_RESULTS.md](STARFALL_FEATURE_TRIAL_RESULTS.md) for the
+honest results, including the unfavorable efficiency measurements.
 
 ## Preconditions
 

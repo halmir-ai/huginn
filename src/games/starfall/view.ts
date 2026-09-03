@@ -13,6 +13,7 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
       <div class="sf-scoreglass"><span class="sf-label">SCORE</span><output class="sf-score" aria-live="polite">0</output><div class="sf-bestline"><span>PERSONAL BEST</span><b class="sf-best">0</b></div></div>
       <div class="sf-readouts"><div><span class="sf-label">BALL</span><strong class="sf-ballcount">1 <small>/ 3</small></strong></div><div><span class="sf-label">MULTIPLIER</span><strong class="sf-multiplier">1<small>×</small></strong></div></div>
       <div class="sf-objective"><div class="sf-lights" aria-label="Constellation lights"><i></i><i></i><i></i></div><h2>LIGHT THE CONSTELLATION</h2><p>Hit all three bumpers for a bigger multiplier and a 500 × bonus.</p></div>
+      <div class="sf-saver" data-state="ready" aria-label="Ball saver ready"><span>BALL SAVER</span><output>READY</output></div>
       <p class="sf-message" role="status">Pull into orbit.</p>
       <div class="sf-console-buttons"><button class="sf-launch" data-control="launch">Launch ball <kbd>SPACE</kbd></button><div class="sf-secondary"><button data-control="pause">Pause</button><button data-control="restart">New game</button><button data-control="sound" aria-label="Mute game sound" aria-pressed="false">Sound on</button></div></div>
       <div class="sf-key-guide"><div><kbd>Z</kbd><span>or</span><kbd>←</kbd><b>LEFT FLIPPER</b></div><div><kbd>X</kbd><span>or</span><kbd>→</kbd><b>RIGHT FLIPPER</b></div><p>Let the ball come to you.<br>Release, then flip at the tip.</p></div>
@@ -24,6 +25,7 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
   const score = section.querySelector<HTMLOutputElement>(".sf-score")!, best = section.querySelector<HTMLElement>(".sf-best")!;
   const balls = section.querySelector<HTMLElement>(".sf-ballcount")!, multiplier = section.querySelector<HTMLElement>(".sf-multiplier")!;
   const message = section.querySelector<HTMLElement>(".sf-message")!, mode = section.querySelector<HTMLElement>(".sf-mode")!;
+  const saver = section.querySelector<HTMLElement>(".sf-saver")!, saverOutput = saver.querySelector<HTMLOutputElement>("output")!;
   const launch = section.querySelector<HTMLButtonElement>("[data-control=launch]")!, pause = section.querySelector<HTMLButtonElement>("[data-control=pause]")!;
   const soundButton = section.querySelector<HTMLButtonElement>("[data-control=sound]")!, lamp = section.querySelector<HTMLElement>(".sf-live-lamp b")!;
   const lightElements = [...section.querySelectorAll<HTMLElement>(".sf-lights i")];
@@ -114,21 +116,28 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
     balls.innerHTML = `${state.phase === "over" ? 3 : 4 - state.ballsRemaining} <small>/ 3</small>`;
     multiplier.innerHTML = `${state.multiplier}<small>×</small>`;
     lightElements.forEach((element, i) => element.classList.toggle("is-lit", state.bumperLights[i]));
+    const savedBall = state.phase === "ready" && !state.ballSaver.pendingNewBall;
+    const saverState = savedBall ? "saved" : state.ballSaver.available ? "active" : state.phase === "playing" ? "spent" : state.phase === "over" ? "off" : "ready";
+    const saverText = saverState === "active" ? `${(state.ballSaver.framesRemaining / 120).toFixed(2)}s` : saverState === "saved" ? "SAVED" : saverState === "ready" ? "READY" : "SPENT";
+    saver.dataset.state = saverState; saverOutput.textContent = saverText;
+    saver.setAttribute("aria-label", saverState === "active" ? `Ball saver ${saverText} remaining` : `Ball saver ${saverText.toLowerCase()}`);
     mode.hidden = runtime.control !== "agent";
     pause.textContent = runtime.playing ? "Pause" : "Resume";
     pause.disabled = state.phase !== "playing";
     launch.disabled = state.phase === "playing" && runtime.playing;
-    launch.innerHTML = state.phase === "over" ? "Play again <kbd>SPACE</kbd>" : state.phase === "playing" ? "Resume orbit <kbd>SPACE</kbd>" : `${state.stats.drains ? "Launch next ball" : "Launch ball"} <kbd>SPACE</kbd>`;
+    launch.innerHTML = state.phase === "over" ? "Play again <kbd>SPACE</kbd>" : state.phase === "playing" ? "Resume orbit <kbd>SPACE</kbd>" : `${savedBall ? "Relaunch saved ball" : state.stats.launches ? "Launch next ball" : "Launch ball"} <kbd>SPACE</kbd>`;
     const paused = !runtime.playing && runtime.control === "human" && state.phase === "playing";
-    message.textContent = paused ? "Paused. Your orbit is waiting." : state.phase === "over" ? `Final score ${number(state.score)}. One more orbit?` : state.phase === "ready" ? (state.stats.drains ? `${state.ballsRemaining} ${state.ballsRemaining === 1 ? "ball" : "balls"} left. Send the next one skyward.` : "Press Space. Chase a new high score.") : state.lastEvent;
-    lamp.textContent = runtime.control === "agent" ? "EXPERIMENT IN PROGRESS" : state.phase === "over" ? "ORBIT COMPLETE" : state.phase === "ready" ? "READY TO LAUNCH" : paused ? "PAUSED" : "BALL IN PLAY";
+    message.textContent = paused ? "Paused. Your orbit is waiting." : state.phase === "over" ? `Final score ${number(state.score)}. One more orbit?` : state.phase === "ready" ? (savedBall ? state.lastEvent : state.stats.launches ? `${state.ballsRemaining} ${state.ballsRemaining === 1 ? "ball" : "balls"} left. Send the next one skyward.` : "Press Space. Chase a new high score.") : state.lastEvent;
+    message.classList.toggle("is-save", savedBall);
+    lamp.textContent = runtime.control === "agent" ? "EXPERIMENT IN PROGRESS" : state.phase === "over" ? "ORBIT COMPLETE" : savedBall ? "BALL SAVED" : state.phase === "ready" ? "READY TO LAUNCH" : paused ? "PAUSED" : "BALL IN PLAY";
     section.classList.toggle("sf-paused", paused);
     for (const event of events) {
-      if (["bumper", "sling", "multiplier", "drain"].includes(event.type)) flashes.push({ x: event.x, y: event.y, born: performance.now(), type: event.type, value: event.value });
+      if (["bumper", "sling", "multiplier", "save", "drain"].includes(event.type)) flashes.push({ x: event.x, y: event.y, born: performance.now(), type: event.type, value: event.value });
       if (event.type === "bumper") tone(660 + state.bumperLights.filter(Boolean).length * 110, 0.15, 0.08, "triangle");
       if (event.type === "sling") tone(210, 0.1, 0.06, "triangle");
       if (event.type === "flipper") tone(100, 0.055, 0.04, "triangle");
       if (event.type === "launch") { tone(100, 0.2, 0.1, "triangle"); tone(450, 0.2, 0.04, "sine", 0.08); }
+      if (event.type === "save") { tone(330, 0.18, 0.06, "triangle"); tone(660, 0.28, 0.06, "sine", 0.12); }
       if (event.type === "drain") tone(140, 0.5, 0.06, "sine");
       if (event.type === "multiplier") [523, 659, 784, 1046].forEach((pitch, i) => tone(pitch, 0.25, 0.065, "sine", i * 0.09));
     }
@@ -222,10 +231,13 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
       const metal = ctx.createRadialGradient(ballX - 3.6, ballY - 4.2, 0, ballX + 1, ballY + 1, 11); metal.addColorStop(0, "#fff"); metal.addColorStop(0.23, "#f7ffff"); metal.addColorStop(0.46, "#a8c4d4"); metal.addColorStop(0.72, "#3c556b"); metal.addColorStop(0.9, "#e9ffff"); metal.addColorStop(1, "#7d9caa");
       ctx.beginPath(); ctx.arc(ballX, ballY, TABLE.ballRadius, 0, Math.PI * 2); ctx.fillStyle = metal; ctx.fill(); ctx.restore(); circle(ballX - 3.5, ballY - 4.5, 2, "#fff");
     }
-    flashes = flashes.filter(flash => time - flash.born < 600);
+    flashes = flashes.filter(flash => time - flash.born < (flash.type === "save" ? 1400 : 600));
     for (const flash of flashes) {
-      const progress = (time - flash.born) / 600;
-      if (flash.type !== "drain" && flash.type !== "multiplier") { ctx.save(); ctx.globalAlpha = 1 - progress; label(`+${number(flash.value)}`, flash.x, flash.y - 26 - progress * 25, 13, "#faffef", "700"); ctx.restore(); }
+      const duration = flash.type === "save" ? 1400 : 600, progress = (time - flash.born) / duration;
+      if (flash.type === "save") {
+        ctx.save(); ctx.globalAlpha = Math.max(0, 1 - progress); ctx.fillStyle = "#07141fdd"; ctx.fillRect(164, 675, 200, 46);
+        line(175, 711, 353, 711, "#78e5df", 1); label("BALL SAVED", 264, 703, 17, "#e7fff8", "700"); ctx.restore();
+      } else if (flash.type !== "drain" && flash.type !== "multiplier") { ctx.save(); ctx.globalAlpha = 1 - progress; label(`+${number(flash.value)}`, flash.x, flash.y - 26 - progress * 25, 13, "#faffef", "700"); ctx.restore(); }
     }
     // Paused and terminal states never cover the ball or obscure the table.
     if (state.phase === "over") { ctx.fillStyle = "#07141fe8"; ctx.fillRect(162, 421, 205, 73); label("ORBIT COMPLETE", 264, 448, 13, "#ddc894", "700"); label(number(state.score), 264, 480, 28, "#f5efdb", "700"); }

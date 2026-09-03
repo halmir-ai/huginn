@@ -48,10 +48,11 @@ freezes a real additional feature for each game: COIL's emergency shield and
 STARFALL's launch ball saver. Each pair starts with identical game source and
 the same feature brief. Both agents may inspect code, write tests and create
 diagnostics. The [completed COIL result](docs/demo/COIL_FEATURE_TRIAL_RESULTS.md)
-is deliberately honest: Huginn did not reduce time, tokens, or code changes in
-that single pair, but it produced reproducible live-state evidence the
-standalone canvas could not expose. STARFALL remains a separate running trial;
-no aggregate efficiency claim is made.
+and [completed STARFALL result](docs/demo/STARFALL_FEATURE_TRIAL_RESULTS.md) are
+deliberately honest: Huginn did not reduce time, tokens, or code changes in
+either pair, but it produced reproducible live-state evidence the standalone
+canvas could not expose. Two pairs are still too small for an aggregate
+efficiency claim.
 
 ## Preserved earlier experiments
 

@@ -17,11 +17,11 @@ app.innerHTML = `
     </nav>
 
     <header class="hero">
-      <p class="eyebrow">COIL TRIAL COMPLETE · STARFALL RUNNING</p>
+      <p class="eyebrow">TWO PAIRED TRIALS · COMPLETE</p>
       <h1>Same game.<br /><em>New feature.</em><br />Two ways to build it.</h1>
       <p class="lead">Optional WebMCP exposes live canvas game state, legal actions, and bounded experiments.</p>
       <div class="hero-meta">
-        <span>First paired result: <strong>better proof, not lower cost</strong></span>
+        <span>Both paired results: <strong>better proof, not lower cost</strong></span>
         <a href="#method">Read the trial contract ↓</a>
       </div>
     </header>
@@ -58,6 +58,7 @@ app.innerHTML = `
           <p class="eyebrow">02 / STARFALL · PINBALL</p>
           <h2>Launch ball saver</h2>
           <p class="feature">Specified feature trial: each newly launched ball gets one saver for its first eight simulated seconds before a normal drain applies.</p>
+          <p class="trial-verdict"><strong>Accepted in 1 task turn each.</strong> The standalone task was faster and smaller; Huginn corrected an accounting mismatch, then proved save, relaunch, renewal and replay from live state.</p>
           <div class="treatments" aria-label="STARFALL treatment links">
             <a class="action primary" href="../games/starfall/">Play with Huginn <span>→</span></a>
             <a class="action" href="../games/starfall/plain/">Play standalone <span>→</span></a>
@@ -90,6 +91,18 @@ app.innerHTML = `
         <article class="result-card wide"><span>What changed</span><strong>Evidence quality</strong><small>Typed six-action replay ended alive at tick 18, restored the exact checkpoint checksum, then handed the preserved run back to a human.</small></article>
       </div>
       <div id="trial-task-links" class="task-links"><a href="${github}/blob/main/docs/demo/COIL_FEATURE_TRIAL_RESULTS.md">Full measurements and caveats ↗</a> · <a href="https://chatgpt.com/s/cx_6a99ae8fe4e08191becce187708a008d">Standalone task ↗</a> · <a href="https://chatgpt.com/s/cx_6a99ae931c048191bac24d00d4f4e221">Huginn task ↗</a></div>
+    </section>
+
+    <section class="evidence" aria-labelledby="starfall-evidence-title">
+      <p class="eyebrow">STARFALL · ACTUAL RESULT</p>
+      <h2 id="starfall-evidence-title">The second pair repeats the honest result.</h2>
+      <p>Both implementations passed the same frozen gameplay contract. The treatment required an accounting correction before acceptance. Huginn again cost more in this single pair, while its live tools exposed the exact saved-ball lifecycle and reproducible checksums.</p>
+      <div class="result-grid" aria-live="polite">
+        <article class="result-card"><span>Standalone</span><strong>14m 57s</strong><small>6.36M total task tokens · +58/-17 production lines</small></article>
+        <article class="result-card accent"><span>With Huginn</span><strong>23m 17s</strong><small>11.76M total task tokens · +66/-25 production lines</small></article>
+        <article class="result-card wide"><span>What changed</span><strong>Live lifecycle proof</strong><small>Saved ball: score 425, two lights, three balls, ballSaves 1, drains 0; unarmed relaunch, fresh next-ball saver, exact restore and matching replay.</small></article>
+      </div>
+      <div class="task-links"><a href="${github}/blob/main/docs/demo/STARFALL_FEATURE_TRIAL_RESULTS.md">Full measurements and caveats ↗</a> · <a href="https://chatgpt.com/s/cx_6a99b34dc870819186662709d2b69002">Standalone task ↗</a> · <a href="https://chatgpt.com/s/cx_6a99b4c83928819187d7755abb9b069b">Huginn task ↗</a></div>
     </section>
 
     <aside class="pilot-note">

@@ -1,9 +1,10 @@
 # Arcade baseline: actual play and browser evidence
 
 2026-09-03. These are correctness/playability checks, not an efficiency study.
-The later COIL feature pair is reported separately in
-[COIL_FEATURE_TRIAL_RESULTS.md](COIL_FEATURE_TRIAL_RESULTS.md). Enjoyment still
-needs human judgment; passing tests alone does not establish it.
+The later feature pairs are reported separately in
+[COIL_FEATURE_TRIAL_RESULTS.md](COIL_FEATURE_TRIAL_RESULTS.md) and
+[STARFALL_FEATURE_TRIAL_RESULTS.md](STARFALL_FEATURE_TRIAL_RESULTS.md).
+Enjoyment still needs human judgment; passing tests alone does not establish it.
 
 ## Ordinary play, with no Huginn runtime
 
@@ -38,7 +39,7 @@ is a local correctness smoke, not a deployed-build identity or token study.
 - COIL: eight typed actions moved ten cells, ate the original seed-12 fruit,
   and returned score 10 / length 6. Restore matched the initial checksum.
   A distinct request resetting seed 12 reproduced every step and final hash.
-- STARFALL: launch and fixed-frame flipper inputs stopped on the first drain
+- STARFALL baseline before the ball-saver feature: launch and fixed-frame flipper inputs stopped on the first drain
   after 16 committed actions. Result: 425 points, four bumper hits, one sling
   hit, two balls remaining, 3.6 displayed simulation seconds. Restore matched
   the initial checksum; a seed-reset replay matched every step and final hash.
@@ -48,7 +49,8 @@ is a local correctness smoke, not a deployed-build identity or token study.
 
 ## Build checks
 
-`npm run check`: 79 tests passed, 12 files. `npm run build` passed, including
+Final feature build: `npm run check` passed 96 tests across 14 files and
+`npm run build` passed, including
 the transitive standalone-bundle audit. The audit rejects protocol code in
 either plain game's executable dependency graph; it was tested with a poisoned
 shared chunk before accepting the real builds.
@@ -64,7 +66,6 @@ work was preserved outside the repository, not erased.
 
 ## Independent feature tests
 
-The COIL pair followed [ARCADE_FEATURE_PROTOCOL.md](ARCADE_FEATURE_PROTOCOL.md)
-and preserved its unfavorable efficiency result. STARFALL remains independent.
-Do not translate these smoke-test counts into token, latency, code-change or
-iteration savings.
+Both pairs followed [ARCADE_FEATURE_PROTOCOL.md](ARCADE_FEATURE_PROTOCOL.md)
+and preserved their unfavorable efficiency results. Do not translate baseline
+smoke-test counts into token, latency, code-change or iteration savings.

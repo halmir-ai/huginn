@@ -2,6 +2,7 @@ import type { GameDefinition, LegalAction } from "../../play/core";
 
 export const TABLE = { width: 560, height: 780, ballRadius: 9, dt: 1 / 120, gravity: 510 } as const;
 export const FLIPPER = { leftX: 154, rightX: 374, y: 655, length: 95, radius: 10, rest: 0.4, raised: -0.48, speed: 14 } as const;
+export const BALL_SAVER_FRAMES = 960;
 export interface Segment { x1: number; y1: number; x2: number; y2: number; radius: number; kind: "rail" | "sling" | "gate"; id?: number }
 export const RAILS: readonly Segment[] = [
   { x1: 44, y1: 495, x2: 44, y2: 119, radius: 6, kind: "rail" },
@@ -50,13 +51,14 @@ export interface Ball { x: number; y: number; vx: number; vy: number }
 export interface StarfallState {
   seed: number; tick: number; phase: "ready" | "playing" | "over";
   ball: Ball; ballsRemaining: number; score: number; multiplier: number;
+  ballSaver: { available: boolean; framesRemaining: number; pendingNewBall: boolean };
   bumperLights: [boolean, boolean, boolean]; bumperCooldowns: [number, number, number]; slingCooldowns: [number, number];
   flippers: { leftAngle: number; rightAngle: number; leftHeld: boolean; rightHeld: boolean };
-  stats: { launches: number; drains: number; bumperHits: number; flipperHits: number; slingHits: number; wallHits: number; maxSpeed: number };
+  stats: { launches: number; drains: number; ballSaves: number; bumperHits: number; flipperHits: number; slingHits: number; wallHits: number; maxSpeed: number };
   lastEvent: string; lastScoreTick: number; lastBankTick: number;
 }
 export type StarfallAction = { type: "launch" } | { type: "advance"; frames: 4 | 15 | 30; left: boolean; right: boolean };
-export type StarfallEvent = { type: "launch" | "bumper" | "sling" | "flipper" | "multiplier" | "drain" | "gameover"; tick: number; x: number; y: number; value: number };
+export type StarfallEvent = { type: "launch" | "bumper" | "sling" | "flipper" | "multiplier" | "save" | "drain" | "gameover"; tick: number; x: number; y: number; value: number };
 
 const restingBall = (): Ball => ({ x: 510, y: 712, vx: 0, vy: 0 });
 const closed = (properties: Record<string, unknown>, required = Object.keys(properties)) => ({ type: "object", properties, required, additionalProperties: false });
@@ -65,15 +67,18 @@ export const STARFALL_ACTION_SCHEMA = {
 };
 
 function clone(s: StarfallState): StarfallState {
-  return { ...s, ball: { ...s.ball }, bumperLights: [...s.bumperLights], bumperCooldowns: [...s.bumperCooldowns], slingCooldowns: [...s.slingCooldowns], flippers: { ...s.flippers }, stats: { ...s.stats } };
+  return { ...s, ball: { ...s.ball }, ballSaver: { ...s.ballSaver }, bumperLights: [...s.bumperLights], bumperCooldowns: [...s.bumperCooldowns], slingCooldowns: [...s.slingCooldowns], flippers: { ...s.flippers }, stats: { ...s.stats } };
 }
 function initialState(seed: number): StarfallState {
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) throw new Error("Seed must be an unsigned 32-bit integer.");
-  return { seed, tick: 0, phase: "ready", ball: restingBall(), ballsRemaining: 3, score: 0, multiplier: 1, bumperLights: [false, false, false], bumperCooldowns: [0, 0, 0], slingCooldowns: [0, 0], flippers: { leftAngle: FLIPPER.rest, rightAngle: Math.PI - FLIPPER.rest, leftHeld: false, rightHeld: false }, stats: { launches: 0, drains: 0, bumperHits: 0, flipperHits: 0, slingHits: 0, wallHits: 0, maxSpeed: 0 }, lastEvent: "Launch your first ball", lastScoreTick: -120, lastBankTick: -360 };
+  return { seed, tick: 0, phase: "ready", ball: restingBall(), ballsRemaining: 3, score: 0, multiplier: 1, ballSaver: { available: false, framesRemaining: 0, pendingNewBall: true }, bumperLights: [false, false, false], bumperCooldowns: [0, 0, 0], slingCooldowns: [0, 0], flippers: { leftAngle: FLIPPER.rest, rightAngle: Math.PI - FLIPPER.rest, leftHeld: false, rightHeld: false }, stats: { launches: 0, drains: 0, ballSaves: 0, bumperHits: 0, flipperHits: 0, slingHits: 0, wallHits: 0, maxSpeed: 0 }, lastEvent: "Launch your first ball", lastScoreTick: -120, lastBankTick: -360 };
 }
 function legalActions(s: StarfallState): LegalAction<StarfallAction>[] {
   if (s.phase === "over") return [];
-  if (s.phase === "ready") return [{ action: { type: "launch" }, label: "Launch ball", reason: "The ball is resting in the shooter lane." }];
+  if (s.phase === "ready") {
+    const saved = !s.ballSaver.pendingNewBall;
+    return [{ action: { type: "launch" }, label: saved ? "Relaunch saved ball" : "Launch ball", reason: saved ? "The one-use saver returned this same ball to the shooter lane." : "A fresh ball is resting in the shooter lane." }];
+  }
   const result: LegalAction<StarfallAction>[] = [];
   for (const frames of [4, 15, 30] as const) for (const left of [false, true]) for (const right of [false, true]) {
     result.push({ action: { type: "advance", frames, left, right }, label: `${left ? "Left" : ""}${left && right ? " + " : ""}${right ? "Right" : ""}${!left && !right ? "Release flippers" : " flipper"} · ${frames} frames`, reason: `Simulate ${(frames / 120).toFixed(3)} seconds with these held inputs.` });
@@ -131,6 +136,10 @@ export function flipperSegment(side: "left" | "right", angle: number): Segment {
 const approach = (value: number, target: number, step: number) => value + Math.max(-step, Math.min(step, target - value));
 function physicsFrame(s: StarfallState, events: StarfallEvent[]): void {
   s.tick++;
+  if (s.ballSaver.available) {
+    s.ballSaver.framesRemaining = Math.max(0, s.ballSaver.framesRemaining - 1);
+    if (s.ballSaver.framesRemaining === 0) s.ballSaver.available = false;
+  }
   s.bumperCooldowns = s.bumperCooldowns.map(v => Math.max(0, v - 1)) as StarfallState["bumperCooldowns"];
   s.slingCooldowns = s.slingCooldowns.map(v => Math.max(0, v - 1)) as StarfallState["slingCooldowns"];
   const emit = (type: StarfallEvent["type"], value = 0) => events.push({ type, tick: s.tick, x: s.ball.x, y: s.ball.y, value });
@@ -174,12 +183,20 @@ function physicsFrame(s: StarfallState, events: StarfallEvent[]): void {
     if (speed > limit) { b.vx *= limit / speed; b.vy *= limit / speed; }
     s.stats.maxSpeed = Math.max(s.stats.maxSpeed, Math.min(speed, limit));
     if (b.y > 780) {
-      s.ballsRemaining--; s.stats.drains++; emit("drain");
+      const saved = s.ballSaver.available;
+      emit(saved ? "save" : "drain", saved ? s.ballSaver.framesRemaining : 0);
       s.flippers = { leftAngle: FLIPPER.rest, rightAngle: Math.PI - FLIPPER.rest, leftHeld: false, rightHeld: false };
-      s.phase = s.ballsRemaining === 0 ? "over" : "ready";
-      s.lastEvent = s.phase === "over" ? "Three balls. One more game?" : `Ball drained · ${s.ballsRemaining} ${s.ballsRemaining === 1 ? "ball" : "balls"} left`;
-      if (s.phase === "over") emit("gameover", s.score);
-      else s.ball = restingBall();
+      s.ballSaver.available = false; s.ballSaver.framesRemaining = 0;
+      if (saved) {
+        s.stats.ballSaves++; s.phase = "ready"; s.ballSaver.pendingNewBall = false;
+        s.lastEvent = "Ball saved · relaunch the same ball"; s.ball = restingBall();
+      } else {
+        s.stats.drains++; s.ballsRemaining--; s.phase = s.ballsRemaining === 0 ? "over" : "ready";
+        s.ballSaver.pendingNewBall = s.phase === "ready";
+        s.lastEvent = s.phase === "over" ? "Three balls. One more game?" : `Ball drained · ${s.ballsRemaining} ${s.ballsRemaining === 1 ? "ball" : "balls"} left`;
+        if (s.phase === "over") emit("gameover", s.score);
+        else s.ball = restingBall();
+      }
     }
   }
 }
@@ -188,9 +205,13 @@ function reduce(state: StarfallState, action: StarfallAction): { state: Starfall
   const s = clone(state), events: StarfallEvent[] = [];
   if (action.type === "launch") {
     s.phase = "playing"; s.stats.launches++;
+    if (s.ballSaver.pendingNewBall) {
+      s.ballSaver = { available: true, framesRemaining: BALL_SAVER_FRAMES, pendingNewBall: false };
+    }
     // Small, seeded spring variation; never moves the ball off the plunger.
     const spring = ((Math.imul(s.seed ^ s.stats.launches, 1664525) + 1013904223) >>> 0) % 23;
-    s.ball.vy = -1080 - spring; s.ball.vx = 0; s.lastEvent = "Light all three bumpers to raise the multiplier";
+    s.ball.vy = -1080 - spring; s.ball.vx = 0;
+    s.lastEvent = s.ballSaver.available ? "Ball saver active · light all three bumpers" : "Ball saver spent · light all three bumpers";
     events.push({ type: "launch", tick: s.tick, x: s.ball.x, y: s.ball.y, value: s.stats.launches });
   } else {
     s.flippers.leftHeld = action.left; s.flippers.rightHeld = action.right;
@@ -222,7 +243,11 @@ function deserialize(value: unknown): StarfallState {
     || !integer(s.score, 0, Number.MAX_SAFE_INTEGER) || !integer(s.multiplier, 1, 5)
     || !s.bumperCooldowns.every(v => integer(v, 0, 16)) || !s.slingCooldowns.every(v => integer(v, 0, 18))
     || !Object.entries(s.stats).every(([k, v]) => k === "maxSpeed" ? v >= 0 && v <= 1600 : integer(v, 0, Number.MAX_SAFE_INTEGER))
-    || s.stats.drains !== 3 - s.ballsRemaining || s.stats.launches !== s.stats.drains + (s.phase === "playing" ? 1 : 0)
+    || !integer(s.ballSaver.framesRemaining, 0, BALL_SAVER_FRAMES)
+    || s.ballSaver.available !== (s.phase === "playing" && s.ballSaver.framesRemaining > 0)
+    || (s.ballSaver.pendingNewBall && s.phase !== "ready") || (s.phase !== "playing" && s.ballSaver.framesRemaining !== 0)
+    || s.stats.ballSaves > 3 || s.stats.drains !== 3 - s.ballsRemaining
+    || s.stats.launches !== s.stats.drains + s.stats.ballSaves + (s.phase === "playing" ? 1 : 0)
     || s.stats.bumperHits < s.bumperLights.filter(Boolean).length
     || f.leftAngle < FLIPPER.raised - 1e-9 || f.leftAngle > FLIPPER.rest + 1e-9 || f.rightAngle < Math.PI - FLIPPER.rest - 1e-9 || f.rightAngle > Math.PI - FLIPPER.raised + 1e-9
     || Math.abs(s.ball.vx) > 1600 || Math.abs(s.ball.vy) > 1600 || Math.hypot(s.ball.vx, s.ball.vy) > 1600.00001
@@ -234,8 +259,8 @@ function deserialize(value: unknown): StarfallState {
 
 export const starfallGame: GameDefinition<StarfallState, StarfallAction, StarfallEvent> = {
   description: {
-    id: "starfall", title: "STARFALL", version: "1.0.0", summary: "A three-ball space-age pinball table. Physical flippers, live bumpers, and one more high-score chase.",
-    rules: ["Launch from the shooter lane. Time the left and right flippers to keep the ball in play.", "Each bumper scores 100 times the multiplier. Light all three to raise it, up to 5×, and collect a constellation bonus.", "Slingshots score 25 times the multiplier. Scores and multiplier carry across three balls.", "A ball passing below the table drains. Launch the next ball manually. The game ends after the third drain."],
+    id: "starfall", title: "STARFALL", version: "1.1.0", summary: "A three-ball space-age pinball table. Physical flippers, live bumpers, a launch ball saver, and one more high-score chase.",
+    rules: ["Launch from the shooter lane. Time the left and right flippers to keep the ball in play.", "Each fresh ball has one saver until physics frame 960. A drain before frame 960 returns that same ball for relaunch without spending it; the relaunch does not refresh the saver.", "Each bumper scores 100 times the multiplier. Light all three to raise it, up to 5×, and collect a constellation bonus.", "Slingshots score 25 times the multiplier. Scores and multiplier carry across three balls.", "An unsaved ball passing below the table drains. Launch the next ball manually. The game ends after the third spent ball."],
     victoryConditions: ["There is no fixed win quota. Finish a three-ball session and try to beat your best score."],
     failureConditions: ["The third ball drains and the session ends."],
     metrics: [
@@ -245,7 +270,10 @@ export const starfallGame: GameDefinition<StarfallState, StarfallAction, Starfal
       { key: "bumperHits", label: "Bumper hits", description: "Approaching, cooldown-ready physical bumper contacts." },
       { key: "flipperHits", label: "Flipper impacts", description: "Physical bat contacts changing ball velocity by at least 40 table units/s. Button presses and tiny resting corrections do not count." },
       { key: "slingHits", label: "Slingshot hits", description: "Scoring contacts with the two triangular slingshots; each earns 25 times the multiplier." },
-      { key: "drains", label: "Drains", description: "Balls that crossed the bottom drain." },
+      { key: "drains", label: "Drains", description: "Unsaved drain crossings that spent a ball." },
+      { key: "ballSaves", label: "Ball saves", description: "Drain crossings returned by the one-use saver without spending a ball." },
+      { key: "ballSaverSeconds", label: "Ball saver time", description: "Simulated seconds remaining in the current ball's saver window, rounded to hundredths." },
+      { key: "ballSaverAvailable", label: "Ball saver available", description: "Whether the current launched ball can still be saved once." },
       { key: "simulationSeconds", label: "Play time", description: "Fixed physics time rounded to 0.1 seconds; excludes waiting at the plunger and pause time. State tick counts exact 1/120-second frames." },
       { key: "maxSpeed", label: "Peak speed", description: "Highest simulated ball speed in table units per second, capped at 1600 for collision stability." },
       { key: "phase", label: "Phase", description: "ready awaits a launch, playing means a ball is on the table, and over ends the three-ball session." },
@@ -256,5 +284,5 @@ export const starfallGame: GameDefinition<StarfallState, StarfallAction, Starfal
       { type: "advance", description: "Advance 4, 15, or 30 fixed 1/120-second physics frames with the chosen flippers held. Input only moves the physical bats.", inputSchema: closed({ type: { const: "advance" }, frames: { type: "integer", enum: [4, 15, 30] }, left: { type: "boolean" }, right: { type: "boolean" } }) },
     ],
   }, initialState, legalActions, reduce, deserialize,
-  metrics: s => ({ score: s.score, ballsRemaining: s.ballsRemaining, multiplier: s.multiplier, bumperHits: s.stats.bumperHits, flipperHits: s.stats.flipperHits, slingHits: s.stats.slingHits, drains: s.stats.drains, simulationSeconds: Math.round(s.tick / 12) / 10, maxSpeed: Math.round(s.stats.maxSpeed), phase: s.phase, lights: s.bumperLights.filter(Boolean).length }),
+  metrics: s => ({ score: s.score, ballsRemaining: s.ballsRemaining, multiplier: s.multiplier, bumperHits: s.stats.bumperHits, flipperHits: s.stats.flipperHits, slingHits: s.stats.slingHits, drains: s.stats.drains, ballSaves: s.stats.ballSaves, ballSaverSeconds: Math.round(s.ballSaver.framesRemaining / 1.2) / 100, ballSaverAvailable: s.ballSaver.available, simulationSeconds: Math.round(s.tick / 12) / 10, maxSpeed: Math.round(s.stats.maxSpeed), phase: s.phase, lights: s.bumperLights.filter(Boolean).length }),
 };

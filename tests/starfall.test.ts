@@ -4,6 +4,17 @@ import type { StarfallAction, StarfallState } from "../src/games/starfall/game";
 
 const advance = (s: StarfallState, frames: 4 | 15 | 30 = 30, left = false, right = false) => starfallGame.reduce(s, { type: "advance", frames, left, right }).state;
 const launch = (seed = 12) => starfallGame.reduce(starfallGame.initialState(seed), { type: "launch" }).state;
+const drain = (s: StarfallState) => {
+  s.ball = { x: 264, y: 779, vx: 0, vy: 300 };
+  return starfallGame.reduce(s, { type: "advance", frames: 4, left: false, right: false });
+};
+const advanceSafely = (s: StarfallState, batches: readonly (4 | 15 | 30)[]) => {
+  for (const frames of batches) {
+    s.ball = { x: 264, y: 400, vx: 0, vy: 0 };
+    s = advance(s, frames);
+  }
+  return s;
+};
 
 describe("Starfall physical pinball", () => {
   it("starts with three balls at the plunger, and launching gives velocity without relocation", () => {
@@ -13,6 +24,7 @@ describe("Starfall physical pinball", () => {
     const next = starfallGame.reduce(initial, { type: "launch" }).state;
     expect(next.ball.x).toBe(initial.ball.x); expect(next.ball.y).toBe(initial.ball.y);
     expect(next.ball.vy).toBeLessThan(-1000); expect(next.phase).toBe("playing");
+    expect(next.ballSaver).toEqual({ available: true, framesRemaining: 960, pendingNewBall: false });
     expect(initial.ball.vy).toBe(0);
     expect(starfallGame.legalActions(next)).toHaveLength(12);
   });
@@ -25,6 +37,52 @@ describe("Starfall physical pinball", () => {
       if (state.ball.x < 460 && state.ball.y < 250) entered = true;
     }
     expect(entered).toBe(true);
+  });
+
+  it("saves one early drain per fresh ball without spending progress or rearming the saved ball", () => {
+    let state = launch();
+    state.score = 725; state.multiplier = 3; state.bumperLights = [true, false, true];
+    state.stats.bumperHits = 2;
+
+    let transition = drain(state);
+    state = transition.state;
+    expect(state.phase).toBe("ready"); expect(state.ballsRemaining).toBe(3);
+    expect(state.score).toBe(725); expect(state.multiplier).toBe(3); expect(state.bumperLights).toEqual([true, false, true]);
+    expect(state.ballSaver).toEqual({ available: false, framesRemaining: 0, pendingNewBall: false });
+    expect(state.stats.drains).toBe(0);
+    expect(transition.events.map(event => event.type)).toContain("save");
+    expect((state.stats as StarfallState["stats"] & { ballSaves?: number }).ballSaves).toBe(1);
+    expect(starfallGame.deserialize(JSON.parse(JSON.stringify(state)))).toEqual(state);
+
+    state = starfallGame.reduce(state, { type: "launch" }).state;
+    expect(state.ballSaver).toEqual({ available: false, framesRemaining: 0, pendingNewBall: false });
+    transition = drain(state); state = transition.state;
+    expect(state.phase).toBe("ready"); expect(state.ballsRemaining).toBe(2);
+    expect(state.stats.drains).toBe(1);
+    expect(transition.events.map(event => event.type)).toContain("drain");
+
+    state = starfallGame.reduce(state, { type: "launch" }).state;
+    expect(state.ballSaver).toEqual({ available: true, framesRemaining: 960, pendingNewBall: false });
+    transition = drain(state); state = transition.state;
+    expect(state.phase).toBe("ready"); expect(state.ballsRemaining).toBe(2);
+    expect(state.stats.drains).toBe(1);
+    expect(transition.events.map(event => event.type)).toContain("save");
+    expect((state.stats as StarfallState["stats"] & { ballSaves?: number }).ballSaves).toBe(2);
+  });
+
+  it("saves a drain on frame 959 but spends the ball on frame 960", () => {
+    let beforeExpiry = advanceSafely(launch(), [...Array(31).fill(30), ...Array(7).fill(4)]);
+    expect(beforeExpiry.tick).toBe(958); expect(beforeExpiry.ballSaver.framesRemaining).toBe(2);
+    const saved = drain(beforeExpiry);
+    expect(saved.state.tick).toBe(959); expect(saved.state.ballsRemaining).toBe(3); expect(saved.state.stats.drains).toBe(0);
+    expect(saved.events.map(event => event.type)).toContain("save");
+
+    let atExpiry = advanceSafely(launch(), [...Array(30).fill(30), 15, ...Array(11).fill(4)]);
+    expect(atExpiry.tick).toBe(959); expect(atExpiry.ballSaver.framesRemaining).toBe(1);
+    atExpiry = starfallGame.deserialize(JSON.parse(JSON.stringify(atExpiry)));
+    const spent = drain(atExpiry);
+    expect(spent.state.tick).toBe(960); expect(spent.state.ballsRemaining).toBe(2); expect(spent.state.stats.drains).toBe(1);
+    expect(spent.events.map(event => event.type)).toContain("drain");
   });
 
   it("reflects an approaching bumper contact, but never re-kicks a separating overlap", () => {
@@ -82,9 +140,13 @@ describe("Starfall physical pinball", () => {
     expect(state.multiplier).toBe(2); expect(state.bumperLights).toEqual([false, false, false]);
   });
 
-  it("drains three real balls, waits for relaunch, and then ends with no legal moves", () => {
+  it("saves then drains three real balls, waits for each relaunch, and then ends with no legal moves", () => {
     let state = starfallGame.initialState(12);
     for (let ball = 0; ball < 3; ball++) {
+      state = starfallGame.reduce(state, { type: "launch" }).state;
+      state.ball = { x: 264, y: 779, vx: 0, vy: 300 };
+      state = advance(state, 4);
+      expect(state.phase).toBe("ready"); expect(state.ballsRemaining).toBe(3 - ball); expect(state.stats.ballSaves).toBe(ball + 1);
       state = starfallGame.reduce(state, { type: "launch" }).state;
       state.ball = { x: 264, y: 779, vx: 0, vy: 300 };
       state = advance(state, 4);
@@ -113,7 +175,7 @@ describe("Starfall physical pinball", () => {
   it("rejects malformed snapshots, impossible lifecycle values, and closed-schema violations", () => {
     const state = launch();
     expect(starfallGame.deserialize(JSON.parse(JSON.stringify(state)))).toEqual(state);
-    for (const value of [{ ...state, extra: true }, { ...state, tick: -1 }, { ...state, phase: "won" }, { ...state, score: 1.5 }, { ...state, ballsRemaining: 0 }, { ...state, ball: { ...state.ball, vx: NaN } }, { ...state, bumperLights: [true] }, { ...state, stats: { ...state.stats, drains: 1 } }]) expect(() => starfallGame.deserialize(value)).toThrow();
+    for (const value of [{ ...state, extra: true }, { ...state, tick: -1 }, { ...state, phase: "won" }, { ...state, score: 1.5 }, { ...state, ballsRemaining: 0 }, { ...state, ball: { ...state.ball, vx: NaN } }, { ...state, ballSaver: { ...state.ballSaver, framesRemaining: 961 } }, { ...state, ballSaver: { ...state.ballSaver, pendingNewBall: true } }, { ...state, bumperLights: [true] }, { ...state, stats: { ...state.stats, drains: 1 } }, { ...state, stats: { ...state.stats, ballSaves: 4 } }]) expect(() => starfallGame.deserialize(value)).toThrow();
     for (const action of [{ type: "advance", frames: 12000, left: false, right: false }, { type: "advance", frames: 4, left: false, right: false, remoteKick: true }, { type: "advance", frames: 4, left: 1, right: false }, { type: "launch" }]) expect(() => starfallGame.reduce(state, action as StarfallAction)).toThrow();
     expect(() => starfallGame.reduce(starfallGame.initialState(12), { type: "advance", frames: 4, left: false, right: false })).toThrow();
   });
@@ -128,7 +190,8 @@ describe("Starfall physical pinball", () => {
         expect(Math.hypot(state.ball.vx, state.ball.vy)).toBeLessThanOrEqual(1600.00001);
         expect(starfallGame.deserialize(JSON.parse(JSON.stringify(state)))).toEqual(state);
       }
-      expect(state.phase, JSON.stringify({ seed, ball: state.ball, stats: state.stats, tick: state.tick })).toBe("over"); expect(state.stats.launches).toBe(3);
+      expect(state.phase, JSON.stringify({ seed, ball: state.ball, stats: state.stats, tick: state.tick })).toBe("over");
+      expect(state.stats.launches).toBe(3 + state.stats.ballSaves); expect(state.stats.launches).toBeLessThanOrEqual(6);
     }
   });
 
