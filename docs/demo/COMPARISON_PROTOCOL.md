@@ -52,6 +52,23 @@ Restore explicitly in both conditions for the primary count, even though a
 WebMCP batch can also name its base snapshot. Do not give one condition a
 setup action that is excluded from the other's count.
 
+## Secondary Tideglass task
+
+Freeze the integrated source after the explicitly requested battery-budget
+revision, then use that same source in both modes. Historical rules 0.1.0
+authoring receipts are a separate before/after record, not part of this pair.
+Seed 12, watch 0. Save the base, run Signal route, restore, run Unassisted
+route, restore, and replay Unassisted with a new request ID. No page presets.
+
+Signal: sail to Relay Isle; deploy relay; sail to Saltmill; deliver; sail to
+Lantern; deliver; sail to Breakwater; deliver. Unassisted replaces only the
+second action with wait. All three runs complete eight actions at watch 8.
+Compare every step checksum and metric across modes, plus every complete step
+record in the WebMCP replay. This is 24 semantic actions, one snapshot and two
+explicit restores in each condition. The revision target is three deliveries
+with at least two battery for Unassisted and a three-battery advantage for
+Signal; report measured values, not the prediction.
+
 ## Metrics: keep distinct units distinct
 
 | Field | Meaning |

@@ -8,6 +8,7 @@ import { canonicalEqual, checksum } from "./huginn/canonical";
 import { HuginnKernel } from "./huginn/kernel";
 import type { RenderContext, SequenceResult, SnapshotRecord } from "./huginn/types";
 import type { ToolActivity } from "./huginn/webmcp";
+import { InteractionLedger, webMcpEnabled } from "./demo/interaction-ledger";
 import adapterSource from "./demo/tideglass.ts?raw";
 import kernelSource from "./huginn/kernel.ts?raw";
 import webMcpSource from "./huginn/webmcp.ts?raw";
@@ -44,7 +45,7 @@ root.innerHTML = `
         <details class="tg-rules" open><summary>How to play</summary><ul>
           <li>Every action uses <strong>1 watch</strong>. Sailing follows the charted lanes and costs <strong>2 battery in calm seas, 3 in rough</strong>.</li>
           <li>At Relay Isle, deploy the relay for <strong>1 battery</strong>. All later sailing costs <strong>1</strong>.</li>
-          <li>Deliver at each destination. Recharge <strong>+3</strong> at Haven or Relay Isle, up to 10. Delivery and waiting cost no battery.</li>
+          <li>Deliver at each destination. Recharge <strong>+3</strong> at Haven or Relay Isle, up to ${BATTERY_CAPACITY}. Delivery and waiting cost no battery.</li>
           <li>The forecast advances after every action. All routes close after watch 8. Deliver all three messages to win.</li>
         </ul></details>
       </aside>
@@ -52,21 +53,22 @@ root.innerHTML = `
     <section class="tg-controls" aria-label="Reset and snapshots">
       <div class="tg-reset"><label for="seed-input">SEED</label><input id="seed-input" type="number" min="0" max="2147483647" step="1" value="12"><button id="reset">New voyage</button></div>
       <div class="tg-snapshot-controls"><button id="snapshot">Save snapshot</button><select id="snapshot-select" aria-label="Saved snapshot"><option value="">No saved snapshot</option></select><button id="restore" disabled>Restore</button></div>
-      <p id="snapshot-note">Snapshots live in this tab; the kernel keeps the latest 12, including automatic rollback snapshots.</p>
+      <p id="snapshot-note">Snapshots live in this tab. The latest explicit checkpoint is protected; older snapshots share a bounded 12-entry store.</p>
     </section>
     <section class="tg-lab" aria-label="Huginn experiment notebook">
       <div class="tg-lab-title"><div><p class="tg-eyebrow">Same game. Inspectable experiment.</p><h2>The courier’s notebook</h2></div><span id="activity" class="tg-pill" aria-live="polite">Ready to play</span></div>
-      <p class="tg-target"><strong>Predeclared design target:</strong> deliver 3 messages by watch 8 with at least 2 battery. Fixed plans use seed 12 and end at watch 8.</p>
+      <p class="tg-target"><strong>Original target:</strong> 3 messages by watch 8 with at least 2 battery; Signal already passed. <strong>New design revision:</strong> Unassisted must keep 2 battery, and Signal at least 3 more. Compare the fixed seed-12 plans at watch 8.</p>
       <div class="tg-plan-grid">
         <article><span class="tg-plan-letter">A</span><h3>Signal route</h3><p>Haven → Relay Isle → Saltmill → Lantern → Breakwater. Deploy at Relay Isle; deliver at each destination.</p><button id="signal-plan">Run Signal route · UI plan</button></article>
         <article><span class="tg-plan-letter">B</span><h3>Unassisted route</h3><p>The same sailing route and watches. Wait at Relay Isle instead of deploying. All other actions are identical.</p><button id="unassisted-plan">Run Unassisted route · UI plan</button></article>
       </div>
       <p class="tg-help">These buttons reset to seed 12 and run through the same kernel as individual moves. They are page controls; only calls received through WebMCP are labeled WebMCP.</p>
-      <p id="run-comparison" class="tg-comparison">No measured run yet. A passing baseline is a valid result; no tuning change has been made.</p>
+      <p id="run-comparison" class="tg-comparison">No measured run in this tab. Compare plans at the same watch and source version; a passing baseline is a valid result.</p>
       <div class="tg-evidence-grid"><div><h3>Visible action trace <span id="trace-count">0</span></h3><ol id="trace" class="tg-trace"></ol></div>
         <div><h3>Receipt <button id="download-receipt" class="tg-small-button">Download JSON</button></h3><pre id="receipt">No completed action or tool call yet.</pre></div></div>
       <details class="tg-tools"><summary id="tool-summary">Tool surface</summary><ul id="tool-list"></ul><p id="tool-note">Waiting for browser capability check.</p></details>
       <details class="tg-tools"><summary>Live state, metrics &amp; complete rules</summary><p>Readable in both modes. This inspector exposes the same canonical state, metric semantics, and rules used by the tools.</p><h3>Current state and metrics</h3><pre id="state-inspector"></pre><h3>Rules and metric definitions</h3><pre id="rules-inspector"></pre></details>
+      <details class="tg-tools"><summary>Interaction measurements</summary><p>Page commands, not model tokens or browser-tool envelopes. Both modes keep the same game and controls. UI plan previews are excluded. <a id="comparison-link">See the paired pilot and its limitations.</a></p><pre id="interaction-counts"></pre></details>
       <p id="error" class="tg-error" role="alert"></p>
     </section>
     <footer class="tg-footer"><p>Original vector coast · MIT · deterministic Huginn kernel</p><p id="source-identity"></p><p id="live-checksum"></p></footer>
@@ -102,13 +104,15 @@ const identity = { game: tideglassDescription.id, rulesVersion: TIDEGLASS_VERSIO
 const baseUrl = import.meta.env.BASE_URL;
 const siteRoot = baseUrl === "./" || baseUrl === "" ? new URL("../", location.href) : new URL(baseUrl, location.origin);
 element<HTMLAnchorElement>("back-link").href = siteRoot.href;
-const offMode = new URLSearchParams(location.search).get("webmcp") === "off";
+const offMode = !webMcpEnabled(location.search);
+const ledger = new InteractionLedger(tideglassDescription.id, !offMode);
+element<HTMLAnchorElement>("comparison-link").href = new URL("compare/", siteRoot).href;
 const modeUrl = new URL(location.href);
 if (offMode) modeUrl.searchParams.delete("webmcp"); else modeUrl.searchParams.set("webmcp", "off");
 element<HTMLAnchorElement>("mode-link").href = modeUrl.href;
-put("mode-link", offMode ? "Open WebMCP mode ↗" : "Open UI-only baseline ↗");
+put("mode-link", offMode ? "WebMCP on · same UI ↗" : "WebMCP off · same UI ↗");
 put("version", `Rules ${TIDEGLASS_VERSION} · seed 12`);
-put("source-identity", `Huginn ${HUGINN_BASE.slice(0, 12)} · source ${sourceDigest}`);
+put("source-identity", `Authored from Huginn ${HUGINN_BASE.slice(0, 12)} · current rules/core source ${sourceDigest}`);
 put("rules-inspector", JSON.stringify(tideglassDescription, null, 2));
 
 function drawCoast(state: TideglassState): void {
@@ -176,6 +180,7 @@ function updateBusy(): void {
   for (const button of document.querySelectorAll<HTMLButtonElement>("#legal-actions button, #reset, #snapshot, #signal-plan, #unassisted-plan")) button.disabled = busy;
   element<HTMLButtonElement>("restore").disabled = busy || !element<HTMLSelectElement>("snapshot-select").value;
   element<HTMLInputElement>("seed-input").disabled = busy;
+  put("interaction-counts", JSON.stringify(ledger.report(), null, 2));
 }
 
 function showReceipt(source: Source, kind: string, data: unknown): void {
@@ -192,7 +197,7 @@ function rememberSnapshot(snapshot: SnapshotRecord, source: Source): void {
     option.textContent = `${item.id.slice(0, 22)} · seed ${item.seed}`; select.append(option);
   }
   select.value = snapshot.id;
-  put("snapshot-note", `${source} snapshot · ${snapshot.id} · SHA-256 ${snapshot.checksum}. Tab-local; may expire after 12 later snapshots.`);
+  put("snapshot-note", `${source} snapshot · ${snapshot.id} · SHA-256 ${snapshot.checksum}. Latest explicit checkpoint protected; older snapshots may expire. Tab-local.`);
   updateBusy();
 }
 
@@ -264,28 +269,39 @@ async function render(state: TideglassState, context: RenderContext<TideglassAct
 const adapter = createTideglassAdapter(render);
 const kernel = new HuginnKernel(adapter, 12);
 
-async function perform(source: Source, action: () => Promise<unknown>): Promise<void> {
+async function perform(source: Source, action: () => Promise<unknown>, name = "apply_action_sequence"): Promise<void> {
   if (uiBusy || activeTools > 0) return;
   uiBusy = true; put("error", ""); updateBusy();
-  try { await action(); } catch (error) { put("error", `${source}: ${error instanceof Error ? error.message : String(error)}`); }
+  if (source === "Human UI") ledger.start("UI", name);
+  try {
+    const result = await action();
+    if (source === "Human UI") ledger.complete("UI", name, result);
+  } catch (error) {
+    if (source === "Human UI") ledger.fail("UI", name);
+    put("error", `${source}: ${error instanceof Error ? error.message : String(error)}`);
+  }
   finally { uiBusy = false; updateBusy(); }
 }
 
-async function runActions(actions: TideglassAction[], source: Source, seed?: number): Promise<void> {
+async function runActions(actions: TideglassAction[], source: Source, seed?: number): Promise<Run> {
   const requestId = `ui-${++sequenceNumber}`;
   requestSources.set(requestId, source);
   try {
     const result = await kernel.applyActionSequence({ request_id: requestId, actions, ...(seed === undefined ? {} : { seed }), speed: "watch" });
     recordRun(result, source);
+    return result;
   } finally { requestSources.delete(requestId); }
 }
 
 function observeTool(activity: ToolActivity): void {
   if (activity.phase === "started") {
+    ledger.start("WebMCP", activity.name, activity.input);
     activeTools += 1;
     put("activity", `WebMCP · ${activity.name} running`); put("error", "");
     if (typeof activity.input.request_id === "string") requestSources.set(activity.input.request_id, "WebMCP");
   } else {
+    if (activity.phase === "failed") ledger.fail("WebMCP", activity.name);
+    else ledger.complete("WebMCP", activity.name, activity.result);
     activeTools = Math.max(0, activeTools - 1);
     if (typeof activity.input.request_id === "string") requestSources.delete(activity.input.request_id);
     if (activity.phase === "failed") { put("error", `WebMCP ${activity.name}: ${activity.error}`); showReceipt("WebMCP", activity.name, { error: activity.error }); }
@@ -301,21 +317,27 @@ function observeTool(activity: ToolActivity): void {
 element("reset").addEventListener("click", () => void perform("Human UI", async () => {
   const input = element<HTMLInputElement>("seed-input");
   if (!input.value.trim() || !input.checkValidity()) throw new Error("Enter an integer seed from 0 through 2147483647.");
-  await kernel.reset(Number(input.value)); showReceipt("Human UI", "reset", await kernel.getState()); put("activity", "Human UI · new voyage");
-}));
+  await kernel.reset(Number(input.value));
+  const result = await kernel.getState();
+  showReceipt("Human UI", "reset", result); put("activity", "Human UI · new voyage");
+  return result;
+}, "reset"));
 element("snapshot").addEventListener("click", () => void perform("Human UI", async () => {
   const snapshot = await kernel.createSnapshot(); rememberSnapshot(snapshot, "Human UI"); showReceipt("Human UI", "snapshot_game", snapshot);
-}));
+  return snapshot;
+}, "snapshot_game"));
 element("restore").addEventListener("click", () => void perform("Human UI", async () => {
   const id = element<HTMLSelectElement>("snapshot-select").value;
   const snapshot = snapshots.get(id); if (!snapshot) throw new Error("Choose a snapshot first.");
-  showReceipt("Human UI", "restore_game", await kernel.restoreSnapshot(id, snapshot.checksum)); put("activity", "Human UI · snapshot restored");
-}));
+  const result = await kernel.restoreSnapshot(id, snapshot.checksum);
+  showReceipt("Human UI", "restore_game", result); put("activity", "Human UI · snapshot restored");
+  return result;
+}, "restore_game"));
 element("snapshot-select").addEventListener("change", updateBusy);
 element("signal-plan").addEventListener("click", () => void perform("UI plan", () => runActions(signalRoute, "UI plan", 12)));
 element("unassisted-plan").addEventListener("click", () => void perform("UI plan", () => runActions(unassistedRoute, "UI plan", 12)));
 element("download-receipt").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(lastReceipt ?? { identity, state: adapter.serialize(currentState) }, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify({ latestReceipt: lastReceipt ?? { identity, state: adapter.serialize(currentState) }, interactions: ledger.report() }, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "tideglass-receipt.json"; link.click(); URL.revokeObjectURL(url);
 });
 

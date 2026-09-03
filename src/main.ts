@@ -34,6 +34,7 @@ app.innerHTML = `
     <nav class="game-nav" aria-label="Example games">
       <a href="./" aria-current="page">RTS Lab · strategy</a>
       <a href="./tideglass/">Tideglass Relay · logistics</a>
+      <a href="./compare/">Examples &amp; evidence</a>
       <a href="#play-controls">Play yourself</a>
       <a id="mode-switch" href="${siteToolsEnabled ? "?webmcp=off" : "./"}">${siteToolsEnabled ? "Compare: WebMCP off" : "Enable WebMCP"}</a>
     </nav>
