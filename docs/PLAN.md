@@ -1,5 +1,26 @@
 # Submission plan
 
+## Recovery checkpoint — September 2, evening Pacific
+
+The original two-game milestones below were missed during the offline period.
+RTS Lab is live; Dawn has not been imported or integrated. Do not present the
+old plan as delivered work. The bounded recovery increment makes real external
+WebMCP calls drive the live notebook, restores seed metadata correctly, and
+prepares the [single-game recording kit](RECORDING_KIT.md).
+
+Recommended deadline scope: record the verified RTS flow now; keep the existing-
+game retrofit as future work, not an overnight dependency. No dominant-strategy
+or balance-fix claim is supported by the present demo. The historical two-game
+scope below remains context for the product, not the current recording script.
+
+Official deadline rechecked through Devpost on September 2: September 3 at
+1 PM Pacific. Latest organizer advice: working product in the first 10–15
+seconds, real agent tools as the centerpiece, short replaceable clips, and no
+changes to the repo/live site/video after the deadline. Keep judge access free
+and unrestricted through September 21 at 5 PM Pacific.
+
+## Original two-game plan (not delivered)
+
 ## Thesis
 
 Agents should run experiments on games, not merely click at them. A game designer

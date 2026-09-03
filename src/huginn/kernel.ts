@@ -1,4 +1,4 @@
-import { canonicalEqual, checksum } from "./canonical";
+import { canonicalEqual, canonicalJson, checksum } from "./canonical";
 import type {
   GameAdapter,
   LegalAction,
@@ -26,7 +26,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
   private state: State;
   private seed: number;
   private snapshots = new Map<string, SnapshotRecord>();
-  private requestCache = new Map<string, SequenceResult<Action, Event, GameMetrics>>();
+  private requestCache = new Map<string, { fingerprint: string; result: SequenceResult<Action, Event, GameMetrics> }>();
   private snapshotCounter = 0;
   private runningRequestId: string | null = null;
 
@@ -97,6 +97,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
       id,
       checksum: stateChecksum,
       format: "huginn/canonical-state-v1",
+      seed: this.seed,
       value,
     };
 
@@ -129,13 +130,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
       throw new Error("The supplied snapshot checksum is stale or incorrect.");
     }
 
-    const restored = this.adapter.deserialize(structuredClone(snapshot.value));
-    const restoredChecksum = await checksum(this.adapter.serialize(restored));
-    if (restoredChecksum !== actualChecksum) {
-      throw new Error("The adapter did not restore the snapshot canonically.");
-    }
-
-    this.state = restored;
+    await this.restoreCanonicalSnapshot(snapshot, actualChecksum);
     await this.adapter.render(this.state, { kind: "restore", events: [] });
     return { id, checksum: actualChecksum, metrics: this.adapter.metrics(this.state) };
   }
@@ -155,9 +150,12 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     signal: AbortSignal = new AbortController().signal,
   ): Promise<SequenceResult<Action, Event, GameMetrics>> {
     this.validateSequenceInput(input);
-
+    const fingerprint = canonicalJson(Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)));
     const cached = this.requestCache.get(input.request_id);
-    if (cached) return structuredClone(cached);
+    if (cached) {
+      if (cached.fingerprint !== fingerprint) throw new Error("request_id was already used with different input.");
+      return { ...structuredClone(cached.result), cached: true };
+    }
     if (this.runningRequestId) {
       throw new Error(`A sequence is already running: ${this.runningRequestId}`);
     }
@@ -219,30 +217,43 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         }
 
         const beforeChecksum = await this.currentChecksum();
-        const transition = this.adapter.reduce(this.state, action);
+        let transition: { state: State; events: Event[] };
+        let step: SequenceResult<Action, Event, GameMetrics>["steps"][number];
+        try {
+          transition = this.adapter.reduce(this.state, action);
+          const afterChecksum = await checksum(this.adapter.serialize(transition.state));
+          step = {
+            index,
+            action: structuredClone(action),
+            beforeChecksum,
+            afterChecksum,
+            events: structuredClone(transition.events),
+            metrics: structuredClone(this.adapter.metrics(transition.state)),
+          };
+        } catch {
+          status = "error";
+          stopReason = "transition-failed";
+          errorIndex = index;
+          break;
+        }
         this.state = transition.state;
-        const afterChecksum = await this.currentChecksum();
-        const metrics = this.adapter.metrics(this.state);
+        // Record the commit before rendering: display/scheduler failure must
+        // still return an accurate prefix and a usable rollback receipt.
+        steps.push(step);
+        try {
+          await this.adapter.render(this.state, {
+            kind: "action", action, events: transition.events,
+            step: index, requestId: input.request_id,
+          });
+          await this.schedule(input.speed === "watch" ? 250 : 80);
+        } catch {
+          status = "error";
+          stopReason = "render-or-schedule-failed";
+          errorIndex = index;
+          break;
+        }
 
-        await this.adapter.render(this.state, {
-          kind: "action",
-          action,
-          events: transition.events,
-          step: index,
-          requestId: input.request_id,
-        });
-        await this.schedule(input.speed === "watch" ? 250 : 80);
-
-        steps.push({
-          index,
-          action: structuredClone(action),
-          beforeChecksum,
-          afterChecksum,
-          events: structuredClone(transition.events),
-          metrics: structuredClone(metrics),
-        });
-
-        if (input.stop_when && this.matchesStop(metrics, input.stop_when)) {
+        if (input.stop_when && this.matchesStop(step.metrics, input.stop_when)) {
           status = "stopped";
           stopReason = "stop-condition-met";
           break;
@@ -261,7 +272,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         ...(errorIndex === undefined ? {} : { errorIndex }),
       };
 
-      this.cacheResult(input.request_id, result);
+      this.cacheResult(input.request_id, fingerprint, result);
       return structuredClone(result);
     } finally {
       this.runningRequestId = null;
@@ -277,8 +288,18 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     if (!snapshot) throw new Error(`Unknown snapshot: ${id}`);
     const actualChecksum = await checksum(snapshot.value);
     if (actualChecksum !== snapshot.checksum) throw new Error(`Snapshot checksum mismatch: ${id}`);
-    this.state = this.adapter.deserialize(structuredClone(snapshot.value));
+    await this.restoreCanonicalSnapshot(snapshot, actualChecksum);
     await this.adapter.render(this.state, { kind: "restore", events: [], requestId });
+  }
+
+  private async restoreCanonicalSnapshot(snapshot: SnapshotRecord, stateChecksum: string): Promise<void> {
+    const restored = this.adapter.deserialize(structuredClone(snapshot.value));
+    const restoredChecksum = await checksum(this.adapter.serialize(restored));
+    if (restoredChecksum !== stateChecksum) {
+      throw new Error("The adapter did not restore the snapshot canonically.");
+    }
+    this.state = restored;
+    this.seed = snapshot.seed;
   }
 
   private matchesStop(metrics: GameMetrics, condition: StopCondition): boolean {
@@ -293,8 +314,11 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
   }
 
   private validateSequenceInput(input: SequenceInput<Action>): void {
-    if (!input || typeof input !== "object") throw new TypeError("Sequence input must be an object.");
-    if (!/^[A-Za-z0-9._-]{1,64}$/.test(input.request_id)) {
+    if (!input || typeof input !== "object" || Array.isArray(input)) throw new TypeError("Sequence input must be an object.");
+    const allowed = ["request_id", "seed", "base_snapshot_id", "expected_base_checksum", "actions", "stop_when", "speed"];
+    const unknown = Object.keys(input).find((key) => !allowed.includes(key));
+    if (unknown) throw new TypeError(`Unknown sequence field: ${unknown}`);
+    if (typeof input.request_id !== "string" || !/^[A-Za-z0-9._-]{1,64}$/.test(input.request_id)) {
       throw new TypeError("request_id must be 1–64 safe identifier characters.");
     }
     if (!Array.isArray(input.actions) || input.actions.length > MAX_ACTIONS) {
@@ -302,6 +326,24 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     }
     if (input.seed !== undefined && input.base_snapshot_id !== undefined) {
       throw new TypeError("Provide seed or base_snapshot_id, not both.");
+    }
+    if (input.seed !== undefined) this.assertSeed(input.seed);
+    if (input.base_snapshot_id !== undefined && (typeof input.base_snapshot_id !== "string" || input.base_snapshot_id.length < 1 || input.base_snapshot_id.length > 128)) {
+      throw new TypeError("base_snapshot_id must contain 1–128 characters.");
+    }
+    if (input.expected_base_checksum !== undefined && (typeof input.expected_base_checksum !== "string" || !/^[a-f0-9]{64}$/.test(input.expected_base_checksum))) {
+      throw new TypeError("expected_base_checksum must be a canonical SHA-256 checksum.");
+    }
+    if (input.speed !== undefined && input.speed !== "watch" && input.speed !== "fast") throw new TypeError("Invalid sequence speed.");
+    if (input.stop_when !== undefined) {
+      const stop = input.stop_when;
+      if (!stop || typeof stop !== "object" || Array.isArray(stop) || Object.keys(stop).some((key) => !["metric", "operator", "value"].includes(key))) {
+        throw new TypeError("Invalid stop condition fields.");
+      }
+      if (typeof stop.metric !== "string" || !this.adapter.description.metrics.some((metric) => metric.key === stop.metric) || typeof this.adapter.metrics(this.state)[stop.metric] !== "number") {
+        throw new TypeError("Stop metric must be an exposed number.");
+      }
+      if (!["eq", "gte", "lte"].includes(stop.operator) || !Number.isFinite(stop.value)) throw new TypeError("Invalid stop operator or value.");
     }
   }
 
@@ -313,9 +355,10 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
 
   private cacheResult(
     requestId: string,
+    fingerprint: string,
     result: SequenceResult<Action, Event, GameMetrics>,
   ): void {
-    this.requestCache.set(requestId, structuredClone(result));
+    this.requestCache.set(requestId, { fingerprint, result: structuredClone(result) });
     while (this.requestCache.size > MAX_REQUEST_CACHE) {
       const oldestId = this.requestCache.keys().next().value as string | undefined;
       if (oldestId) this.requestCache.delete(oldestId);

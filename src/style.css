@@ -367,6 +367,18 @@ button:disabled { cursor: wait; opacity: .6; }
   line-height: 1.46;
 }
 
+.tool-activity,
+.snapshot-receipt {
+  overflow-wrap: anywhere;
+  margin: 8px 0;
+  font: .65rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.tool-activity { color: #a9d8e5; }
+.snapshot-receipt { color: #a0aba6; }
+.branch-heading > div { min-width: 0; }
+.branch-heading b { overflow-wrap: anywhere; }
+
 .branch-grid { display: grid; gap: 7px; }
 
 .branch-card {
@@ -455,6 +467,8 @@ button:disabled { cursor: wait; opacity: .6; }
   gap: 6px;
   margin: 10px 0 0;
 }
+
+.branch-result div:nth-child(n + 5) { grid-column: span 2; }
 
 .branch-result div {
   min-width: 0;
@@ -563,7 +577,7 @@ button:disabled { cursor: wait; opacity: .6; }
 
 .trace li {
   display: grid;
-  grid-template-columns: 28px 1fr;
+  grid-template-columns: 48px 1fr;
   align-items: center;
   gap: 6px;
   padding: 6px 0;

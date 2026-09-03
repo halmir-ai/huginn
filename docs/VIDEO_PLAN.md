@@ -1,5 +1,14 @@
 # Demo video production plan
 
+## Current recording route — September 2 recovery
+
+Use [RECORDING_KIT.md](RECORDING_KIT.md) for the reviewable single-game fallback,
+actual tool sequence, verified expected results, and timed narration. The
+original two-game arc below is retained as product context only: Dawn is not
+integrated and a balance change has not been demonstrated. Do not narrate those
+as completed. Protect capture, audio, captions, upload, and public-link review
+before considering more features.
+
 ## Objective
 
 Make one idea unforgettable in under three minutes: Huginn lets a designer ask

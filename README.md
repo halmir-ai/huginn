@@ -23,11 +23,13 @@ This repository is the new WebMCP work for [The WebMCP Challenge](https://webmcp
 The first complete demo is **RTS Lab**, a small strategy game designed around the
 Huginn contract from its first reducer. Its visible comparison restores one
 verified snapshot, runs military-rush and economy-first branches against the
-same seed, and reports the stronger outcome with per-step metrics and checksums.
+same seed, and reports the tradeoffs at the same ending cycle with per-step
+metrics and checksums. Actual WebMCP calls populate the live notebook; the page
+preset is clearly labeled and does not impersonate an agent invocation.
 
-Dawn of People remains the planned hero retrofit. Together, the two demos show
-both adoption paths: instrument an existing game, or make a new game
-agent-legible from the start.
+Dawn of People is a planned retrofit, **not a shipped integration**. The current
+live demo proves the new-game path only. RTS Lab is a small deterministic slice,
+not a full real-time RTS or evidence of a generally dominant strategy.
 
 ## Run locally
 
@@ -36,9 +38,16 @@ npm install
 npm run dev
 ```
 
-WebMCP local development currently requires Chrome 149+ with
-`chrome://flags/#enable-webmcp-testing` enabled. The page still runs normally in
-other browsers and its built-in branch comparison still runs normally.
+Use the **Codex in-app browser** for the rehearsed path. OpenAI's
+[site-tools documentation](https://learn.chatgpt.com/docs/webmcp) confirms that
+Codex and ChatGPT Work use WebMCP in the shared built-in browser. The September 2
+rehearsal verified actual calls there. Chrome 149+ with
+`chrome://flags/#enable-webmcp-testing` is an optional alternative; the connected
+Chrome was not WebMCP-enabled. The page preset also works without WebMCP, but
+is not a substitute for an agent-tool test.
+
+See the [recording kit](docs/RECORDING_KIT.md) for the exact agent flow,
+expected hashes, narration, and remaining publication gates.
 
 ## Verify
 

@@ -4,12 +4,13 @@ import {
   rtsLabDescription,
   type RtsLabAction,
   type RtsLabEvent,
-  type RtsLabMetrics,
   type RtsLabState,
 } from "./demo/rts-lab";
 import { HuginnKernel } from "./huginn/kernel";
-import type { RenderContext, SequenceResult } from "./huginn/types";
-import { registerWebMcpTools } from "./huginn/webmcp";
+import { checksum } from "./huginn/canonical";
+import type { RenderContext } from "./huginn/types";
+import { registerWebMcpTools, type ToolActivity } from "./huginn/webmcp";
+import { compareRuns, economyActions, rushActions, type RtsResult, type RunReceipt } from "./demo/experiment-notebook";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) throw new Error("Missing app root.");
@@ -31,7 +32,7 @@ app.innerHTML = `
         <p class="eyebrow">Huginn · WebMCP playtesting layer</p>
         <div class="title-row">
           <h1>RTS Lab</h1>
-          <span class="seed-tag">seed 12</span>
+          <span id="seed" class="seed-tag">seed 12</span>
         </div>
         <p class="lede">Branch a live strategy game. Run two build orders from the same moment. Watch the counterfactual unfold.</p>
       </div>
@@ -67,8 +68,8 @@ app.innerHTML = `
 
         <div class="controls">
           <button id="run-experiment" class="primary-action">
-            <span>Run branch comparison</span>
-            <small>rush vs economy · same seed</small>
+            <span>Try page preset</span>
+            <small>rush vs economy · both end at cycle 3</small>
           </button>
           <button id="reset" class="secondary-action">Reset</button>
         </div>
@@ -77,38 +78,40 @@ app.innerHTML = `
       <aside class="lab-card">
         <div class="card-heading lab-heading">
           <div>
-            <p class="eyebrow">Controlled experiment</p>
-            <h2>Which opening wins?</h2>
+            <p class="eyebrow">Live experiment notebook</p>
+            <h2>What changed—and why?</h2>
           </div>
           <span id="run-state" class="status-pill muted">Ready</span>
         </div>
 
-        <p class="experiment-question">Compare an immediate military rush with an economy-first opening against identical RNG.</p>
+        <p class="experiment-question">Ask your agent to inspect, snapshot, and run a plan. Actual WebMCP results appear here. The page preset is a separate, labeled preview.</p>
+        <p id="tool-activity" class="tool-activity" aria-live="polite">Waiting for an agent tool call.</p>
+        <p id="snapshot-receipt" class="snapshot-receipt">No snapshot receipt yet.</p>
 
         <div class="branch-grid">
           <article id="rush-card" class="branch-card" data-branch="rush">
             <div class="branch-heading">
               <span class="branch-index">A</span>
-              <div><b>Military rush</b><small>3 legal actions</small></div>
+              <div><b id="rush-label">Run A</b><small id="rush-source">No result yet</small></div>
             </div>
             <dl id="rush-result" class="branch-result"><div><dt>Status</dt><dd>Not run</dd></div></dl>
           </article>
 
-          <div class="versus">same snapshot</div>
+          <div id="comparison-base" class="versus">base not yet compared</div>
 
           <article id="economy-card" class="branch-card" data-branch="economy">
             <div class="branch-heading">
               <span class="branch-index">B</span>
-              <div><b>Economy first</b><small>8 legal actions</small></div>
+              <div><b id="economy-label">Run B</b><small id="economy-source">No result yet</small></div>
             </div>
             <dl id="economy-result" class="branch-result"><div><dt>Status</dt><dd>Not run</dd></div></dl>
           </article>
         </div>
 
         <div id="verdict" class="verdict">
-          <span class="verdict-kicker">Agent-readable conclusion</span>
-          <strong>Run the experiment to compare outcomes.</strong>
-          <p>Huginn will restore the same verified snapshot before each branch.</p>
+          <span class="verdict-kicker">Evidence, not a scripted winner</span>
+          <strong>Run two plans from the same snapshot.</strong>
+          <p>The notebook compares the last two distinct requests. Repeating the same plan with a new request ID checks replay fidelity.</p>
         </div>
 
         <div class="trace-wrap">
@@ -119,7 +122,7 @@ app.innerHTML = `
     </section>
 
     <section class="tool-strip" aria-label="Registered WebMCP tools">
-      <div><span class="live-mark"></span><strong>7 registered tools</strong></div>
+      <div><span class="live-mark"></span><strong id="tool-count">WebMCP tool surface</strong></div>
       <div class="tool-list">${toolNames.map((name) => `<code>${name}</code>`).join("")}</div>
     </section>
 
@@ -149,6 +152,10 @@ const rushCard = document.querySelector<HTMLElement>("#rush-card")!;
 const economyCard = document.querySelector<HTMLElement>("#economy-card")!;
 const runButton = document.querySelector<HTMLButtonElement>("#run-experiment")!;
 const resetButton = document.querySelector<HTMLButtonElement>("#reset")!;
+const seedElement = document.querySelector<HTMLSpanElement>("#seed")!;
+const toolActivityElement = document.querySelector<HTMLParagraphElement>("#tool-activity")!;
+const snapshotReceiptElement = document.querySelector<HTMLParagraphElement>("#snapshot-receipt")!;
+const comparisonBaseElement = document.querySelector<HTMLDivElement>("#comparison-base")!;
 
 const assetPaths = {
   terrain: "./assets/rts-lab/terrain.png",
@@ -406,7 +413,15 @@ function describeAction(action: RtsLabAction, events: RtsLabEvent[]): string {
 }
 
 let visibleSteps = 0;
-let activeBranch: "rush" | "economy" | null = null;
+let pagePresetRunning = false;
+let mutationCount = 0;
+let activeSource = "Agent";
+let receipts: RunReceipt[] = [];
+
+function updateControls(): void {
+  runButton.disabled = pagePresetRunning || mutationCount > 0;
+  resetButton.disabled = pagePresetRunning || mutationCount > 0;
+}
 
 async function render(
   state: RtsLabState,
@@ -414,12 +429,11 @@ async function render(
 ): Promise<void> {
   drawBattlefield(state, renderContext);
   renderMetrics(state);
-
-  rushCard.classList.toggle("active", activeBranch === "rush");
-  economyCard.classList.toggle("active", activeBranch === "economy");
+  seedElement.textContent = `seed ${state.seed}`;
+  checksumElement.textContent = `state ${(await checksum(state)).slice(0, 12)}`;
 
   if (renderContext.kind === "reset") {
-    actionFlashElement.textContent = "Seed 12 initialized";
+    actionFlashElement.textContent = `Seed ${state.seed} initialized`;
   } else if (renderContext.kind === "restore") {
     actionFlashElement.textContent = "Verified snapshot restored";
   } else if (renderContext.action) {
@@ -429,54 +443,67 @@ async function render(
     stepCountElement.textContent = `${visibleSteps} ${visibleSteps === 1 ? "step" : "steps"}`;
     traceElement.insertAdjacentHTML(
       "afterbegin",
-      `<li><span>${activeBranch === "rush" ? "A" : "B"}.${(renderContext.step ?? 0) + 1}</span><strong>${description}</strong></li>`,
+      `<li><span>${activeSource} ${(renderContext.step ?? 0) + 1}</span><strong>${description}</strong></li>`,
     );
     while (traceElement.children.length > 6) traceElement.lastElementChild?.remove();
   }
 }
 
-type RtsResult = SequenceResult<RtsLabAction, RtsLabEvent, RtsLabMetrics>;
-
-const rushActions: RtsLabAction[] = [
-  { type: "build_barracks" },
-  { type: "train_vanguard" },
-  { type: "launch_attack" },
-];
-
-const economyActions: RtsLabAction[] = [
-  { type: "assign_worker", resource: "crown_gold" },
-  { type: "advance_cycle" },
-  { type: "advance_cycle" },
-  { type: "build_barracks" },
-  { type: "train_vanguard" },
-  { type: "advance_cycle" },
-  { type: "train_vanguard" },
-  { type: "launch_attack" },
-];
-
 function showBranchResult(element: HTMLDListElement, result: RtsResult): void {
   element.innerHTML = `
-    <div><dt>Score</dt><dd>${result.metrics.strategy_score}</dd></div>
+    <div><dt>Cycle</dt><dd>${result.metrics.cycle}</dd></div>
     <div><dt>Damage</dt><dd>${result.metrics.enemy_damage}</dd></div>
+    <div><dt>Base HP</dt><dd>${result.metrics.sunforge_base_hp}</dd></div>
     <div><dt>Economy</dt><dd>${result.metrics.economy_value}</dd></div>
-    <div><dt>Checksum</dt><dd class="mini-hash">${result.finalChecksum.slice(0, 7)}</dd></div>
+    <div><dt>Start</dt><dd class="mini-hash">${result.steps[0]?.beforeChecksum.slice(0, 12) ?? "No steps"}</dd></div>
+    <div><dt>Final</dt><dd class="mini-hash">${result.finalChecksum.slice(0, 12)}</dd></div>
   `;
+}
+
+function recordRun(run: Omit<RunReceipt, "freshExecution">): void {
+  const receipt: RunReceipt = { ...run, freshExecution: run.result.cached !== true };
+  // A request-ID retry is cached by the kernel, not a fresh deterministic run.
+  if (receipts.some((entry) => entry.result.requestId === receipt.result.requestId)) return;
+  receipts = [...receipts, receipt].slice(-2);
+  for (const [index, prefix] of ["rush", "economy"].entries()) {
+    const entry = receipts[index];
+    document.querySelector(`#${prefix}-label`)!.textContent = entry?.label ?? `Run ${index === 0 ? "A" : "B"}`;
+    document.querySelector(`#${prefix}-source`)!.textContent = entry
+      ? `${entry.source} · ${entry.result.appliedSteps} ${entry.result.appliedSteps === 1 ? "step" : "steps"} · ${entry.freshExecution ? entry.result.status : "cached response"}`
+      : "No result yet";
+    const target = index === 0 ? rushResultElement : economyResultElement;
+    if (entry) showBranchResult(target, entry.result);
+    else target.innerHTML = "<div><dt>Status</dt><dd>Not run</dd></div>";
+  }
+  if (receipts.length !== 2) return;
+  const comparison = compareRuns(receipts[0], receipts[1]);
+  const baseA = receipts[0].result.steps[0]?.beforeChecksum;
+  const baseB = receipts[1].result.steps[0]?.beforeChecksum;
+  comparisonBaseElement.textContent = baseA && baseA === baseB ? `shared base ${baseA.slice(0, 12)}` : "different or missing bases";
+  verdictElement.classList.toggle("complete", comparison.kind === "comparison" || comparison.kind === "replay");
+  verdictElement.querySelector("strong")!.textContent = comparison.heading;
+  verdictElement.querySelector("p")!.textContent = comparison.detail;
 }
 
 function clearExperiment(): void {
   visibleSteps = 0;
-  activeBranch = null;
+  receipts = [];
   traceElement.innerHTML = "<li><span>—</span><strong>Experiment is ready.</strong></li>";
   stepCountElement.textContent = "0 steps";
   rushResultElement.innerHTML = "<div><dt>Status</dt><dd>Not run</dd></div>";
   economyResultElement.innerHTML = "<div><dt>Status</dt><dd>Not run</dd></div>";
+  for (const [index, prefix] of ["rush", "economy"].entries()) {
+    document.querySelector(`#${prefix}-label`)!.textContent = `Run ${index === 0 ? "A" : "B"}`;
+    document.querySelector(`#${prefix}-source`)!.textContent = "No result yet";
+  }
+  comparisonBaseElement.textContent = "base not yet compared";
   rushCard.classList.remove("active", "winner");
   economyCard.classList.remove("active", "winner");
   verdictElement.classList.remove("complete");
   verdictElement.innerHTML = `
-    <span class="verdict-kicker">Agent-readable conclusion</span>
-    <strong>Run the experiment to compare outcomes.</strong>
-    <p>Huginn will restore the same verified snapshot before each branch.</p>
+    <span class="verdict-kicker">Evidence, not a scripted winner</span>
+    <strong>Run two plans from the same snapshot.</strong>
+    <p>The notebook compares the last two distinct requests. Repeating the same plan with a new request ID checks replay fidelity.</p>
   `;
 }
 
@@ -484,14 +511,47 @@ const adapter = createRtsLabAdapter(render);
 const kernel = new HuginnKernel(adapter, 12);
 await kernel.initialize();
 
-async function refreshChecksum(): Promise<void> {
-  const current = await kernel.getState();
-  checksumElement.textContent = `state ${current.checksum.slice(0, 12)}`;
+function onToolActivity(activity: ToolActivity): void {
+  const mutating = activity.name === "apply_action_sequence" || activity.name === "restore_game";
+  toolActivityElement.textContent = `WebMCP · ${activity.name} · ${activity.phase}`;
+  if (activity.phase === "started") {
+    if (mutating) {
+      mutationCount += 1;
+      activeSource = "Agent";
+      runStateElement.textContent = "Agent running";
+      runStateElement.classList.add("ready");
+      updateControls();
+    }
+    return;
+  }
+  if (mutating) {
+    mutationCount = Math.max(0, mutationCount - 1);
+    updateControls();
+  }
+  if (activity.phase === "failed") {
+    runStateElement.textContent = mutationCount ? "Agent running" : "Tool rejected";
+    runStateElement.classList.toggle("ready", mutationCount > 0);
+    toolActivityElement.textContent = `WebMCP · ${activity.name} · ${activity.error}`;
+    return;
+  }
+  if (activity.name === "apply_action_sequence") {
+    const result = activity.result as RtsResult;
+    const cached = result.cached === true;
+    recordRun({ source: "WebMCP", label: result.requestId, result });
+    runStateElement.textContent = `Agent ${result.status}`;
+    runStateElement.classList.toggle("ready", result.status === "completed" || result.status === "stopped");
+    toolActivityElement.textContent = `WebMCP · ${activity.name} · ${result.appliedSteps} committed ${result.appliedSteps === 1 ? "step" : "steps"} · ${result.stopReason}${cached ? " · cached retry" : ""}`;
+  } else if (activity.name === "snapshot_game" || activity.name === "restore_game") {
+    const snapshot = activity.result as { id: string; checksum: string };
+    snapshotReceiptElement.textContent = `${activity.name === "restore_game" ? "Restored & verified" : "Snapshot saved"} · ${snapshot.id} · ${snapshot.checksum.slice(0, 12)}`;
+    if (activity.name === "restore_game") runStateElement.textContent = "Snapshot restored";
+  }
 }
 
 const registration = await registerWebMcpTools(
   kernel,
   rtsLabDescription.actions.map((action) => action.inputSchema),
+  onToolActivity,
 ).catch((error: unknown) => {
   console.error("WebMCP registration failed", error);
   return { supported: false, toolNames: [], dispose: () => {} };
@@ -501,22 +561,23 @@ statusElement.textContent = registration.supported
   ? `${registration.toolNames.length} WebMCP tools live`
   : "Page demo live · enable WebMCP for agent tools";
 statusElement.classList.toggle("ready", registration.supported);
-await refreshChecksum();
+document.querySelector("#tool-count")!.textContent = registration.supported ? `${registration.toolNames.length} registered tools` : "7 tools require a WebMCP browser";
 
 let requestCounter = 0;
 
 runButton.addEventListener("click", async () => {
-  runButton.disabled = true;
-  resetButton.disabled = true;
+  pagePresetRunning = true;
+  activeSource = "Preset";
+  updateControls();
   clearExperiment();
-  runStateElement.textContent = "Running visibly";
+  runStateElement.textContent = "Page preset running";
+  toolActivityElement.textContent = "Page preset · calls the same kernel directly, not WebMCP.";
   runStateElement.classList.add("ready");
   try {
     await kernel.reset(12);
     const base = await kernel.createSnapshot();
 
-    activeBranch = "rush";
-    rushCard.classList.add("active");
+    snapshotReceiptElement.textContent = `Page preset snapshot · ${base.id} · ${base.checksum.slice(0, 12)}`;
     const rushResult = await kernel.applyActionSequence({
       request_id: `page-rush-${++requestCounter}`,
       base_snapshot_id: base.id,
@@ -524,11 +585,7 @@ runButton.addEventListener("click", async () => {
       actions: rushActions,
       speed: "watch",
     });
-    showBranchResult(rushResultElement, rushResult);
-    rushCard.classList.remove("active");
-
-    activeBranch = "economy";
-    economyCard.classList.add("active");
+    recordRun({ source: "Page preset", label: "Military rush", result: rushResult });
     const economyResult = await kernel.applyActionSequence({
       request_id: `page-economy-${++requestCounter}`,
       base_snapshot_id: base.id,
@@ -536,44 +593,31 @@ runButton.addEventListener("click", async () => {
       actions: economyActions,
       speed: "watch",
     });
-    showBranchResult(economyResultElement, economyResult);
-    economyCard.classList.remove("active");
-
-    const economyWins = economyResult.metrics.strategy_score > rushResult.metrics.strategy_score;
-    const winnerCard = economyWins ? economyCard : rushCard;
-    winnerCard.classList.add("winner");
-    const winnerName = economyWins ? "Economy first" : "Military rush";
-    const scoreDelta = Math.abs(economyResult.metrics.strategy_score - rushResult.metrics.strategy_score);
-    const damageDelta = Math.abs(economyResult.metrics.enemy_damage - rushResult.metrics.enemy_damage);
-    verdictElement.classList.add("complete");
-    verdictElement.innerHTML = `
-      <span class="verdict-kicker">Controlled result · seed 12</span>
-      <strong>${winnerName} wins by ${scoreDelta} points.</strong>
-      <p>It dealt ${damageDelta} more damage from the identical snapshot and RNG stream.</p>
-    `;
-    runStateElement.textContent = "Comparison complete";
-    actionFlashElement.textContent = `${winnerName} is stronger on seed 12`;
+    recordRun({ source: "Page preset", label: "Economy first", result: economyResult });
+    runStateElement.textContent = "Page preset complete";
+    actionFlashElement.textContent = "Both plans finished at cycle 3";
   } catch (error) {
     runStateElement.textContent = "Experiment stopped";
     actionFlashElement.textContent = error instanceof Error ? error.message : "Experiment failed";
     console.error(error);
   } finally {
-    activeBranch = null;
-    rushCard.classList.remove("active");
-    economyCard.classList.remove("active");
-    runButton.disabled = false;
-    resetButton.disabled = false;
-    await refreshChecksum();
+    pagePresetRunning = false;
+    activeSource = "Agent";
+    updateControls();
   }
 });
 
 resetButton.addEventListener("click", async () => {
-  await kernel.reset(12);
-  clearExperiment();
-  runStateElement.textContent = "Ready";
-  runStateElement.classList.remove("ready");
-  actionFlashElement.textContent = "Seed 12 initialized";
-  await refreshChecksum();
+  try {
+    await kernel.reset(12);
+    clearExperiment();
+    runStateElement.textContent = "Ready";
+    runStateElement.classList.remove("ready");
+    toolActivityElement.textContent = "Waiting for an agent tool call.";
+    snapshotReceiptElement.textContent = "Page reset to seed 12. Saved snapshots remain available until reload.";
+  } catch (error) {
+    toolActivityElement.textContent = error instanceof Error ? error.message : "Reset rejected";
+  }
 });
 
 window.addEventListener("beforeunload", () => registration.dispose());

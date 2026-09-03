@@ -16,6 +16,22 @@ mutating tools use strict JSON Schemas and structured results.
 - `snapshot_game`: stores a bounded canonical snapshot in page memory.
 - `restore_game`: verifies and restores a known snapshot, then renders it.
 
+Snapshots retain both canonical simulation state (including adapter RNG state)
+and the kernel's seed metadata. Both restore paths validate canonical
+round-tripping before committing state and seed together.
+
+The live notebook observes started/completed/failed WebMCP calls. It records
+real sequence results without changing them; observer failures cannot change
+the kernel's return value. The canvas render supplies current seed/checksum and
+committed action feedback. Page presets are explicitly labeled separately.
+
+Replay evidence requires distinct request IDs and newly rendered executions.
+A cached request-ID retry is marked `cached: true`, not a new deterministic run.
+A matching final hash
+alone is insufficient: the notebook compares per-step actions, events, metrics,
+and checksums. Build-order comparisons additionally require matching first-step
+base checksums and ending cycles. Single-seed outcomes are not balance proofs.
+
 ## Sequence semantics
 
 Sequences commit one action at a time. Each action is checked against the legal
@@ -31,3 +47,11 @@ earlier branch has changed the live state.
 The first release caps a request at 50 actions and a visible speed of 80–250 ms
 per step. Tool schemas reject unknown properties and do not accept executable
 predicates, DOM selectors, URLs, or external I/O.
+
+Sequence envelopes and stop definitions are also validated in the kernel before
+any reset, restore, or action. Reusing a cached request ID with different input
+is rejected. Stop conditions are checked after each committed step. Action
+transition/render/scheduler failures return an error-status prefix and rollback
+receipt; always inspect `status` and `stopReason`. A render failure means a
+committed step might not be visible. Catastrophic adapter initialization or
+snapshot preparation failures may still reject the call.

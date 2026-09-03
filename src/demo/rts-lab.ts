@@ -72,6 +72,9 @@ export const rtsLabDescription: GameDescription = {
     "A barracks costs 50 Heartwood; a watchtower costs 35 Heartwood.",
     "A vanguard costs 30 Crown Gold and requires a barracks.",
     "Launching an attack commits all trained vanguards against the Thornmaw stronghold.",
+    "This small experiment slice advances time only with advance_cycle. Building, training, and attacks are instantaneous; it is not a full real-time RTS.",
+    "Compare build orders at the same ending cycle and inspect damage, economy, and surviving base HP together. One seed does not establish game balance.",
+    "Snapshots include RNG state. Repeating the same actions reproduces the same draws; different action lists may consume those draws differently.",
   ],
   victoryConditions: ["Reduce the Thornmaw stronghold to 0 HP while the Sunforge stronghold survives."],
   failureConditions: ["The Sunforge stronghold reaches 0 HP."],
@@ -96,8 +99,7 @@ export const rtsLabDescription: GameDescription = {
     {
       key: "strategy_score",
       label: "Strategy score",
-      description: "Comparable outcome score: pressure, surviving army, economy, base health, and tempo.",
-      badWhen: "Lower than a counterfactual from the same seed.",
+      description: "Illustrative heuristic only: round(enemy_damage * 2 + army_value + economy_value * 0.5 + sunforge_base_hp - cycle * 3). Not a victory condition or validated balance measure; compare equal-cycle outcomes and individual metrics.",
     },
   ],
   actions: [

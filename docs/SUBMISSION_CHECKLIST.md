@@ -1,16 +1,23 @@
 # Submission checklist
 
-Source: the Devpost registration email received August 30, 2026. Deadline:
+Sources: registration email and official Devpost requirements/announcements
+rechecked September 2, 2026. Deadline:
 **September 3, 2026 at 1:00 PM Pacific**. Internal submission target remains
-11:00 AM so the deadline is not the first complete attempt.
+10:00 AM so the deadline is not the first complete attempt. Do not modify the
+submitted repo, live site, or video after the 1 PM deadline. Keep the live app
+free and unrestricted through September 21 at 5 PM Pacific.
 
 ## Access and runtime
 
 - [x] Public HTTPS URL opens without judge setup or credentials:
   <https://halmir-ai.github.io/huginn/>.
-- [x] ChatGPT's in-app browser discovers and successfully calls the WebMCP tools.
-- [ ] Chrome 149+ with `chrome://flags/#enable-webmcp-testing` discovers and
-  successfully calls the same tools.
+- [x] Codex's in-app browser discovers and successfully calls the WebMCP tools.
+- [x] Confirm Codex is a supported built-in-browser client against current
+  [OpenAI site-tools guidance](https://learn.chatgpt.com/docs/webmcp).
+- [ ] Optional alternative: Chrome 149+ with `chrome://flags/#enable-webmcp-testing` discovers and
+  successfully calls the same tools. Connected Chrome currently reports
+  WebMCP unavailable; automated access to its flags page is blocked. This is
+  not a blocker for the verified Codex built-in-browser route.
 - [x] A clean-session rehearsal confirms assets, gameplay, snapshot/restore,
   and the golden experiment work on the deployed origin.
 
@@ -35,8 +42,9 @@ Source: the Devpost registration email received August 30, 2026. Deadline:
 - [ ] Explain the user-experience improvement: natural-language experiments,
   visible execution, legal actions, and immediate structured results.
 - [ ] State what the designer and agent can now do together: branch a live
-  timeline, run counterfactual build orders from identical RNG, and verify a
-  balance change reproducibly.
+  timeline, run counterfactual build orders from the same initial RNG state,
+  and replay the same plan. Do not claim an unshown balance change or Dawn
+  retrofit; different plans can consume RNG draws differently.
 - [ ] Briefly explain the implementation: game adapter, canonical state,
   checksums, snapshot/restore, strict tools, committed-prefix sequences, and
   visible rendering.
@@ -52,3 +60,13 @@ Source: the Devpost registration email received August 30, 2026. Deadline:
 
 See [VIDEO_PLAN.md](VIDEO_PLAN.md) for the protected production window and shot
 plan. No feature is allowed to consume that window after feature freeze.
+Use [RECORDING_KIT.md](RECORDING_KIT.md) for the September 2 recovery flow.
+
+## Owner and form gates
+
+- [ ] Explicit rules acknowledgment is recorded in local Devpost state.
+- [ ] Country, learning level, career-value answer, and accurate tested-client
+  disclosure are supplied by the owner; do not infer them.
+- [ ] Final video and public-link review complete; publication approved.
+- [ ] Final Devpost submission explicitly approved and verified Submitted,
+  not merely Draft. Nothing has been submitted by this recovery increment.

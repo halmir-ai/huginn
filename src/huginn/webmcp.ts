@@ -22,14 +22,22 @@ declare global {
 
 const emptySchema = { type: "object", properties: {}, additionalProperties: false } as const;
 
+export type ToolActivity =
+  | { phase: "started"; name: string; input: Record<string, unknown> }
+  | { phase: "completed"; name: string; input: Record<string, unknown>; result: unknown }
+  | { phase: "failed"; name: string; input: Record<string, unknown>; error: string };
+
+type ActivityObserver = (activity: ToolActivity) => void;
+
 export function buildToolDefinitions<State, Action, Event, GameMetrics extends Metrics>(
   kernel: HuginnKernel<State, Action, Event, GameMetrics>,
   actionSchemas: Record<string, unknown>[],
+  onActivity?: ActivityObserver,
 ): ModelContextTool[] {
   const readOnly = { readOnlyHint: true };
   const actionItems = actionSchemas.length === 1 ? actionSchemas[0] : { oneOf: actionSchemas };
 
-  return [
+  const definitions: ModelContextTool[] = [
     {
       name: "describe_game",
       title: "Describe game",
@@ -112,22 +120,52 @@ export function buildToolDefinitions<State, Action, Event, GameMetrics extends M
         additionalProperties: false,
       },
       execute: async (input, options) =>
-        kernel.applyActionSequence(input as unknown as SequenceInput<Action>, options.signal),
+        kernel.applyActionSequence(input as unknown as SequenceInput<Action>, options?.signal),
     },
   ];
+
+  // The notebook observes actual tool executions. A display failure must never
+  // change a committed simulation result or turn it into a failed tool call.
+  const notify = (activity: ToolActivity) => {
+    try {
+      onActivity?.(structuredClone(activity));
+    } catch (error) {
+      console.error("WebMCP activity display failed", error);
+    }
+  };
+  return definitions.map((definition) => ({
+    ...definition,
+    execute: async (input, options) => {
+      notify({ phase: "started", name: definition.name, input });
+      try {
+        const result = await definition.execute(input, options);
+        notify({ phase: "completed", name: definition.name, input, result });
+        return result;
+      } catch (error) {
+        notify({ phase: "failed", name: definition.name, input, error: error instanceof Error ? error.message : String(error) });
+        throw error;
+      }
+    },
+  }));
 }
 
 export async function registerWebMcpTools<State, Action, Event, GameMetrics extends Metrics>(
   kernel: HuginnKernel<State, Action, Event, GameMetrics>,
   actionSchemas: Record<string, unknown>[],
+  onActivity?: ActivityObserver,
 ): Promise<{ supported: boolean; toolNames: string[]; dispose: () => void }> {
   const context = document.modelContext;
-  if (!context) return { supported: false, toolNames: [], dispose: () => {} };
+  if (typeof context?.registerTool !== "function") return { supported: false, toolNames: [], dispose: () => {} };
 
   const controller = new AbortController();
-  const definitions = buildToolDefinitions(kernel, actionSchemas);
-  for (const definition of definitions) {
-    await context.registerTool(definition, { signal: controller.signal });
+  const definitions = buildToolDefinitions(kernel, actionSchemas, onActivity);
+  try {
+    for (const definition of definitions) {
+      await context.registerTool(definition, { signal: controller.signal });
+    }
+  } catch (error) {
+    controller.abort();
+    throw error;
   }
   return {
     supported: true,

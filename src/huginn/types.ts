@@ -86,6 +86,7 @@ export interface StepRecord<Action, Event, GameMetrics extends Metrics> {
 export type SequenceStatus = "completed" | "stopped" | "cancelled" | "error";
 
 export interface SequenceResult<Action, Event, GameMetrics extends Metrics> {
+  cached?: true;
   requestId: string;
   status: SequenceStatus;
   appliedSteps: number;
@@ -101,6 +102,7 @@ export interface SnapshotRecord {
   id: string;
   checksum: string;
   format: "huginn/canonical-state-v1";
+  seed: number;
   value: unknown;
 }
 
