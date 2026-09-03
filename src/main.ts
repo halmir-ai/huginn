@@ -11,6 +11,10 @@ import { checksum } from "./huginn/canonical";
 import type { RenderContext } from "./huginn/types";
 import { registerWebMcpTools, type ToolActivity } from "./huginn/webmcp";
 import { compareRuns, economyActions, rushActions, type RtsResult, type RunReceipt } from "./demo/experiment-notebook";
+import { InteractionLedger, webMcpEnabled } from "./demo/interaction-ledger";
+
+const siteToolsEnabled = webMcpEnabled(location.search);
+const ledger = new InteractionLedger("huginn-rts-lab", siteToolsEnabled);
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) throw new Error("Missing app root.");
@@ -27,6 +31,12 @@ const toolNames = [
 
 app.innerHTML = `
   <main class="shell">
+    <nav class="game-nav" aria-label="Example games">
+      <a href="./" aria-current="page">RTS Lab · strategy</a>
+      <a href="./tideglass/">Tideglass Relay · logistics</a>
+      <a href="#play-controls">Play yourself</a>
+      <a id="mode-switch" href="${siteToolsEnabled ? "?webmcp=off" : "./"}">${siteToolsEnabled ? "Compare: WebMCP off" : "Enable WebMCP"}</a>
+    </nav>
     <header class="masthead">
       <div>
         <p class="eyebrow">Huginn · WebMCP playtesting layer</p>
@@ -121,6 +131,30 @@ app.innerHTML = `
       </aside>
     </section>
 
+    <section id="play-controls" class="play-panel" aria-labelledby="play-title">
+      <div class="card-heading">
+        <div><p class="eyebrow">Same game logic · human or agent</p><h2 id="play-title">Play & inspect</h2></div>
+        <span id="mode-label" class="seed-tag">${siteToolsEnabled ? "WebMCP enabled" : "WebMCP OFF · identical UI"}</span>
+      </div>
+      <p class="play-help">Every currently legal move is a button. Save a checkpoint, try a plan, then restore and try another. Switching WebMCP mode opens a fresh game; it changes registration, not the rules.</p>
+      <div id="legal-actions" class="legal-actions" aria-label="Currently legal actions"></div>
+      <div class="checkpoint-controls">
+        <button id="save-checkpoint" class="secondary-action">Save checkpoint</button>
+        <button id="restore-checkpoint" class="secondary-action" disabled>Restore checkpoint</button>
+        <label>Seed <input id="seed-input" type="number" min="0" max="2147483647" value="12"></label>
+        <button id="reset-seed" class="secondary-action">Start seed</button>
+        <button id="export-receipt" class="secondary-action">Download experiment receipt</button>
+      </div>
+      <p id="manual-feedback" role="status">Choose a legal move, or ask your agent to run a bounded plan.</p>
+      <details><summary>Rules and metric definitions</summary><div id="game-rules" class="rules-copy"></div></details>
+      <details><summary>Inspect current simulation state</summary><pre id="state-inspector"></pre></details>
+      <details><summary>Interaction measurements — what we can actually count</summary>
+        <p>These are commands received by the page, not assistant turns or browser-tool envelopes. Browser observations, discovery, model tokens, and code edits are not visible here. Missing values stay unknown. Preset previews are excluded.</p>
+        <dl id="interaction-counts" class="measurement-counts"></dl>
+        <p>For an honest pilot, start a fresh tab in each mode, use the same seed and task, and count browser observations and edits separately. This compares the WebMCP channel, not an uninstrumented game.</p>
+      </details>
+    </section>
+
     <section class="tool-strip" aria-label="Registered WebMCP tools">
       <div><span class="live-mark"></span><strong id="tool-count">WebMCP tool surface</strong></div>
       <div class="tool-list">${toolNames.map((name) => `<code>${name}</code>`).join("")}</div>
@@ -156,6 +190,16 @@ const seedElement = document.querySelector<HTMLSpanElement>("#seed")!;
 const toolActivityElement = document.querySelector<HTMLParagraphElement>("#tool-activity")!;
 const snapshotReceiptElement = document.querySelector<HTMLParagraphElement>("#snapshot-receipt")!;
 const comparisonBaseElement = document.querySelector<HTMLDivElement>("#comparison-base")!;
+const legalActionsElement = document.querySelector<HTMLDivElement>("#legal-actions")!;
+const manualFeedback = document.querySelector<HTMLParagraphElement>("#manual-feedback")!;
+const stateInspector = document.querySelector<HTMLPreElement>("#state-inspector")!;
+const measurementCounts = document.querySelector<HTMLDListElement>("#interaction-counts")!;
+const checkpointButton = document.querySelector<HTMLButtonElement>("#save-checkpoint")!;
+const restoreCheckpointButton = document.querySelector<HTMLButtonElement>("#restore-checkpoint")!;
+const resetSeedButton = document.querySelector<HTMLButtonElement>("#reset-seed")!;
+let manualCheckpoint: { id: string; checksum: string } | null = null;
+let manualRunning = false;
+let manualRequestCounter = 0;
 
 const assetPaths = {
   terrain: "./assets/rts-lab/terrain.png",
@@ -419,8 +463,13 @@ let activeSource = "Agent";
 let receipts: RunReceipt[] = [];
 
 function updateControls(): void {
-  runButton.disabled = pagePresetRunning || mutationCount > 0;
-  resetButton.disabled = pagePresetRunning || mutationCount > 0;
+  const busy = pagePresetRunning || mutationCount > 0 || manualRunning;
+  runButton.disabled = busy;
+  resetButton.disabled = busy;
+  checkpointButton.disabled = busy;
+  resetSeedButton.disabled = busy;
+  restoreCheckpointButton.disabled = busy || !manualCheckpoint;
+  for (const button of legalActionsElement.querySelectorAll("button")) button.disabled = busy;
 }
 
 async function render(
@@ -431,6 +480,8 @@ async function render(
   renderMetrics(state);
   seedElement.textContent = `seed ${state.seed}`;
   checksumElement.textContent = `state ${(await checksum(state)).slice(0, 12)}`;
+  stateInspector.textContent = JSON.stringify({ checksum: await checksum(state), state, metrics: createRtsLabAdapter().metrics(state) }, null, 2);
+  renderLegalActions(state);
 
   if (renderContext.kind === "reset") {
     actionFlashElement.textContent = `Seed ${state.seed} initialized`;
@@ -515,6 +566,8 @@ function onToolActivity(activity: ToolActivity): void {
   const mutating = activity.name === "apply_action_sequence" || activity.name === "restore_game";
   toolActivityElement.textContent = `WebMCP · ${activity.name} · ${activity.phase}`;
   if (activity.phase === "started") {
+    ledger.start("WebMCP", activity.name, activity.input);
+    renderMeasurements();
     if (mutating) {
       mutationCount += 1;
       activeSource = "Agent";
@@ -529,11 +582,15 @@ function onToolActivity(activity: ToolActivity): void {
     updateControls();
   }
   if (activity.phase === "failed") {
+    ledger.fail("WebMCP", activity.name);
+    renderMeasurements();
     runStateElement.textContent = mutationCount ? "Agent running" : "Tool rejected";
     runStateElement.classList.toggle("ready", mutationCount > 0);
     toolActivityElement.textContent = `WebMCP · ${activity.name} · ${activity.error}`;
     return;
   }
+  ledger.complete("WebMCP", activity.name, activity.result);
+  renderMeasurements();
   if (activity.name === "apply_action_sequence") {
     const result = activity.result as RtsResult;
     const cached = result.cached === true;
@@ -548,20 +605,20 @@ function onToolActivity(activity: ToolActivity): void {
   }
 }
 
-const registration = await registerWebMcpTools(
+const registration = siteToolsEnabled ? await registerWebMcpTools(
   kernel,
   rtsLabDescription.actions.map((action) => action.inputSchema),
   onToolActivity,
 ).catch((error: unknown) => {
   console.error("WebMCP registration failed", error);
   return { supported: false, toolNames: [], dispose: () => {} };
-});
+}) : { supported: false, toolNames: [], dispose: () => {} };
 
-statusElement.textContent = registration.supported
+statusElement.textContent = !siteToolsEnabled ? "WebMCP disabled · UI comparison mode" : registration.supported
   ? `${registration.toolNames.length} WebMCP tools live`
   : "Page demo live · enable WebMCP for agent tools";
 statusElement.classList.toggle("ready", registration.supported);
-document.querySelector("#tool-count")!.textContent = registration.supported ? `${registration.toolNames.length} registered tools` : "7 tools require a WebMCP browser";
+document.querySelector("#tool-count")!.textContent = !siteToolsEnabled ? "0 registered tools · UI comparison mode" : registration.supported ? `${registration.toolNames.length} registered tools` : "7 tools require a WebMCP browser";
 
 let requestCounter = 0;
 
@@ -608,16 +665,103 @@ runButton.addEventListener("click", async () => {
 });
 
 resetButton.addEventListener("click", async () => {
-  try {
+  await manualCommand("reset", async () => {
     await kernel.reset(12);
     clearExperiment();
     runStateElement.textContent = "Ready";
     runStateElement.classList.remove("ready");
     toolActivityElement.textContent = "Waiting for an agent tool call.";
     snapshotReceiptElement.textContent = "Page reset to seed 12. Saved snapshots remain available until reload.";
-  } catch (error) {
-    toolActivityElement.textContent = error instanceof Error ? error.message : "Reset rejected";
-  }
+    return kernel.getMetrics();
+  });
 });
+
+function renderMeasurements(): void {
+  const counts = ledger.report().counts;
+  measurementCounts.replaceChildren();
+  for (const [name, value] of [["UI commands", counts.uiCommands], ["WebMCP calls", counts.webmcpCalls], ["Committed actions", counts.committedActions], ["Rejected commands", counts.rejectedCommands], ["Model tokens", "Unknown"]]) {
+    const pair = document.createElement("div");
+    const term = document.createElement("dt"); term.textContent = String(name);
+    const data = document.createElement("dd"); data.textContent = String(value);
+    pair.append(term, data); measurementCounts.append(pair);
+  }
+}
+
+function renderLegalActions(state: RtsLabState): void {
+  legalActionsElement.replaceChildren();
+  // Derive these from the very same adapter whose legal set guards WebMCP.
+  const legal = createRtsLabAdapter().listLegalActions(state);
+  for (const entry of legal) {
+    const button = document.createElement("button");
+    button.className = "secondary-action";
+    button.textContent = entry.label;
+    button.title = entry.reason;
+    button.addEventListener("click", () => { void manualCommand(entry.action.type, async () => {
+      const result = await kernel.applyActionSequence({ request_id: `ui-action-${++manualRequestCounter}`, actions: [entry.action], speed: "watch" });
+      if (result.status === "completed") manualFeedback.textContent = `${entry.label} · committed. Cycle ${result.metrics.cycle}, enemy damage ${result.metrics.enemy_damage}, base HP ${result.metrics.sunforge_base_hp}.`;
+      else manualFeedback.textContent = `Stopped after ${result.appliedSteps} actions: ${result.stopReason}`;
+      return result;
+    }); });
+    legalActionsElement.append(button);
+  }
+  updateControls();
+}
+
+async function manualCommand(name: string, operation: () => Promise<unknown>): Promise<void> {
+  if (manualRunning || pagePresetRunning || mutationCount) return;
+  manualRunning = true;
+  activeSource = "UI";
+  ledger.start("UI", name);
+  updateControls();
+  try {
+    const result = await operation();
+    ledger.complete("UI", name, result);
+  } catch (error) {
+    ledger.fail("UI", name);
+    manualFeedback.textContent = error instanceof Error ? error.message : "UI command failed";
+  } finally {
+    manualRunning = false;
+    activeSource = "Agent";
+    updateControls();
+    renderMeasurements();
+  }
+}
+
+checkpointButton.addEventListener("click", () => { void manualCommand("snapshot", async () => {
+  manualCheckpoint = await kernel.createSnapshot();
+  snapshotReceiptElement.textContent = `UI snapshot saved · ${manualCheckpoint.id} · ${manualCheckpoint.checksum.slice(0, 12)}`;
+  manualFeedback.textContent = "Checkpoint saved. Restore it after trying a plan.";
+  return manualCheckpoint;
+}); });
+
+restoreCheckpointButton.addEventListener("click", () => { void manualCommand("restore", async () => {
+  if (!manualCheckpoint) throw new Error("Save a checkpoint first.");
+  const restored = await kernel.restoreSnapshot(manualCheckpoint.id, manualCheckpoint.checksum);
+  snapshotReceiptElement.textContent = `UI restored & verified · ${restored.id} · ${restored.checksum.slice(0, 12)}`;
+  manualFeedback.textContent = "Checkpoint restored exactly. You can try a different plan.";
+  return restored;
+}); });
+
+resetSeedButton.addEventListener("click", () => { void manualCommand("reset_seed", async () => {
+  const value = Number(document.querySelector<HTMLInputElement>("#seed-input")!.value);
+  await kernel.reset(value);
+  clearExperiment();
+  manualFeedback.textContent = `Started seed ${value}. Interaction counters remain cumulative; open a fresh tab for a new measured trial.`;
+  return kernel.getMetrics();
+}); });
+
+document.querySelector("#export-receipt")!.addEventListener("click", async () => {
+  const receipt = { ...ledger.report(), final: await kernel.getState(), metrics: await kernel.getMetrics(), experiments: receipts };
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(new Blob([JSON.stringify(receipt, null, 2)], { type: "application/json" }));
+  link.href = url; link.download = "huginn-rts-experiment.json"; link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+const rulesElement = document.querySelector<HTMLDivElement>("#game-rules")!;
+for (const rule of [...rtsLabDescription.rules, ...rtsLabDescription.victoryConditions, ...rtsLabDescription.failureConditions, ...rtsLabDescription.metrics.map((metric) => `${metric.label}: ${metric.description}${metric.badWhen ? ` Warning: ${metric.badWhen}` : ""}`)]) {
+  const paragraph = document.createElement("p"); paragraph.textContent = rule; rulesElement.append(paragraph);
+}
+renderMeasurements();
 
 window.addEventListener("beforeunload", () => registration.dispose());

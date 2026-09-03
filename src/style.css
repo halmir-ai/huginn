@@ -43,6 +43,29 @@ body::before {
 
 button { font: inherit; }
 
+.game-nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+.game-nav a { color: #bfdbdb; text-decoration: none; border: 1px solid var(--line); border-radius: 9px; padding: 11px 14px; font-size: .83rem; min-height: 44px; }
+.game-nav a[aria-current="page"] { border-color: #6babb7; background: #17353d; color: #fff; }
+.game-nav a:hover, .game-nav a:focus-visible { background: #21414b; outline-color: #b9e6ed; }
+.play-panel { margin-top: 18px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+.play-help, .play-panel details p { color: #b5c6c3; line-height: 1.6; font-size: .9rem; max-width: 1000px; margin: 15px 0; }
+.legal-actions, .checkpoint-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 15px 0; }
+.legal-actions button, .checkpoint-controls button { min-height: 44px; padding: 12px 16px; }
+.checkpoint-controls label { display: flex; align-items: center; gap: 9px; }
+.checkpoint-controls input { width: 118px; min-height: 44px; padding: 8px; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; background: #07151c; font: inherit; }
+.play-panel summary { padding: 14px 0; cursor: pointer; color: #b4dfeb; min-height: 44px; }
+.play-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; background: #081115; color: #bbd6d0; font: .8rem/1.6 ui-monospace, monospace; }
+#manual-feedback { color: #dcce9a; font-size: .88rem; line-height: 1.6; }
+.measurement-counts { display: flex; flex-wrap: wrap; gap: 24px; }
+.measurement-counts dt { color: #99bab7; font-size: .8rem; }
+.measurement-counts dd { margin: 6px 0 0; font-size: 1.5rem; }
+@media (max-width: 620px) {
+  .game-nav { gap: 6px; }
+  .game-nav a { flex: 1 1 44%; text-align: center; }
+  .play-panel { padding: 16px; }
+  .play-panel .card-heading { flex-direction: column; }
+}
+
 .shell {
   width: min(1410px, calc(100% - 36px));
   margin: 0 auto;

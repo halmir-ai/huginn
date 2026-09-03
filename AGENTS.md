@@ -8,9 +8,13 @@ useful to a human game designer.
 
 ## Product boundary
 
-- Dawn of People is the hero integration.
-- RTS Lab is the conditional greenfield proof and must reuse the same core tools;
-  it never grows into a full RTS or a Battle Craft port.
+- RTS Lab is the working strategy example; Tideglass Relay is the isolated
+  logistics example being added for the submission. Dawn remains a future
+  retrofit, not a shipped integration. Neither sample grows into a full RTS
+  or a Battle Craft port.
+- All examples reuse the same kernel and seven WebMCP tools. The `webmcp=off`
+  comparison mode disables registration only; ordinary human controls and
+  game rules remain equivalent. Page-command counts are not model tokens.
 - The deterministic kernel is authoritative; rendering never mutates sim state.
 - Every mutation must validate against the current legal-action set.
 - WebMCP sequences use prefix semantics: stop before the first invalid action and
