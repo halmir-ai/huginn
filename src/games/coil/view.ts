@@ -7,18 +7,31 @@ const CELL = 28, PAD = 20;
 const W = GRID_WIDTH * CELL + PAD * 2, H = GRID_HEIGHT * CELL + PAD * 2;
 const center = (cell: Cell) => ({ x: PAD + (cell.x + .5) * CELL, y: PAD + (cell.y + .5) * CELL });
 const arrow = (rotation: number) => `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="transform:rotate(${rotation}deg)"><path d="m6 14 6-6 6 6M12 8v12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+type ShieldPauseTarget = { readonly control: "human" | "agent"; pause(owner?: "human" | "agent"): void };
+
+/** Keep presentation timing out of simulation while guaranteeing a human recovery decision. */
+export function pauseHumanAfterShieldBlock(runtime: ShieldPauseTarget, events: CoilEvent[]): boolean {
+  if (runtime.control !== "human" || !events.some(event => event.type === "shield-blocked")) return false;
+  runtime.pause();
+  return true;
+}
+
+export function isNativeButtonActivationKey(key: string, code: string): boolean {
+  return key === "Enter" || key === " " || code === "Space";
+}
 
 /** Canvas animation and human input are deliberately outside the game rules. */
 export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, CoilAction, CoilEvent>, _options: GameMountOptions): () => void {
   root.innerHTML = `<section class="coil" aria-label="COIL arcade game">
     <header class="coil-header"><div class="coil-brand"><span class="coil-mark" aria-hidden="true"></span><div><h1>COIL</h1><p>AFTER HOURS ARCADE</p></div></div><div class="coil-run-info"><span class="coil-live-dot"></span><span>ONE MORE RUN.</span></div><button class="coil-pause coil-icon-button" type="button" aria-label="Pause game" title="Pause · Space"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5v14M16 5v14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></header>
     <div class="coil-playfield"><div class="coil-scorebar"><div class="coil-score-block"><span>SCORE</span><strong class="coil-score">0000</strong></div><div class="coil-best-block"><span>PERSONAL BEST</span><strong class="coil-best">0000</strong></div><div class="coil-speed-block"><span>SPEED</span><strong><span class="coil-level">01</span><i class="coil-speed-bars" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b></i></strong></div></div>
-      <div class="coil-board"><canvas width="${W}" height="${H}" tabindex="0" aria-label="Snake board. Arrow keys or WASD turn. Space starts, pauses, and retries. Swipe on the board or use the direction buttons below."></canvas>
+      <div class="coil-board"><canvas width="${W}" height="${H}" tabindex="0" aria-label="Snake board. Arrow keys or WASD turn. Q arms the emergency shield. Space starts, pauses, and retries. Swipe on the board or use the direction buttons below."></canvas>
         <div class="coil-overlay"><div class="coil-overlay-card"><span class="coil-eyebrow">THE NIGHT IS YOUNG</span><h2>Stay hungry.<br>Stay alive.</h2><p class="coil-overlay-copy">An old obsession. A new high score.<br>Chase coral. Risk it for gold.</p><button type="button" class="coil-primary"><span>LET’S PLAY</span><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="coil-overlay-hint">ARROWS / WASD TO TURN · SPACE TO START</span></div></div>
         <div class="coil-countdown" hidden aria-live="polite"><strong>3</strong><span>FIND YOUR FLOW</span></div>
         <div class="coil-toast" hidden></div>
       </div>
       <div class="coil-underboard"><div class="coil-next"><span class="coil-food-dot"></span><span class="coil-progress-label">5 FRUIT TO GOLD</span><i class="coil-fruit-progress"><b></b><b></b><b></b><b></b><b></b></i></div><div class="coil-gold-timer" hidden><span>GOLD ON THE BOARD</span><strong></strong><i><b></b></i></div><span class="coil-length">LENGTH 05</span></div>
+      <div class="coil-shield-panel"><button type="button" class="coil-shield" title="Block one fatal collision in the next 10 cell advances. One charge per run."><kbd>Q</kbd> EMERGENCY SHIELD</button><span class="coil-shield-status">READY · 1 CHARGE</span></div>
       <div class="coil-controls"><p><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> <span>or WASD</span><i></i><kbd>SPACE</kbd> <span>pause</span></p><span>WALLS ARE REAL. SO IS YOUR TAIL.</span></div>
       <div class="coil-mobile-controls"><p>SWIPE TO TURN<br><span>or find your rhythm below</span></p><div class="coil-dpad" aria-label="Direction controls"><button type="button" data-direction="n" aria-label="Turn up">${arrow(0)}</button><button type="button" data-direction="w" aria-label="Turn left">${arrow(-90)}</button><span class="coil-dpad-center" aria-hidden="true"></span><button type="button" data-direction="e" aria-label="Turn right">${arrow(90)}</button><button type="button" data-direction="s" aria-label="Turn down">${arrow(180)}</button></div></div>
     </div><p class="coil-announcer" aria-live="polite" aria-atomic="true"></p>
@@ -30,9 +43,11 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
   if (!ctx) throw new Error("COIL requires a canvas-capable browser.");
   const overlay = el(".coil-overlay"), eyebrow = el(".coil-eyebrow"), heading = el(".coil-overlay h2"), copy = el(".coil-overlay-copy"), primary = el<HTMLButtonElement>(".coil-primary"), primaryText = el(".coil-primary span"), overlayHint = el(".coil-overlay-hint"), pauseButton = el<HTMLButtonElement>(".coil-pause"), countdown = el(".coil-countdown"), toast = el(".coil-toast");
   const scoreText = el(".coil-score"), bestText = el(".coil-best"), levelText = el(".coil-level"), lengthText = el(".coil-length"), progressLabel = el(".coil-progress-label"), goldTimer = el(".coil-gold-timer"), announcer = el(".coil-announcer");
+  const shieldButton = el<HTMLButtonElement>(".coil-shield"), shieldStatus = el(".coil-shield-status");
   let state = runtime.state, previous = state, alive = true, raf = 0, lastStepAt = 0, movedAt = 0, deathAt = 0, toastUntil = 0;
   let countdownAt: number | null = null, started = state.tick > 0, advancing = false, modeWasPlaying = runtime.playing;
   let queue: Direction[] = [], swipe: { x: number; y: number; id: number } | null = null;
+  let shieldRequested = false, shieldRecovery = false;
   let bursts: { x: number; y: number; gold: boolean; born: number; points: number }[] = [];
   let best = 0, runBest = 0;
   try { const saved = Number(localStorage.getItem("coil.best.v1")); if (Number.isSafeInteger(saved) && saved > 0) best = saved; } catch { /* Private browsing and disabled storage retain the session best. */ }
@@ -51,8 +66,11 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
     const takeoverLabel = dead ? "Retry game" : "Take control";
     overlay.hidden = external || (!dead && runtime.playing) || count;
     countdown.hidden = !count;
-    pauseButton.disabled = !external && (dead || (!started && !count));
+    const recoveryReady = !shieldRecovery || queue.length > 0;
+    pauseButton.disabled = !external && (dead || (!started && !count) || !recoveryReady);
+    primary.disabled = false;
     section.classList.toggle("coil-external", external);
+    section.classList.toggle("coil-shield-recovery", shieldRecovery);
     pauseButton.classList.toggle("coil-takeover", external);
     el(".coil-run-info > span:last-child").textContent = external ? "EXTERNAL CONTROL" : "ONE MORE RUN.";
     pauseButton.setAttribute("aria-label", external ? takeoverLabel : runtime.playing || count ? "Pause game" : "Resume game");
@@ -69,6 +87,14 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
       copy.innerHTML = `<span class="coil-final-score">${pad(state.score)}</span><span class="coil-final-caption">POINTS · ${state.foodsEaten} FRUIT · ${state.snake.length} LENGTH</span>`;
       primaryText.textContent = "RUN IT BACK";
       overlayHint.textContent = `${state.death === "wall" ? "THE WALL GOT YOU." : "YOUR TAIL GOT YOU."} SPACE TO RETRY`;
+    } else if (shieldRecovery) {
+      const direction = queue[0] && ({ n: "UP", e: "RIGHT", s: "DOWN", w: "LEFT" } as const)[queue[0]];
+      eyebrow.textContent = "IMPACT DEFLECTED";
+      heading.textContent = "Shield held.";
+      copy.textContent = direction ? `${direction} is ready. Resume when you are set.` : "Your coil is intact. Choose a legal turn before movement resumes.";
+      primaryText.textContent = direction ? "RESUME RUN" : "CHOOSE A DIRECTION";
+      primary.disabled = !direction;
+      overlayHint.textContent = direction ? `${direction} READY · SPACE OR BUTTON TO RESUME` : "ARROWS / WASD OR DIRECTION BUTTONS TO TURN";
     } else if (started) {
       eyebrow.textContent = runtime.control === "agent" ? "BOARD ON HOLD" : "TAKE A BREATH";
       heading.textContent = "Night’s not over.";
@@ -93,12 +119,18 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
 
   async function primaryAction() {
     if (runtime.busy || countdownAt !== null) return;
+    if (shieldRecovery && queue.length === 0) { announce("Choose a legal direction before resuming."); return; }
     if (state.phase === "dead") {
       runBest = best;
       await runtime.reset();
       if (alive) beginCountdown();
     } else if (!started) beginCountdown();
-    else { clearInput(); runtime.play(); canvas.focus({ preventScroll: true }); announce("Resumed."); }
+    else {
+      const recoveryDirection = shieldRecovery ? queue[0] : null;
+      if (!shieldRecovery) clearInput();
+      shieldRecovery = false; runtime.play(); canvas.focus({ preventScroll: true });
+      announce(recoveryDirection ? `${({ n: "Up", e: "Right", s: "Down", w: "Left" } as const)[recoveryDirection]} queued. Resumed.` : "Resumed.");
+    }
   }
 
   function pause() {
@@ -110,10 +142,29 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
   }
 
   function queueTurn(direction: Direction) {
-    if (state.phase !== "playing" || (!runtime.playing && countdownAt === null) || runtime.control !== "human") return;
+    if (state.phase !== "playing" || (!runtime.playing && countdownAt === null && !shieldRecovery) || runtime.control !== "human") return;
+    if (shieldRecovery) {
+      if (direction === state.direction || direction === opposite[state.direction]) return;
+      queue = [direction]; updateOverlay();
+      announce(`${({ n: "Up", e: "Right", s: "Down", w: "Left" } as const)[direction]} ready. Press Space or Resume Run.`);
+      return;
+    }
     const from = queue[queue.length - 1] ?? state.pendingDirection ?? state.direction;
     if (direction === from || direction === opposite[from] || queue.length >= 3) return;
     queue.push(direction);
+  }
+
+  function requestShield() {
+    if (state.phase !== "playing" || state.shieldCharges === 0 || runtime.control !== "human") return;
+    // Retain a press during an in-flight human action until the driver is idle.
+    shieldRequested = true;
+    canvas.focus({ preventScroll: true });
+  }
+
+  async function flushShield() {
+    if (!shieldRequested || runtime.busy) return;
+    shieldRequested = false;
+    await runtime.dispatch({ type: "shield" });
   }
 
   async function advanceHuman() {
@@ -124,6 +175,7 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
         const direction = queue.shift()!;
         if (direction !== state.direction && direction !== opposite[state.direction]) await runtime.dispatch({ type: "turn", direction });
       }
+      await flushShield();
       if (alive && runtime.playing && !runtime.busy && state.phase === "playing") await runtime.dispatch({ type: "advance", steps: 1 });
     } finally { advancing = false; }
   }
@@ -131,8 +183,10 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
   const directionKeys: Record<string, Direction> = { ArrowUp: "n", ArrowRight: "e", ArrowDown: "s", ArrowLeft: "w", w: "n", d: "e", s: "s", a: "w" };
   const keyDown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.metaKey || event.altKey || (event.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName))) return;
+    if (event.target instanceof HTMLElement && event.target.closest("button") && isNativeButtonActivationKey(event.key, event.code)) return;
     const direction = directionKeys[event.key] ?? directionKeys[event.key.toLowerCase()];
     if (direction) { event.preventDefault(); if (!event.repeat) queueTurn(direction); }
+    if (event.key.toLowerCase() === "q") { event.preventDefault(); if (!event.repeat) requestShield(); }
     if (event.code === "Space" || event.key === " ") { event.preventDefault(); if (!event.repeat) toggle(); }
     if (event.key === "Escape" && (runtime.playing || countdownAt !== null)) { event.preventDefault(); pause(); }
   };
@@ -154,6 +208,7 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
   const onFocusOut = (event: FocusEvent) => { if (event.relatedTarget && !section.contains(event.relatedTarget as Node)) loseFocus(); };
   primary.addEventListener("click", primaryAction);
   pauseButton.addEventListener("click", toggle);
+  shieldButton.addEventListener("click", requestShield);
   section.addEventListener("keydown", keyDown);
   section.addEventListener("focusout", onFocusOut);
   canvas.addEventListener("pointerdown", pointerDown);
@@ -170,7 +225,7 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
   const unsubscribe = runtime.subscribe((next, events, kind) => {
     const now = performance.now();
     if (kind === "reset" || kind === "restore") {
-      previous = next; movedAt = 0; bursts = []; clearInput(); countdownAt = null; deathAt = 0; started = next.tick > 0; runBest = best;
+      previous = next; movedAt = 0; bursts = []; clearInput(); shieldRequested = false; shieldRecovery = false; countdownAt = null; deathAt = 0; started = next.tick > 0; runBest = best;
     } else if (next.tick !== state.tick) {
       previous = state; movedAt = now;
       // Batched or restored moves should not interpolate through unrelated cells.
@@ -181,7 +236,7 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
     if (kind === "mode") {
       if (runtime.playing && !modeWasPlaying) { lastStepAt = now; movedAt = 0; previous = state; }
       if (!runtime.playing) clearInput();
-      if (runtime.control === "agent") countdownAt = null;
+      if (runtime.control === "agent") { countdownAt = null; shieldRequested = false; shieldRecovery = false; }
       modeWasPlaying = runtime.playing;
     }
     if (state.score > best) {
@@ -190,6 +245,9 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
     }
     scoreText.textContent = pad(state.score); bestText.textContent = pad(best);
     levelText.textContent = String(levelFor(state)).padStart(2, "0"); lengthText.textContent = `LENGTH ${String(state.snake.length).padStart(2, "0")}`;
+    shieldButton.disabled = state.phase !== "playing" || state.shieldCharges === 0 || runtime.control !== "human";
+    shieldStatus.textContent = state.shieldStepsLeft > 0 ? `ARMED · ${state.shieldStepsLeft} ADVANCES LEFT` : state.shieldCharges ? "READY · 1 CHARGE" : "USED · RESTART TO RECHARGE";
+    section.classList.toggle("coil-shield-armed", state.shieldStepsLeft > 0);
     progressLabel.textContent = `${5 - state.foodsEaten % 5} FRUIT TO GOLD`;
     section.querySelectorAll<HTMLElement>(".coil-fruit-progress b").forEach((dot, i) => dot.classList.toggle("lit", i < state.foodsEaten % 5));
     section.querySelectorAll<HTMLElement>(".coil-speed-bars b").forEach((bar, i) => bar.classList.toggle("lit", i < Math.min(6, levelFor(state))));
@@ -198,12 +256,18 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
       goldTimer.querySelector("strong")!.textContent = `${(state.bonus.remaining * stepDurationMs(state) / 1000).toFixed(1)}s`;
       (goldTimer.querySelector("i b") as HTMLElement).style.width = `${state.bonus.remaining / BONUS_STEPS * 100}%`;
     }
+    const humanShieldBlock = runtime.control === "human" && events.some(event => event.type === "shield-blocked");
+    if (humanShieldBlock) { shieldRecovery = true; clearInput(); }
     for (const event of events) {
       if (event.type === "food" || event.type === "bonus") bursts.push({ ...center(event), points: event.points, gold: event.type === "bonus", born: now });
       if (event.type === "speed-up") { showToast(`SPEED ${String(event.level).padStart(2, "0")} · GOLD IS LIVE`, true); announce(`Speed level ${event.level}. Golden fruit on the board, worth 50 points.`); }
       if (event.type === "bonus") { showToast("GOLD RUSH. +50", true); announce("Golden fruit. 50 points."); }
-      if (event.type === "death") { deathAt = now; clearInput(); countdownAt = null; announce(`Run over. ${state.score} points. ${state.death === "wall" ? "You hit the wall." : "You hit your body."} Press Space to try again.`); }
+      if (event.type === "shield-armed") { showToast("SHIELD ARMED · 10 ADVANCES"); announce("Emergency shield armed for the next ten cell advances. Charge used."); }
+      if (event.type === "shield-blocked") { clearInput(); showToast("SHIELD BLOCKED THE HIT · TURN NOW"); announce("Shield blocked the collision. Protection used. Choose a legal direction, then resume."); }
+      if (event.type === "shield-expired") { showToast("SHIELD EXPIRED"); announce("Emergency shield expired. No charge remaining."); }
+      if (event.type === "death") { deathAt = now; clearInput(); shieldRequested = false; shieldRecovery = false; countdownAt = null; announce(`Run over. ${state.score} points. ${state.death === "wall" ? "You hit the wall." : "You hit your body."} Press Space to try again.`); }
     }
+    if (humanShieldBlock) pauseHumanAfterShieldBlock(runtime, events);
     section.classList.toggle("coil-dead", state.phase === "dead");
     updateOverlay();
   });
@@ -237,6 +301,10 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
     ctx!.shadowColor = state.phase === "dead" ? "#ff8783" : "#4be3b4"; ctx!.shadowBlur = state.phase === "dead" ? 13 : 18;
     ctx!.strokeStyle = state.phase === "dead" ? "#d87980" : "#43cda8"; ctx!.lineWidth = 20; path(); ctx!.stroke(); ctx!.shadowBlur = 0;
     const tail = points[points.length - 1], head = points[0];
+    if (state.shieldStepsLeft > 0) {
+      ctx!.strokeStyle = "#b7eaff"; ctx!.lineWidth = 2;
+      ctx!.beginPath(); ctx!.arc(head.x, head.y, 20, 0, Math.PI * 2); ctx!.stroke();
+    }
     const gradient = ctx!.createLinearGradient(tail.x - 1, tail.y, head.x + 1, head.y + 1);
     gradient.addColorStop(0, state.phase === "dead" ? "#a76780" : "#39bda6"); gradient.addColorStop(1, state.phase === "dead" ? "#ffaaa0" : "#acffe1");
     ctx!.strokeStyle = gradient; ctx!.lineWidth = 17; path(); ctx!.stroke();
@@ -258,6 +326,7 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
 
   function render(t: number) {
     if (!alive) return;
+    if (shieldRequested && !advancing) void flushShield();
     if (countdownAt !== null) {
       const elapsed = t - countdownAt;
       countdown.querySelector("strong")!.textContent = String(Math.max(1, 3 - Math.floor(elapsed / 550)));

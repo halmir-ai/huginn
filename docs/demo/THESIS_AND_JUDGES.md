@@ -53,8 +53,10 @@ A canvas game **can** be tested with mouse/keyboard automation, screenshots,
 application instrumentation, or a bespoke harness. A backend could also run
 a simulation. Huginn's demonstrated benefit is making a reusable in-page
 experiment contract available to a compatible agent without moving this live
-session to a separate simulation service. No controlled comparison has yet
-measured speed, cost, defect yield, or performance against point-and-click.
+session to a separate simulation service. The completed COIL pair measured one
+incremental feature task and did not show a speed, token, or code-size advantage
+for Huginn. It did show stronger structured live-state evidence. One pair is not
+a general productivity or defect-yield result.
 
 ## Map the film to the actual rubric
 
@@ -77,11 +79,11 @@ editorial inferences, not claims about how any private judging decision was made
 
 | Candidate | Honest role today | Deadline decision |
 | --- | --- | --- |
-| RTS Lab | Shipped, real WebMCP, complete experiment | Hero; record first |
-| Riverlands | Test-only kernel fixture | Do not present as a second live game |
-| Dawn of People | Existing repo, no Huginn integration | Future retrofit, not video dependency |
-| Regnara / Battle Craft | Existing projects, no demonstrated Huginn path | Do not promise a last-night port |
-| Tideglass Relay | Proposed fresh sample | Optional isolated authoring proof, gated before inclusion |
+| COIL | Complete score-chasing Snake game; WebMCP and genuine standalone builds | Hero interaction and human handoff |
+| STARFALL | Complete three-ball pinball game using the same contract | Short generality proof |
+| COIL paired trial | Completed with public source/tasks and unfavorable efficiency result | Honest authoring evidence near the close |
+| RTS Lab / Tideglass | Shipped earlier protocol experiments | Backup footage or technical appendix only |
+| Dawn / Regnara / Battle Craft | Existing projects without a completed Huginn retrofit | Future work; do not promise in the film |
 
 ## Words to avoid—and what to say instead
 

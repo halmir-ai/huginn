@@ -1,8 +1,9 @@
 # Arcade baseline: actual play and browser evidence
 
 2026-09-03. These are correctness/playability checks, not an efficiency study.
-The feature-authoring comparison remains unmeasured. Enjoyment still needs
-human judgment; passing tests alone does not establish it.
+The later COIL feature pair is reported separately in
+[COIL_FEATURE_TRIAL_RESULTS.md](COIL_FEATURE_TRIAL_RESULTS.md). Enjoyment still
+needs human judgment; passing tests alone does not establish it.
 
 ## Ordinary play, with no Huginn runtime
 
@@ -61,10 +62,9 @@ Node replay instead of relabeling old browser evidence.
 The rejected RPG/RTS spikes are not in the build or public source. Their local
 work was preserved outside the repository, not erased.
 
-## Next independent test
+## Independent feature tests
 
-Follow [ARCADE_FEATURE_PROTOCOL.md](ARCADE_FEATURE_PROTOCOL.md): freeze this
-baseline, export identical game source with and without the optional bridge,
-then implement the same requested feature in two fresh tasks. Preserve actual
-failures and any unfavorable result. Do not translate these smoke-test counts
-into token, latency, code-change or iteration savings.
+The COIL pair followed [ARCADE_FEATURE_PROTOCOL.md](ARCADE_FEATURE_PROTOCOL.md)
+and preserved its unfavorable efficiency result. STARFALL remains independent.
+Do not translate these smoke-test counts into token, latency, code-change or
+iteration savings.

@@ -105,7 +105,7 @@ describe("COIL mechanics", () => {
     const turned = step(initial, { type: "turn", direction: "n" });
     expect(turned.tick).toBe(0); expect(turned.direction).toBe("e"); expect(turned.pendingDirection).toBe("n");
     expect(() => step(turned, { type: "turn", direction: "w" })).toThrow("Illegal");
-    expect(coilGame.legalActions(turned).every(item => item.action.type === "advance")).toBe(true);
+    expect(coilGame.legalActions(turned).every(item => item.action.type !== "turn")).toBe(true);
     const moved = step(turned, { type: "advance", steps: 1 });
     expect(moved.direction).toBe("n"); expect(moved.pendingDirection).toBeNull();
     expect(step(moved, { type: "turn", direction: "w" }).pendingDirection).toBe("w");
@@ -168,7 +168,7 @@ describe("COIL mechanics", () => {
     const runtime = new GameRuntime(coilGame, 12), before = structuredClone(runtime.state);
     runtime.play(); runtime.pause(); expect(runtime.state).toEqual(before);
     expect(runtime.playing).toBe(false); expect(Object.keys(runtime.state)).not.toContain("paused");
-    expect(coilGame.metrics(before)).toEqual({ score: 0, length: 5, foodsEaten: 0, bonusesEaten: 0, level: 1, stepDurationMs: 148, bonusStepsLeft: 0, tick: 0, alive: true });
+    expect(coilGame.metrics(before)).toEqual({ score: 0, length: 5, foodsEaten: 0, bonusesEaten: 0, level: 1, stepDurationMs: 148, bonusStepsLeft: 0, shieldCharges: 1, shieldStepsLeft: 0, tick: 0, alive: true });
     for (const schema of coilGame.description.actions) expect(schema.inputSchema.additionalProperties).toBe(false);
   });
 });

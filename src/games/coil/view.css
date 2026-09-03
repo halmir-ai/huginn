@@ -28,7 +28,7 @@
 .coil-icon-button { border: 1px solid #738b9d33; background: #172230; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: #a9c4c4; transition: background .15s; }
 .coil-icon-button:hover:not(:disabled) { background: #263b43; }
 .coil-icon-button.coil-takeover { display: flex; align-items: center; gap: 10px; width: auto; padding: 0 15px; border-radius: 24px; color: var(--coil-mint); font-size: 11px; white-space: nowrap; }
-.coil-playfield { width: min(100%, calc((100dvh - 294px) * 1.2561)); min-width: 420px; max-width: 1000px; margin: 0 auto; }
+.coil-playfield { width: min(100%, calc((100dvh - 352px) * 1.2561)); min-width: 420px; max-width: 1000px; margin: 0 auto; }
 .coil-scorebar { display: flex; align-items: center; padding: 0 4px 14px; gap: 30px; }
 .coil-scorebar > div > span { display: block; font-size: 8px; letter-spacing: 1.7px; font-weight: 700; color: #788b99; margin-bottom: 4px; }
 .coil-scorebar strong { display: block; font: 500 24px/1 "Space Grotesk", ui-monospace, monospace; letter-spacing: .6px; font-variant-numeric: tabular-nums; }
@@ -69,6 +69,16 @@
 .coil-controls kbd { font: 8px "DM Sans", sans-serif; display: inline-grid; place-items: center; min-width: 17px; padding: 2px 4px; min-height: 17px; border: 1px solid #7c9aab22; border-radius: 3px; color: #93a4ab; }
 .coil-controls > span { font-size: 7px; letter-spacing: 1.2px; padding-top: 7px; }
 .coil-mobile-controls { display: none; }
+.coil-shield-panel { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding: 0 4px 10px; }
+.coil-shield { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 8px 12px; border: 1px solid #86c4d355; border-radius: 8px; background: #182f3b; color: #c3edfa; font-size: 9px !important; font-weight: 700 !important; letter-spacing: .8px; }
+.coil-shield:hover:not(:disabled) { background: #244553; }
+.coil-shield kbd { font: inherit; padding: 3px 6px; border: 1px solid #a8e5f344; border-radius: 4px; }
+.coil-shield:disabled { opacity: 1; color: #8cabb7; background: #162632; }
+.coil-shield-status { font-size: 8px; letter-spacing: .8px; color: #9bb7c2; }
+.coil-shield-armed .coil-shield { border-color: #b7eaff; color: #d5f4ff; }
+.coil-shield-armed .coil-shield-status { color: #b7eaff; }
+.coil-shield-recovery .coil-board { box-shadow: 0 12px 70px #05091066, 0 0 48px #8edff52a; }
+.coil-shield-recovery .coil-overlay-card { border-color: #b7eaff55; box-shadow: 0 20px 65px #050a1555, 0 0 32px #8edff518; }
 .coil-final-score { display: block; font: 500 44px/1.2 "Space Grotesk", sans-serif; letter-spacing: 1px; color: #b7f1d9; margin: 14px 0 8px; }.coil-final-caption { display: block; font-size: 8px; letter-spacing: 1px; color: #7d999e; }
 .coil-dead .coil-board { box-shadow: 0 12px 70px #05091066, 0 0 40px #e16d6810; }.coil-dead .coil-overlay { background: #10152126; }
 .coil-announcer { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

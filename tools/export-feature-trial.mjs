@@ -43,7 +43,9 @@ lock.packages[""].name = pkg.name; lock.packages[""].version = pkg.version;
 await writeFile(join(destination, "package-lock.json"), JSON.stringify(lock, null, 2) + "\n");
 await copyPath("tsconfig.json");
 await writeFile(join(destination, "vite.config.ts"), 'import { defineConfig } from "vite";\nexport default defineConfig({ base: "./" });\n');
-await writeFile(join(destination, ".gitignore"), "node_modules/\ndist/\nartifacts/\n.DS_Store\n");
+// The dependency shortcut is a symlink, not a directory as far as Git's
+// ignore matcher is concerned, so omit the trailing slash here.
+await writeFile(join(destination, ".gitignore"), "node_modules\ndist/\nartifacts/\n.DS_Store\n");
 await symlink(join(repo, "node_modules"), join(destination, "node_modules"), "dir");
 const protocol = await readFile(join(repo, "docs/demo/ARCADE_FEATURE_PROTOCOL.md"), "utf8");
 const start = protocol.indexOf(`## ${title} feature:`);

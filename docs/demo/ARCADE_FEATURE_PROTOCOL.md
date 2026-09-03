@@ -1,8 +1,9 @@
 # Game-first feature trials
 
-Status: planned, not measured. Frozen feature briefs below are independent of
-the tools used to implement them. Baseline commit and source hashes are filled
-by the exporter only after standalone playability review.
+Status: COIL pair completed; STARFALL pair in progress. The frozen feature
+briefs below are independent of the tools used to implement them. See
+[COIL_FEATURE_TRIAL_RESULTS.md](COIL_FEATURE_TRIAL_RESULTS.md) for the first
+honest result, including the unfavorable efficiency measurements.
 
 ## Preconditions
 

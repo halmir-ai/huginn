@@ -17,11 +17,11 @@ app.innerHTML = `
     </nav>
 
     <header class="hero">
-      <p class="eyebrow">FEATURE-AUTHORING TRIALS · PLANNED</p>
+      <p class="eyebrow">COIL TRIAL COMPLETE · STARFALL RUNNING</p>
       <h1>Same game.<br /><em>New feature.</em><br />Two ways to build it.</h1>
       <p class="lead">Optional WebMCP exposes live canvas game state, legal actions, and bounded experiments.</p>
       <div class="hero-meta">
-        <span>Feature-authoring comparison: <strong>not measured yet</strong></span>
+        <span>First paired result: <strong>better proof, not lower cost</strong></span>
         <a href="#method">Read the trial contract ↓</a>
       </div>
     </header>
@@ -41,6 +41,7 @@ app.innerHTML = `
           <p class="eyebrow">01 / COIL · SNAKE</p>
           <h2>Emergency shield</h2>
           <p class="feature">Specified feature trial: a once-per-run shield that protects the next fatal collision, then leaves the run alive without awarding score.</p>
+          <p class="trial-verdict"><strong>Accepted after 2 task turns each.</strong> The standalone task was faster and smaller; Huginn produced reproducible live-state evidence the canvas alone could not expose.</p>
           <div class="treatments" aria-label="COIL treatment links">
             <a class="action primary" href="../games/coil/">Play with Huginn <span>→</span></a>
             <a class="action" href="../games/coil/plain/">Play standalone <span>→</span></a>
@@ -80,11 +81,15 @@ app.innerHTML = `
     </section>
 
     <section class="evidence" aria-labelledby="evidence-title">
-      <p class="eyebrow">WHAT WILL BE REPORTED</p>
-      <h2 id="evidence-title">Acceptance and evidence, not a promised outcome.</h2>
-      <p>When the paired trials run, this page can append acceptance results, unmet requirements, source revisions, checks, browser/tool calls, failed commands, and task links. It will not infer token cost, iteration savings, or speed from page interaction counts.</p>
-      <div id="trial-results" class="pending" aria-live="polite">Results slot — pending the completed paired trials.</div>
-      <div id="trial-task-links" class="task-links">Task and source links slot — pending the completed paired trials.</div>
+      <p class="eyebrow">COIL · ACTUAL RESULT</p>
+      <h2 id="evidence-title">A useful result does not have to flatter the product.</h2>
+      <p>Both implementations passed after the same human-play acceptance correction. Huginn did not reduce time, tokens, or changed lines in this single pair. It did provide canonical state, legal actions, checksummed restore, and exact replay from the running canvas. That is the claim this evidence supports.</p>
+      <div id="trial-results" class="result-grid" aria-live="polite">
+        <article class="result-card"><span>Standalone</span><strong>15m 57s</strong><small>3.62M total task tokens · +97/-17 production lines</small></article>
+        <article class="result-card accent"><span>With Huginn</span><strong>17m 20s</strong><small>5.78M total task tokens · +118/-18 production lines</small></article>
+        <article class="result-card wide"><span>What changed</span><strong>Evidence quality</strong><small>Typed six-action replay ended alive at tick 18, restored the exact checkpoint checksum, then handed the preserved run back to a human.</small></article>
+      </div>
+      <div id="trial-task-links" class="task-links"><a href="${github}/blob/main/docs/demo/COIL_FEATURE_TRIAL_RESULTS.md">Full measurements and caveats ↗</a> · <a href="https://chatgpt.com/s/cx_6a99ae8fe4e08191becce187708a008d">Standalone task ↗</a> · <a href="https://chatgpt.com/s/cx_6a99ae931c048191bac24d00d4f4e221">Huginn task ↗</a></div>
     </section>
 
     <aside class="pilot-note">
