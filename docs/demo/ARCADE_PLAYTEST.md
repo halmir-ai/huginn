@@ -36,6 +36,13 @@ Checks span final UI takeover polish and metric-description completion; the
 simulation behavior did not change during these browser checks. This receipt
 is a local correctness smoke, not a deployed-build identity or token study.
 
+The final public-origin acceptance at commit `214bf2c` separately reproduced
+the new STARFALL saver flow: 16 committed actions stopped on `ballSaves=1`,
+with score 425, two lights, multiplier 1, all three balls, `drains=0`, and
+checksum `9cfcac65ba731db01e64f06eca54cf2af4f0ae621afa180433152274f69173a2`.
+Restore returned the exact seed-12 start checksum, and a fresh request matched
+all 16 action, event, metric and before/after-checksum records.
+
 - COIL: eight typed actions moved ten cells, ate the original seed-12 fruit,
   and returned score 10 / length 6. Restore matched the initial checksum.
   A distinct request resetting seed 12 reproduced every step and final hash.

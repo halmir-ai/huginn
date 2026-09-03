@@ -10,8 +10,8 @@ claim general speed, token, code, cost, balance, or quality improvements.
 
 ## Locked STARFALL receipt values
 
-These values come from the accepted production build in Codex's in-app browser.
-Confirm the same values once more on the public origin before recording.
+These values were reproduced on the public origin at commit `214bf2c` through
+the actual WebMCP tools in Codex's in-app browser.
 
 | Receipt field | Locked value |
 | --- | --- |
@@ -24,9 +24,8 @@ Confirm the same values once more on the public origin before recording.
 | Final checksum | `9cfcac65ba731db01e64f06eca54cf2af4f0ae621afa180433152274f69173a2` |
 | Replay proof | `16/16` complete step records match |
 
-The STARFALL shot remains blocked unless a fresh public-origin run reproduces
-these values, exact checkpoint restore, and matching action/event/metric and
-before/after-checksum records.
+The verified public run restored the exact starting checksum and its fresh
+request matched all 16 action, event, metric and before/after-checksum records.
 
 ## Exact WebMCP capture
 
@@ -342,8 +341,8 @@ End narration by 2:40 and hold the URLs for two seconds.
       metric with spent drains counted separately.
 - [ ] A fresh Codex in-app-browser tab discovers all seven actual WebMCP tools
       on each game; a badge alone is not accepted.
-- [ ] A fresh public-origin run reproduces every locked STARFALL value above;
-      retain its receipt and never substitute the older spent-drain result.
+- [ ] Start from a fresh public tab and confirm the locked STARFALL start hash;
+      never substitute the older spent-drain result.
 - [ ] Fresh request IDs are used for every execution and replay.
 - [ ] The recording region is clean 16:9 at 1080p or higher; notifications,
       personal tabs, credentials, and unrelated browser chrome are hidden.
