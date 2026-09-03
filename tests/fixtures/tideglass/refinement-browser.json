@@ -1,0 +1,58 @@
+{
+  "evidenceSource": "Actual in-app-browser WebMCP calls through CUA; no console or simulated tool calls",
+  "url": "http://127.0.0.1:4188/tideglass/",
+  "rulesVersion": "0.2.0-refinement",
+  "huginnBase": "a71cacb92e107cd4c8ab0ef1afcf8f709233b60c",
+  "sourceDigest": "94adf84f610ce8a1c8f45445d91734985413dda1ef445474c4e6f240a989300c",
+  "toolsDiscoveredAndActuallyCalled": ["describe_game", "get_game_state", "get_metrics", "list_legal_actions", "snapshot_game", "restore_game", "apply_action_sequence"],
+  "actualToolCallCount": 10,
+  "snapshot": {
+    "id": "snapshot-1-214e8d0afa",
+    "checksum": "214e8d0afad2814393a86b2264bfb35f53c82fa7b45162f514548f9d17234cbc",
+    "seed": 12, "watch": 0, "battery": 12, "rng": 12,
+    "restoredWithExpectedChecksum": true
+  },
+  "reference": {
+    "requestId": "revision-browser-signal", "status": "completed", "appliedSteps": 8,
+    "metrics": { "battery": 5, "delivered": 3, "relay_online": true, "sea": "rough", "station": "breakwater", "storm_closed": true, "target_met": true, "watch": 8, "watches_left": 0 },
+    "finalChecksum": "ad3847b07a7e3bf830952893283aea632355183e34cc0f92a47fdec1e4e0a902",
+    "batteryByWatch": [9, 8, 7, 7, 6, 6, 5, 5],
+    "stepAfterChecksums": [
+      "81a036cb713bda9df35edfc6d94da92a302adfe80305bda5876f744de381306e",
+      "9c7752464c52adab78199335e477144313900610ee7e16ddc33590780004b524",
+      "ba085b44a9ae7a197e75a8c6db8d3d4914b9e6e6878399445c868aeeea96e712",
+      "b4dbc817edb9ef1bcc6e4cc81635853831d15e6ef91bd1f13e2828383ed23384",
+      "7c0d64068c66089dd428b4e2eb9b5a326bc4e0daecd6e270d0be3c7b4d86454e",
+      "d902ba27bcb67cdb5c1810fdafe434af364026ebc7d7268c0944735975822d0a",
+      "5ff2938c915e40c679972e6d7abb4df76cb7c8eef4e326b1f2cf0f64cd975456",
+      "ad3847b07a7e3bf830952893283aea632355183e34cc0f92a47fdec1e4e0a902"
+    ]
+  },
+  "contrast": {
+    "requestId": "revision-browser-unassisted", "status": "completed", "appliedSteps": 8,
+    "metrics": { "battery": 2, "delivered": 3, "relay_online": false, "sea": "rough", "station": "breakwater", "storm_closed": true, "target_met": true, "watch": 8, "watches_left": 0 },
+    "finalChecksum": "66bef7a0629aa0c6b8eb062f6f0b3e81591111d2ff50a1ac4eaf03f8842e4a28",
+    "batteryByWatch": [9, 9, 6, 6, 4, 4, 2, 2],
+    "stepAfterChecksums": [
+      "81a036cb713bda9df35edfc6d94da92a302adfe80305bda5876f744de381306e",
+      "28463c14ec568b2f2af7b064561672c9b2eb86dcbe7df75366264c8fa3137798",
+      "05046a787a65f6f772fc7865645b53a9f95ef504b05e72f54427b9f3b125adee",
+      "1b7aecf2113482327a4db0f425ea47d0a05a26873b22ffeb13a7a8c5464f471f",
+      "7c4002c98e87a48026370091867ac1c1e60bbbcc77bf2a4f7f24e18983b16924",
+      "dda8a6e26bb8c43267027a3c6e694e58f357abf348278679d4a0f47bc8108017",
+      "7dd1bf351ba4b0ef300c978b0d53b288e705f80f82842ad053e2f2476a031694",
+      "66bef7a0629aa0c6b8eb062f6f0b3e81591111d2ff50a1ac4eaf03f8842e4a28"
+    ]
+  },
+  "freshTabReplays": [
+    { "requestId": "revision-fresh-browser-signal", "plan": "Signal route", "newTabAndKernel": true, "seed": 12, "allEightStepRecordsEqual": true, "finalChecksumEqual": true },
+    { "requestId": "revision-fresh-browser-unassisted", "plan": "Unassisted route", "newTabAndKernel": true, "seed": 12, "allEightStepRecordsEqual": true, "finalChecksumEqual": true }
+  ],
+  "newTarget": { "unassistedDeliveries": 3, "unassistedBattery": 2, "endingWatch": 8, "signalBatteryAdvantage": 3, "met": true },
+  "consoleWarningsOrErrors": [],
+  "limits": [
+    "Development-page tools tested; parent owns final multipage build, deployment and telemetry.",
+    "Shared page still has parent-owned static cap-10 and no-tuning copy; authoritative game description and state show the new revision.",
+    "No current UI-off benchmark, token measurement, timing advantage, fun or balance claim. Historical UI-off evidence remains historical."
+  ]
+}

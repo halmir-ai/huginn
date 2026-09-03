@@ -11,13 +11,30 @@ import kernelSource from "../src/huginn/kernel.ts?raw";
 import webMcpSource from "../src/huginn/webmcp.ts?raw";
 import canonicalSource from "../src/huginn/canonical.ts?raw";
 import baseline from "./fixtures/tideglass/baseline.json";
+import baselineRaw from "./fixtures/tideglass/baseline.json?raw";
+import browserBaselineRaw from "./fixtures/tideglass/browser-smoke.json?raw";
+import refinement from "./fixtures/tideglass/refinement.json";
 
 const noDelay = async () => {};
 const fresh = (seed = 12) => new HuginnKernel(createTideglassAdapter(), seed, noDelay);
+const fileSha256 = async (text: string) => Array.from(new Uint8Array(
+  await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+), (byte) => byte.toString(16).padStart(2, "0")).join("");
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("Tideglass Relay baseline", () => {
+describe("Tideglass Relay refinement", () => {
+  it("meets the explicitly new seed-12 reserve target at the unchanged horizon", async () => {
+    const reference = await fresh().applyActionSequence({ request_id: "new-target-signal", seed: 12, actions: signalRoute });
+    const contrast = await fresh().applyActionSequence({ request_id: "new-target-unassisted", seed: 12, actions: unassistedRoute });
+    for (const run of [reference, contrast]) {
+      expect(run.status).toBe("completed");
+      expect(run.metrics).toMatchObject({ delivered: 3, watch: 8 });
+    }
+    expect(contrast.metrics.battery).toBeGreaterThanOrEqual(2);
+    expect(reference.metrics.battery - contrast.metrics.battery).toBeGreaterThanOrEqual(3);
+  });
+
   it("round-trips detached canonical state at every step, including seed zero", () => {
     const adapter = createTideglassAdapter();
     for (const seed of [0, 12, 2147483647]) {
@@ -41,7 +58,7 @@ describe("Tideglass Relay baseline", () => {
     const invalid: unknown[] = [null, [], {}, { ...initial, extra: true }, { ...initial, version: "future" },
       { ...initial, format: "other" }, { ...initial, seed: -1 }, { ...initial, rng: 0 },
       { ...initial, rng: 13 }, { ...initial, watch: 9 }, { ...initial, watch: 0.5 },
-      { ...initial, battery: 11 }, { ...initial, battery: NaN }, { ...initial, battery: 9 },
+      { ...initial, battery: 13 }, { ...initial, battery: NaN }, { ...initial, battery: 11 },
       { ...initial, station: "unknown" }, { ...initial, relay: "false" }, { ...initial, relay: true },
       { ...initial, delivered: [] }, { ...initial, delivered: { saltmill: true, lantern: false, breakwater: false } },
       { ...initial, delivered: { ...initial.delivered, unknown: false } },
@@ -140,7 +157,7 @@ describe("Tideglass Relay baseline", () => {
     const moved = adapter.reduce(adapter.initialState(12), { type: "sail", to: "relay_isle" }).state;
     const charged = adapter.reduce(moved, { type: "recharge" }).state;
     const waited = adapter.reduce(moved, { type: "wait" }).state;
-    expect(charged.battery).toBe(10); expect(waited.battery).toBe(moved.battery);
+    expect(charged.battery).toBe(12); expect(waited.battery).toBe(moved.battery);
     expect(charged.rng).toBe(waited.rng); expect(charged.watch).toBe(2);
     expect(adapter.deserialize(charged)).toEqual(charged);
   });
@@ -166,24 +183,63 @@ describe("Tideglass Relay baseline", () => {
     expect(await connectTideglassWebMcp(fresh(), "")).toMatchObject({ disabled: false, supported: false, toolNames: [] });
   });
 
-  it("records the measured baseline and its fresh-kernel replay evidence", async () => {
+  it("preserves historical receipts as archival evidence, not current-build expectations", async () => {
+    expect(await fileSha256(baselineRaw)).toBe("1ef389196d6eaf201529e53e91550408156cc1852582c6e23491f547fe2f730f");
+    expect(await fileSha256(browserBaselineRaw)).toBe("0cba7c9bbe2568abf74d028fced1f7472850a15dab83a49e8a2c11e1ae9121fd");
+    expect(baseline.rulesVersion).toBe("0.1.0-baseline");
+    expect(baseline.snapshot.value.battery).toBe(10);
+    expect(baseline.reference.metrics).toMatchObject({ delivered: 3, watch: 8, battery: 3, target_met: true });
+    expect(baseline.contrast.metrics).toMatchObject({ delivered: 3, watch: 8, battery: 0, target_met: false });
+    expect(await checksum(baseline.snapshot.value)).toBe(baseline.snapshot.checksum);
+    expect(signalRoute).toEqual(baseline.plans.signalRoute);
+    expect(unassistedRoute).toEqual(baseline.plans.unassistedRoute);
+    for (const run of [baseline.reference, baseline.contrast]) {
+      expect(run.steps[0].beforeChecksum).toBe(baseline.snapshot.checksum);
+      for (let i = 1; i < run.steps.length; i++) expect(run.steps[i].beforeChecksum).toBe(run.steps[i - 1].afterChecksum);
+      expect(run.steps.at(-1)?.afterChecksum).toBe(run.finalChecksum);
+    }
+    // Versioned snapshots deliberately reject cross-build restoration.
+    expect(() => createTideglassAdapter().deserialize(baseline.snapshot.value)).toThrow("Incompatible");
+  });
+
+  it("validates the new source identity, exact receipt, predicted delta and both fresh replays", async () => {
     const kernel = fresh(); const snapshot = await kernel.createSnapshot();
-    const reference = await kernel.applyActionSequence({ request_id: "baseline-signal", base_snapshot_id: snapshot.id, expected_base_checksum: snapshot.checksum, actions: signalRoute });
-    const contrast = await kernel.applyActionSequence({ request_id: "baseline-unassisted", base_snapshot_id: snapshot.id, expected_base_checksum: snapshot.checksum, actions: unassistedRoute });
-    const replay = await fresh(77).applyActionSequence({ request_id: "baseline-fresh-replay", seed: 12, actions: signalRoute });
-    const receipt = {
-      evidenceSource: "Node/Vitest with real HuginnKernel; not a browser WebMCP call",
-      rulesVersion: TIDEGLASS_VERSION, huginnBase: HUGINN_BASE,
-      sourceDigest: await checksum({ adapter: adapterSource, kernel: kernelSource, webmcp: webMcpSource, canonical: canonicalSource }),
-      targetDeclaredBeforeMeasurement: { delivered: 3, maxWatch: 8, minimumBattery: 2 },
-      snapshot, plans: { signalRoute, unassistedRoute }, reference, contrast,
-      freshReplay: { requestId: replay.requestId, constructorSeed: 77, resetSeed: 12, appliedSteps: replay.appliedSteps,
-        allStepRecordsEqual: canonicalJson(replay.steps) === canonicalJson(reference.steps), finalChecksum: replay.finalChecksum },
-    };
-    expect(reference.status).toBe("completed"); expect(contrast.status).toBe("completed");
-    expect(reference.metrics).toMatchObject({ watch: 8, delivered: 3, target_met: true });
-    expect(contrast.metrics.watch).toBe(8);
-    expect(receipt.freshReplay.allStepRecordsEqual).toBe(true);
-    expect(receipt).toEqual(baseline);
+    const reference = await kernel.applyActionSequence({ request_id: "refinement-signal", base_snapshot_id: snapshot.id, expected_base_checksum: snapshot.checksum, actions: signalRoute });
+    const contrast = await kernel.applyActionSequence({ request_id: "refinement-unassisted", base_snapshot_id: snapshot.id, expected_base_checksum: snapshot.checksum, actions: unassistedRoute });
+    expect(refinement.rulesVersion).toBe(TIDEGLASS_VERSION);
+    expect(refinement.huginnBase).toBe(HUGINN_BASE);
+    expect(refinement.sourceDigest).toBe(await checksum({ adapter: adapterSource, kernel: kernelSource, webmcp: webMcpSource, canonical: canonicalSource }));
+    expect(refinement.sourceDigest).not.toBe(baseline.sourceDigest);
+    expect(snapshot).toEqual(refinement.snapshot);
+    expect(snapshot.checksum).not.toBe(baseline.snapshot.checksum);
+    expect(refinement.plans).toEqual({ signalRoute, unassistedRoute });
+    expect(reference).toEqual(refinement.reference);
+    expect(contrast).toEqual(refinement.contrast);
+    expect(reference.metrics).toMatchObject({ watch: 8, delivered: 3, battery: 5, target_met: true });
+    expect(contrast.metrics).toMatchObject({ watch: 8, delivered: 3, battery: 2, target_met: true });
+    expect(reference.metrics.battery - contrast.metrics.battery).toBe(3);
+    expect(refinement.measured).toEqual({ batteryAdvantage: 3, newTargetMet: true });
+    expect(refinement.revisionTargetDeclaredBeforeTuning).toEqual({ seed: 12, endingWatch: 8, unassistedDeliveries: 3, minimumUnassistedBattery: 2, minimumSignalBatteryAdvantage: 3 });
+    expect(refinement.prediction).toEqual({ referenceBattery: 5, contrastBattery: 2, batteryAdvantage: 3 });
+    for (const [index, actions] of [signalRoute, unassistedRoute].entries()) {
+      const measured = [reference, contrast][index];
+      const old = [baseline.reference, baseline.contrast][index];
+      const expectedReplay = refinement.freshReplay[index];
+      const replay = await fresh(77).applyActionSequence({ request_id: expectedReplay.requestId, seed: 12, actions });
+      expect(replay.status).toBe("completed");
+      expect(replay.cached).toBeUndefined();
+      expect(replay.steps).toEqual(measured.steps);
+      expect(replay.finalChecksum).toBe(measured.finalChecksum);
+      expect(expectedReplay).toEqual({ requestId: replay.requestId, constructorSeed: 77, resetSeed: 12, appliedSteps: 8, allStepRecordsEqual: true, finalChecksum: replay.finalChecksum });
+      expect(measured.finalChecksum).not.toBe(old.finalChecksum);
+      measured.steps.forEach((step, i) => {
+        expect(step.action).toEqual(old.steps[i].action);
+        expect(step.events).toEqual(old.steps[i].events);
+        expect(step.metrics.battery).toBe(old.steps[i].metrics.battery + 2);
+        const { battery: _newBattery, target_met: _newTarget, ...newMetrics } = step.metrics;
+        const { battery: _oldBattery, target_met: _oldTarget, ...oldMetrics } = old.steps[i].metrics;
+        expect(newMetrics).toEqual(oldMetrics);
+      });
+    }
   });
 });

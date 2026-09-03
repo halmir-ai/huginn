@@ -3,10 +3,10 @@ import type { HuginnKernel } from "../huginn/kernel";
 import type { GameAdapter, GameDescription, LegalAction, RenderContext } from "../huginn/types";
 import { registerWebMcpTools, type ToolActivity } from "../huginn/webmcp";
 
-export const TIDEGLASS_VERSION = "0.1.0-baseline";
-export const HUGINN_BASE = "63b6c41053ec99b8088f285442a30991d7ee20a8";
+export const TIDEGLASS_VERSION = "0.2.0-refinement";
+export const HUGINN_BASE = "a71cacb92e107cd4c8ab0ef1afcf8f709233b60c";
 export const HORIZON = 8;
-export const BATTERY_CAPACITY = 10;
+export const BATTERY_CAPACITY = 12;
 export const STATIONS = ["haven", "relay_isle", "saltmill", "lantern", "breakwater"] as const;
 export type Station = (typeof STATIONS)[number];
 export const DESTINATIONS = ["saltmill", "lantern", "breakwater"] as const;
@@ -61,14 +61,15 @@ export const tideglassDescription: GameDescription = {
   version: TIDEGLASS_VERSION,
   summary: "Carry three messages across five coastal stations before the eighth watch closes the sea lanes.",
   rules: [
-    "Start at Haven with 10 battery and messages for Saltmill, Lantern, and Breakwater. Every action consumes one watch; no actions are legal after watch 8.",
+    "Start at Haven with 12 battery and messages for Saltmill, Lantern, and Breakwater. Every action consumes one watch; no actions are legal after watch 8.",
     "Sail only along charted lanes. Sailing costs 2 battery in calm seas or 3 in rough seas. The current forecast applies to the next action.",
     "At Relay Isle, deploy one relay for 1 battery and 1 watch. Its navigation signal reduces every later sailing action to 1 battery, in either forecast.",
     "Deliver the undelivered message at your current destination for 1 watch and no battery. Messages are carried from the start.",
-    "Recharge at Haven or Relay Isle: gain up to 3 battery, capped at 10, for 1 watch. Wait costs 1 watch and no battery.",
+    "Recharge at Haven or Relay Isle: gain up to 3 battery, capped at 12, for 1 watch. Wait costs 1 watch and no battery.",
     "Every action advances the xorshift32 RNG once. The sea is rough when the current RNG value is divisible by 4; otherwise calm. Seed 0 uses a nonzero fallback. RNG is saved in snapshots.",
-    "All three deliveries win the courier objective. The predeclared design target also requires at least 2 battery by watch 8. Compare fixed plans at the same ending watch, including waits after delivery.",
-    "Reference: Signal route, seed 12. Contrast: Unassisted route, seed 12; replace relay deployment with waiting. Both use the same sailing path and eight actions. This is a designed baseline, not a discovered defect or evidence of general balance.",
+    "All three deliveries win the courier objective. The original design target also requires at least 2 battery by watch 8; the original Signal baseline passed it. Compare fixed plans at the same ending watch, including waits after delivery.",
+    "New revision target: at seed 12 and watch 8, Unassisted route must deliver 3 messages with at least 2 battery, while Signal route retains at least 3 more battery than Unassisted. This requested budget refinement is not a discovered bug or evidence of fun or general balance.",
+    "Reference: Signal route, seed 12. Contrast: Unassisted route, seed 12; replace relay deployment with waiting. Both use the unchanged sailing path and eight actions.",
   ],
   victoryConditions: ["Deliver all three messages by watch 8."],
   failureConditions: ["Reach watch 8 with fewer than three messages delivered."],
@@ -76,7 +77,7 @@ export const tideglassDescription: GameDescription = {
     { key: "watch", label: "Watch", description: "Completed actions, 0–8. Compare plans at equal watch." },
     { key: "watches_left", label: "Watches left", description: "8 minus completed actions." },
     { key: "delivered", label: "Delivered", description: "Distinct messages delivered, 0–3." },
-    { key: "battery", label: "Battery", description: "Remaining charge, 0–10. The design target requires at least 2 after all deliveries.", badWhen: "Below 2 at the comparison horizon." },
+    { key: "battery", label: "Battery", description: "Remaining charge, 0–12. The original per-run target requires at least 2 after all deliveries; the new revision additionally compares the reserve gap between both fixed plans.", badWhen: "Below 2 at the comparison horizon." },
     { key: "relay_online", label: "Relay online", description: "Whether the navigation relay was deployed at Relay Isle." },
     { key: "sea", label: "Sea forecast", description: "Forecast for the next action, derived from saved RNG; affects unassisted sailing cost." },
     { key: "station", label: "Courier station", description: "Current station identifier." },
