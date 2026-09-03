@@ -46,8 +46,10 @@ rehearsal verified actual calls there. Chrome 149+ with
 Chrome was not WebMCP-enabled. The page preset also works without WebMCP, but
 is not a substitute for an agent-tool test.
 
-See the [recording kit](docs/RECORDING_KIT.md) for the exact agent flow,
-expected hashes, narration, and remaining publication gates.
+See the [demo production guide](docs/demo/START_HERE.md) for word-for-word
+narration, copy/paste prompts, expected results, recovery instructions, and
+the optional fresh-game authoring brief. The [technical recording kit](docs/RECORDING_KIT.md)
+retains the detailed test and browser receipts.
 
 ## Verify
 

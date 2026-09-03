@@ -1,0 +1,56 @@
+{
+  "label": "Rehearsal guide: genuine page stills, synthetic narration",
+  "captureCommit": "34ec13b9d75b4ee31ca2e2c7c9933da55401f90b",
+  "captureUrl": "https://halmir-ai.github.io/huginn/",
+  "captureViewport": { "width": 1920, "height": 1080 },
+  "shots": [
+    {
+      "image": "04-comparison.png",
+      "title": "Start with the payoff",
+      "caption": "Same start. More damage, less protection.",
+      "narration": "This is your recording rehearsal, using genuine page screenshots from real Web M C P calls, with synthetic narration. It is not continuous screen footage. Open your final film with this result: two plans from the same saved game. The economy plan deals more damage, but leaves our base less protected."
+    },
+    {
+      "image": "01-start.png",
+      "title": "1. Let the agent inspect the game",
+      "caption": "Use real site tools. Do not click Try page preset.",
+      "narration": "In Codex, open the live Huginn page in the built in browser. Run the first prompt from the recording guide. The agent reads the rules, state, and legal actions. Start at seed twelve, cycle zero. Record the real tool call beside the game, not the page preset."
+    },
+    {
+      "image": "02-snapshot.png",
+      "title": "2. Save the live starting point",
+      "caption": "Keep the returned snapshot ID and full checksum.",
+      "focus": "notebook",
+      "cues": ["Snapshot saved", "Seed 12 / cycle 0", "Keep the full checksum", "Use this base for both plans"],
+      "narration": "Now save a snapshot. The notebook should say snapshot saved. Keep the returned identifier and full checksum. Both branches must use this same snapshot. A reload creates a new page session, so never reuse an old snapshot identifier after reloading."
+    },
+    {
+      "image": "03-rush.png",
+      "title": "3. Record the rush branch",
+      "caption": "6 committed actions. Cycle 3. Damage 34. Base health 96.",
+      "narration": "Run the military rush using prompt two. Let the real sequence update the game visibly. The expected result is six committed actions, ending at cycle three, with thirty four damage and ninety six base health. If the returned status is not completed, stop and inspect the error."
+    },
+    {
+      "image": "04-comparison.png",
+      "title": "4. Branch, compare, then pause",
+      "caption": "Record both different cards BEFORE running the replay.",
+      "focus": "notebook",
+      "cues": ["Both end at cycle 3", "Rush: 34 damage / 96 HP", "Economy: 54 damage / 75 HP", "More damage, less protection"],
+      "narration": "Run the economy plan from the same snapshot. It completes eight actions and ends at cycle three, with fifty four damage and seventy five base health. Record these two different cards now, before replay replaces them. This is a design tradeoff, not proof that one strategy is always better."
+    },
+    {
+      "image": "05-restore.png",
+      "title": "5. Restore the exact saved state",
+      "caption": "Restored and verified. Cycle 0. Base health 100.",
+      "narration": "Call restore game with the original snapshot and checksum. The page returns to cycle zero and full base health. Hold on restored and verified. This proves snapshot fidelity. It is a separate check from repeating a plan."
+    },
+    {
+      "image": "06-replay.png",
+      "title": "6. Prove a fresh replay",
+      "caption": "All 8 steps match. A fresh execution, not a cached retry.",
+      "focus": "notebook",
+      "cues": ["New request ID", "8 steps freshly executed", "Actions + events + metrics", "All checksums match"],
+      "narration": "Repeat the economy plan with a new request identifier. Every action, event, metric, and checksum should match. The notebook should say replay matches, step for step. Finish by explaining the value: a designer and coding agent can investigate the same live game together. Use the separate final script for your spoken submission, and add the authoring segment only after its evidence exists."
+    }
+  ]
+}

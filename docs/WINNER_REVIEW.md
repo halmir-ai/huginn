@@ -48,8 +48,9 @@ video links were verified from official winner announcements and Devpost pages.
    as one action and one payoff, not a list of screens.
 2. **The audience and pain are concrete.** The opening answers who needs this
    before explaining architecture.
-3. **The platform is indispensable.** The browser or model capability is doing
-   work that a normal backend, dashboard, or chatbot could not replace.
+3. **The platform fit is concrete.** The browser or model capability is central
+   to the demonstrated workflow. This does not establish that no other
+   architecture could solve the problem.
 4. **Trust is visible.** Confirmation, deterministic state, policy gates,
    provenance, audit trails, and honest abstention appear in the product.
 5. **Proof follows payoff.** Metrics, tests, replay, pilot use, and limitations
@@ -61,8 +62,8 @@ video links were verified from official winner announcements and Devpost pages.
 ## Consequences for Huginn
 
 - The hero moment is not “seven tools registered.” It is the game visibly
-  replaying two branches from the same state and revealing a credible balance
-  difference.
+  replaying two branches from the same state and revealing a measured design
+  tradeoff.
 - The designer remains the protagonist; the agent is a bounded experiment
   operator.
 - Legal actions, snapshot identity, seed, checksums, and renderer updates must be
@@ -79,8 +80,8 @@ video links were verified from official winner announcements and Devpost pages.
 A judge should be able to watch only the first 30 seconds and accurately say:
 
 > Huginn lets a game designer direct an agent to run visible, reproducible
-> experiments on live browser-game state that ordinary canvas automation cannot
-> understand.
+> experiments through a structured contract to live browser-game state,
+> alongside ordinary visual and interaction testing.
 
 By the end, the judge should have seen a working result, why WebMCP is required,
 why the experiment is trustworthy, and where to try and inspect it.

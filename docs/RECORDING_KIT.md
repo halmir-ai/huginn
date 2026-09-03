@@ -1,5 +1,10 @@
 # Huginn recording kit — September 2 recovery
 
+**For recording now, start with [the production guide](demo/START_HERE.md).**
+It adds copy/paste prompts, pass/fail recovery, the stronger games/agent
+thesis, and a separately gated authoring-session segment. This document
+retains the detailed technical receipts from the earlier rehearsal.
+
 This is a recording/rehearsal artifact, not a Devpost submission or a finished
 video. Target: **2:25**, hard ceiling **under 3:00**. No narration/audio or public
 YouTube video was produced in this increment. The shipped subject is RTS Lab;
@@ -50,7 +55,9 @@ If it differs, inspect the current state and build; do not fake the receipt.
 seed 12. Compare a barracks/train/attack rush followed by three economy cycles
 with an economy-first opening that moves one worker to gold, gathers twice,
 builds a barracks, trains, gathers once more, trains again, and attacks. Start
-both from the same snapshot and stop at cycle 3. Use watch speed. Explain the
+both from the same snapshot and complete both finite plans, ending at cycle 3.
+Do not add a cycle-based stop condition: it would cut off the economy plan's
+final training and attack. Use watch speed. Explain the
 damage-versus-survival tradeoff. Restore the snapshot and repeat the economy
 plan with a new request ID; compare every step, not just the final hash.”
 
