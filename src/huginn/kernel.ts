@@ -45,6 +45,10 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
   }
 
   async describeGame() {
+    const seed = this.seed;
+    const value = structuredClone(this.adapter.serialize(this.state));
+    const metrics = structuredClone(this.adapter.metrics(this.state));
+    const legalActionCount = this.adapter.listLegalActions(this.state).length;
     return {
       protocolVersion: "huginn/experiment-v1",
       game: this.adapter.description,
@@ -59,25 +63,30 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         snapshotRetention: "latest-explicit-checkpoint",
       },
       current: {
-        seed: this.seed,
-        checksum: await this.currentChecksum(),
-        metrics: this.adapter.metrics(this.state),
-        legalActionCount: this.adapter.listLegalActions(this.state).length,
+        seed,
+        checksum: await checksum(value),
+        metrics,
+        legalActionCount,
       },
     };
   }
 
   async getState() {
+    // A human clock may advance while Web Crypto hashes. Capture every field
+    // from one instant instead of attaching an old checksum to newer state.
+    const value = structuredClone(this.adapter.serialize(this.state));
     return {
-      checksum: await this.currentChecksum(),
-      state: this.adapter.serialize(this.state),
+      checksum: await checksum(value),
+      state: value,
     };
   }
 
   async getMetrics() {
+    const value = structuredClone(this.adapter.serialize(this.state));
+    const metrics = structuredClone(this.adapter.metrics(this.state));
     return {
-      checksum: await this.currentChecksum(),
-      metrics: this.adapter.metrics(this.state),
+      checksum: await checksum(value),
+      metrics,
     };
   }
 
@@ -85,9 +94,11 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     checksum: string;
     actions: LegalAction<Action>[];
   }> {
+    const value = structuredClone(this.adapter.serialize(this.state));
+    const actions = structuredClone(this.adapter.listLegalActions(this.state));
     return {
-      checksum: await this.currentChecksum(),
-      actions: this.adapter.listLegalActions(this.state),
+      checksum: await checksum(value),
+      actions,
     };
   }
 
@@ -96,14 +107,15 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
   }
 
   private async captureSnapshot(retain: boolean, sequenceBaseId?: string): Promise<SnapshotRecord> {
-    const value = this.adapter.serialize(this.state);
+    const value = structuredClone(this.adapter.serialize(this.state));
+    const seed = this.seed;
     const stateChecksum = await checksum(value);
     const id = `snapshot-${++this.snapshotCounter}-${stateChecksum.slice(0, 10)}`;
     const snapshot: SnapshotRecord = {
       id,
       checksum: stateChecksum,
       format: "huginn/canonical-state-v1",
-      seed: this.seed,
+      seed,
       value,
     };
 

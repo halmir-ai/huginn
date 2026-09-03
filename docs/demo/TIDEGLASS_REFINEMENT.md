@@ -117,11 +117,20 @@ measured or inferred.
   all step checksums, battery histories, metrics, restore, and independent
   fresh-tab replay evidence for each plan.
 
-Current source digest:
+Source digest at the original refinement recording:
 `94adf84f610ce8a1c8f45445d91734985413dda1ef445474c4e6f240a989300c`.
 As before, this hashes canonical JSON containing the exact `adapter`, `kernel`,
 `webmcp`, and `canonical` source strings. It excludes page HTML/CSS and is not
 a deployment identity. It differs from the preserved baseline digest.
+
+The arcade integration later fixed asynchronous read atomicity in the shared
+kernel. The original Node and browser refinement files above are retained
+unchanged as historical evidence. `current-kernel-node.json` is a separate,
+fresh Node-only replay of both plans and both seed-reset replays on the new
+kernel; regenerate it with `node tools/measure-tideglass-current.mjs`.
+It records its actual source digest and is tested against current source.
+The old browser call counts are not measurements of the new build or arcade
+games. No Tideglass rules or serialized-state version changed in this fix.
 
 | Current state | Canonical SHA-256 |
 | --- | --- |

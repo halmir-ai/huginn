@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalJson } from "../src/huginn/canonical";
+import { canonicalJson, checksum } from "../src/huginn/canonical";
 import { createRiverlandsAdapter, type RiverlandsAction } from "../src/demo/riverlands";
 import { HuginnKernel } from "../src/huginn/kernel";
 import type { SequenceInput } from "../src/huginn/types";
@@ -24,6 +24,15 @@ describe("canonical state", () => {
 });
 
 describe("HuginnKernel", () => {
+  it("keeps a read receipt atomic when a live game resets during async hashing", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, noDelay);
+    const initial = await kernel.getState();
+    const pending = kernel.getState();
+    await kernel.reset(99);
+    const receipt = await pending;
+    expect(receipt).toEqual(initial);
+    expect(await checksum(receipt.state)).toBe(receipt.checksum);
+  });
   it("rejects invalid stop conditions and extra fields before any mutation or render", async () => {
     let renders = 0;
     const kernel = new HuginnKernel(createRiverlandsAdapter(() => { renders += 1; }), 12, noDelay);

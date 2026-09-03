@@ -14,6 +14,7 @@ import baseline from "./fixtures/tideglass/baseline.json";
 import baselineRaw from "./fixtures/tideglass/baseline.json?raw";
 import browserBaselineRaw from "./fixtures/tideglass/browser-smoke.json?raw";
 import refinement from "./fixtures/tideglass/refinement.json";
+import currentKernel from "./fixtures/tideglass/current-kernel-node.json";
 
 const noDelay = async () => {};
 const fresh = (seed = 12) => new HuginnKernel(createTideglassAdapter(), seed, noDelay);
@@ -202,13 +203,16 @@ describe("Tideglass Relay refinement", () => {
     expect(() => createTideglassAdapter().deserialize(baseline.snapshot.value)).toThrow("Incompatible");
   });
 
-  it("validates the new source identity, exact receipt, predicted delta and both fresh replays", async () => {
+  it("validates current-kernel provenance and replays the preserved refinement without relabeling it", async () => {
     const kernel = fresh(); const snapshot = await kernel.createSnapshot();
     const reference = await kernel.applyActionSequence({ request_id: "refinement-signal", base_snapshot_id: snapshot.id, expected_base_checksum: snapshot.checksum, actions: signalRoute });
     const contrast = await kernel.applyActionSequence({ request_id: "refinement-unassisted", base_snapshot_id: snapshot.id, expected_base_checksum: snapshot.checksum, actions: unassistedRoute });
     expect(refinement.rulesVersion).toBe(TIDEGLASS_VERSION);
     expect(refinement.huginnBase).toBe(HUGINN_BASE);
-    expect(refinement.sourceDigest).toBe(await checksum({ adapter: adapterSource, kernel: kernelSource, webmcp: webMcpSource, canonical: canonicalSource }));
+    expect(refinement.sourceDigest).toBe("94adf84f610ce8a1c8f45445d91734985413dda1ef445474c4e6f240a989300c");
+    expect(currentKernel.sourceDigest).toBe(await checksum({ adapter: adapterSource, kernel: kernelSource, webmcp: webMcpSource, canonical: canonicalSource }));
+    expect(currentKernel.originalRefinementSourceDigest).toBe(refinement.sourceDigest);
+    expect(currentKernel.snapshot).toEqual(snapshot);
     expect(refinement.sourceDigest).not.toBe(baseline.sourceDigest);
     expect(snapshot).toEqual(refinement.snapshot);
     expect(snapshot.checksum).not.toBe(baseline.snapshot.checksum);
@@ -230,6 +234,11 @@ describe("Tideglass Relay refinement", () => {
       expect(replay.cached).toBeUndefined();
       expect(replay.steps).toEqual(measured.steps);
       expect(replay.finalChecksum).toBe(measured.finalChecksum);
+      const currentMeasurement = currentKernel.results[index];
+      expect(currentMeasurement.run.steps).toEqual(measured.steps);
+      expect(currentMeasurement.run.finalChecksum).toBe(measured.finalChecksum);
+      expect(currentMeasurement.replay.steps).toEqual(measured.steps);
+      expect(currentMeasurement.replay.finalChecksum).toBe(measured.finalChecksum);
       expect(expectedReplay).toEqual({ requestId: replay.requestId, constructorSeed: 77, resetSeed: 12, appliedSteps: 8, allStepRecordsEqual: true, finalChecksum: replay.finalChecksum });
       expect(measured.finalChecksum).not.toBe(old.finalChecksum);
       measured.steps.forEach((step, i) => {
