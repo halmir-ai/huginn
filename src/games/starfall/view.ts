@@ -6,6 +6,15 @@ import "./view.css";
 const number = (value: number) => value.toLocaleString("en-US");
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
+export type StarfallFlipper = "left" | "right";
+
+export function starfallFlipperForKey(key: string): StarfallFlipper | undefined {
+  const normalized = key.length === 1 ? key.toLowerCase() : key;
+  if (["a", "z", "ArrowLeft"].includes(normalized)) return "left";
+  if (["d", "x", "ArrowRight"].includes(normalized)) return "right";
+  return undefined;
+}
+
 export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallState, StarfallAction, StarfallEvent>, _options: GameMountOptions): () => void {
   root.innerHTML = `<section class="starfall" aria-label="Starfall pinball">
     <aside class="sf-console">
@@ -16,10 +25,10 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
       <div class="sf-saver" data-state="ready" aria-label="Ball saver ready"><span>BALL SAVER</span><output>READY</output></div>
       <p class="sf-message" role="status">Pull into orbit.</p>
       <div class="sf-console-buttons"><button class="sf-launch" data-control="launch">Launch ball <kbd>SPACE</kbd></button><div class="sf-secondary"><button data-control="pause">Pause</button><button data-control="restart">New game</button><button data-control="sound" aria-label="Mute game sound" aria-pressed="false">Sound on</button></div></div>
-      <div class="sf-key-guide"><div><kbd>Z</kbd><span>or</span><kbd>←</kbd><b>LEFT FLIPPER</b></div><div><kbd>X</kbd><span>or</span><kbd>→</kbd><b>RIGHT FLIPPER</b></div><p>Let the ball come to you.<br>Release, then flip at the tip.</p></div>
+      <div class="sf-key-guide"><div><kbd>A / Z</kbd><span>or</span><kbd>←</kbd><b>LEFT FLIPPER</b></div><div><kbd>D / X</kbd><span>or</span><kbd>→</kbd><b>RIGHT FLIPPER</b></div><p>Let the ball come to you.<br>Release, then flip at the tip.</p></div>
       <span class="sf-mode" hidden>Agent experiment</span>
     </aside>
-    <div class="sf-machine"><div class="sf-table-frame"><canvas width="560" height="780" tabindex="0" aria-label="Starfall pinball table. Z or left arrow: left flipper. X or right arrow: right flipper. Space: launch. P: pause."></canvas></div><div class="sf-apron"><span>PRECISION PINBALL</span><span class="sf-live-lamp">● <b>READY TO LAUNCH</b></span><span>EST. 2086</span></div><div class="sf-touch" aria-label="Pinball touch controls"><button data-flipper="left" aria-label="Hold left flipper">‹ <span>LEFT FLIPPER</span><kbd>Z / ←</kbd></button><button data-flipper="right" aria-label="Hold right flipper"><span>RIGHT FLIPPER</span> ›<kbd>X / →</kbd></button></div></div>
+    <div class="sf-machine"><div class="sf-table-frame"><canvas width="560" height="780" tabindex="0" aria-label="Starfall pinball table. A, Z, or left arrow: left flipper. D, X, or right arrow: right flipper. Space: launch. P or Escape: pause."></canvas></div><div class="sf-apron"><span>PRECISION PINBALL</span><span class="sf-live-lamp">● <b>READY TO LAUNCH</b></span><span>EST. 2086</span></div><div class="sf-touch" aria-label="Pinball touch controls"><button data-flipper="left" aria-label="Hold left flipper">‹ <span>LEFT FLIPPER</span><kbd>A / Z / ←</kbd></button><button data-flipper="right" aria-label="Hold right flipper"><span>RIGHT FLIPPER</span> ›<kbd>D / X / →</kbd></button></div></div>
   </section>`;
   const section = root.querySelector<HTMLElement>(".starfall")!, canvas = section.querySelector("canvas")!, ctx = canvas.getContext("2d")!;
   const score = section.querySelector<HTMLOutputElement>(".sf-score")!, best = section.querySelector<HTMLElement>(".sf-best")!;
@@ -48,7 +57,10 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
     oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(time); oscillator.stop(time + duration + 0.02);
     oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
   }
-  const held = () => ({ left: keys.has("z") || keys.has("ArrowLeft") || [...pointers.values()].includes("left"), right: keys.has("x") || keys.has("ArrowRight") || [...pointers.values()].includes("right") });
+  const held = () => ({
+    left: [...keys].some(key => starfallFlipperForKey(key) === "left") || [...pointers.values()].includes("left"),
+    right: [...keys].some(key => starfallFlipperForKey(key) === "right") || [...pointers.values()].includes("right"),
+  });
   function updateHeld(): void {
     const input = held();
     section.querySelector<HTMLButtonElement>("[data-flipper=left]")!.classList.toggle("is-held", input.left);
@@ -70,11 +82,14 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
     focusTable();
   }
   function keyDown(event: KeyboardEvent): void {
-    if ((event.target as HTMLElement).matches("input, textarea, select, [contenteditable=true]")) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.target instanceof HTMLElement && event.target.matches("input, textarea, select, [contenteditable=true]")) return;
+    if (event.target instanceof HTMLElement && event.target.closest("button") && (event.key === "Enter" || event.key === " " || event.code === "Space")) return;
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-    if (["z", "x", "ArrowLeft", "ArrowRight"].includes(key)) {
-      event.preventDefault(); enableSound(); keys.add(key); tapped[key === "z" || key === "ArrowLeft" ? "left" : "right"] = true; updateHeld();
-    } else if (key === " ") { event.preventDefault(); if (!event.repeat) void start(); }
+    const flipper = starfallFlipperForKey(key);
+    if (flipper) {
+      event.preventDefault(); enableSound(); keys.add(key); tapped[flipper] = true; updateHeld();
+    } else if (event.code === "Space" || key === " ") { event.preventDefault(); if (!event.repeat) void start(); }
     else if (key === "p" || key === "Escape") { event.preventDefault(); if (!event.repeat) togglePause(); }
   }
   function keyUp(event: KeyboardEvent): void { const key = event.key.length === 1 ? event.key.toLowerCase() : event.key; if (keys.delete(key)) { event.preventDefault(); updateHeld(); } }
@@ -91,6 +106,10 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
       event.preventDefault(); enableSound(); button.setPointerCapture(event.pointerId);
       const side = button.dataset.flipper as "left" | "right";
       pointers.set(event.pointerId, side); tapped[side] = true; updateHeld();
+    });
+    button.addEventListener("click", event => {
+      if (event.detail !== 0) return;
+      enableSound(); tapped[button.dataset.flipper as StarfallFlipper] = true; updateHeld(); focusTable();
     });
     button.addEventListener("lostpointercapture", pointerRelease);
     button.addEventListener("contextmenu", event => event.preventDefault());
@@ -244,6 +263,7 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
     raf = requestAnimationFrame(render);
   }
   raf = requestAnimationFrame(render);
+  launch.focus({ preventScroll: true });
   return () => {
     alive = false; window.clearInterval(timer); cancelAnimationFrame(raf); off(); release();
     section.removeEventListener("keydown", keyDown); window.removeEventListener("keyup", keyUp); window.removeEventListener("blur", blur);
