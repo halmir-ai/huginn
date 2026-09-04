@@ -1,0 +1,28 @@
+{
+  "format": "huginn/regression-v1",
+  "id": "coil-shield-recovery",
+  "title": "Shielded collision leaves the run recoverable",
+  "description": "A seeded boundary check captured from the COIL emergency-shield authoring trial.",
+  "game": {
+    "id": "coil",
+    "title": "COIL",
+    "version": "1.1.0"
+  },
+  "input": {
+    "seed": 12,
+    "actions": [
+      { "type": "advance", "steps": 10 },
+      { "type": "advance", "steps": 5 },
+      { "type": "shield" },
+      { "type": "advance", "steps": 1 },
+      { "type": "advance", "steps": 1 },
+      { "type": "advance", "steps": 1 }
+    ],
+    "expect": [
+      { "metric": "alive", "operator": "eq", "value": true },
+      { "metric": "tick", "operator": "eq", "value": 18 },
+      { "metric": "score", "operator": "eq", "value": 0 },
+      { "metric": "shieldStepsLeft", "operator": "eq", "value": 0 }
+    ]
+  }
+}

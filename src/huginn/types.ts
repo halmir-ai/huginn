@@ -64,6 +64,12 @@ export interface StopCondition {
   value: number;
 }
 
+export interface MetricExpectation {
+  metric: string;
+  operator: StopOperator;
+  value: MetricValue;
+}
+
 export interface SequenceInput<Action> {
   request_id: string;
   actions: Action[];
@@ -71,6 +77,7 @@ export interface SequenceInput<Action> {
   base_snapshot_id?: string;
   expected_base_checksum?: string;
   stop_when?: StopCondition;
+  expect?: MetricExpectation[];
   speed?: "fast" | "watch";
 }
 
@@ -84,6 +91,15 @@ export interface StepRecord<Action, Event, GameMetrics extends Metrics> {
 }
 
 export type SequenceStatus = "completed" | "stopped" | "cancelled" | "error";
+export type SequenceVerdict = "not-requested" | "passed" | "failed" | "inconclusive";
+
+export interface ExpectationCheck {
+  metric: string;
+  operator: StopOperator;
+  expected: MetricValue;
+  actual: MetricValue;
+  passed: boolean;
+}
 
 export interface SequenceResult<Action, Event, GameMetrics extends Metrics> {
   cached?: true;
@@ -95,6 +111,8 @@ export interface SequenceResult<Action, Event, GameMetrics extends Metrics> {
   steps: StepRecord<Action, Event, GameMetrics>[];
   finalChecksum: string;
   metrics: GameMetrics;
+  verdict: SequenceVerdict;
+  checks: ExpectationCheck[];
   errorIndex?: number;
 }
 

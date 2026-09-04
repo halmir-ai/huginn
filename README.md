@@ -1,11 +1,15 @@
 # Huginn
 
-Huginn turns a running browser game into a controlled experiment an AI agent can
-conduct while its human collaborator watches.
+**Huginn gives coding agents a typed test port into the live browser games they
+create, turning opaque canvas gameplay into visible, reproducible experiments.**
+
+Every gameplay bug can become a replayable experiment. The agent still edits
+code and runs unit tests normally; Huginn is the optional live proof layer for
+the gameplay behavior that matters.
 
 **Play:** [COIL · Snake](https://halmir-ai.github.io/huginn/) ·
 [STARFALL · Pinball](https://halmir-ai.github.io/huginn/games/starfall/) ·
-[Feature trials](https://halmir-ai.github.io/huginn/trials/)
+[Behavioral evidence](https://halmir-ai.github.io/huginn/trials/)
 
 Real score-chasing arcade games first. Optional agent tools second. Each game
 also has a standalone build that contains **no Huginn executable code**:
@@ -20,7 +24,10 @@ restore it, and replay the same seed to verify a result.
 
 The load-bearing tool is `apply_action_sequence`. It validates every action
 against the live state, renders every committed step, records metrics and a
-checksum, supports cancellation, and stops before the first illegal action.
+checksum, supports cancellation, and stops before the first illegal action. A
+caller may also attach semantic metric expectations and receive a separate
+`passed`, `failed`, or `inconclusive` gameplay verdict without changing whether
+the tool itself executed successfully.
 The imperative registration boundary is intentionally easy to inspect in
 [src/play/bridge.ts](src/play/bridge.ts), with shared tool definitions in
 [src/huginn/webmcp.ts](src/huginn/webmcp.ts).
@@ -53,6 +60,18 @@ deliberately honest: Huginn did not reduce time, tokens, or code changes in
 either pair, but it produced reproducible live-state evidence the standalone
 canvas could not expose. Two pairs are still too small for an aggregate
 efficiency claim.
+
+The genuine STARFALL accounting mismatch from that trial is now captured as a
+seeded [ball-saver regression scenario](public/regressions/starfall-ball-saver.json).
+COIL includes a second [shield-recovery scenario](public/regressions/coil-shield-recovery.json).
+These human-readable files contain typed actions, a stop condition when useful,
+and semantic expectations. They can be replayed through the same kernel after
+a gameplay change. Live run receipts supply exact checksums for same-build
+replay; stable gameplay metrics decide whether the behavior still passes.
+
+This is deliberately not a mandatory gate for every edit. Copy, styling, art,
+and ordinary source-level changes do not need Huginn. Human and visual testing
+remain essential for feel, animation, accessibility, and fun.
 
 ## Preserved earlier experiments
 

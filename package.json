@@ -1,7 +1,7 @@
 {
   "name": "@halmir/huginn",
   "version": "0.1.0",
-  "description": "Visible, deterministic in-browser game experiments through WebMCP.",
+  "description": "A typed test port for visible, reproducible experiments in live browser games.",
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -2,9 +2,12 @@ import { canonicalEqual, canonicalJson, checksum } from "./canonical";
 import type {
   GameAdapter,
   LegalAction,
+  ExpectationCheck,
+  MetricExpectation,
   Metrics,
   SequenceInput,
   SequenceResult,
+  SequenceStatus,
   SnapshotRecord,
   StopCondition,
 } from "./types";
@@ -60,6 +63,8 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         sequenceSemantics: "committed-prefix",
         maxActionsPerSequence: MAX_ACTIONS,
         snapshotLimit: MAX_SNAPSHOTS,
+        semanticExpectations: true,
+        maxExpectationsPerSequence: 12,
         snapshotRetention: "latest-explicit-checkpoint",
       },
       current: {
@@ -283,6 +288,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         }
       }
 
+      const finalMetrics = this.adapter.metrics(this.state);
       const result: SequenceResult<Action, Event, GameMetrics> = {
         requestId: input.request_id,
         status,
@@ -291,7 +297,8 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         rollbackSnapshotId: rollback.id,
         steps,
         finalChecksum: await this.currentChecksum(),
-        metrics: this.adapter.metrics(this.state),
+        metrics: finalMetrics,
+        ...this.evaluateExpectations(input.expect, finalMetrics, status),
         ...(errorIndex === undefined ? {} : { errorIndex }),
       };
 
@@ -336,9 +343,34 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     return value <= condition.value;
   }
 
+  private evaluateExpectations(
+    expectations: MetricExpectation[] | undefined,
+    metrics: GameMetrics,
+    status: SequenceStatus,
+  ): Pick<SequenceResult<Action, Event, GameMetrics>, "verdict" | "checks"> {
+    if (!expectations?.length) return { verdict: "not-requested", checks: [] };
+    const checks: ExpectationCheck[] = expectations.map((expectation) => {
+      const actual = metrics[expectation.metric];
+      const passed = expectation.operator === "eq"
+        ? actual === expectation.value
+        : expectation.operator === "gte"
+          ? (actual as number) >= (expectation.value as number)
+          : (actual as number) <= (expectation.value as number);
+      return {
+        metric: expectation.metric,
+        operator: expectation.operator,
+        expected: expectation.value,
+        actual,
+        passed,
+      };
+    });
+    if (status === "cancelled" || status === "error") return { verdict: "inconclusive", checks };
+    return { verdict: checks.every((check) => check.passed) ? "passed" : "failed", checks };
+  }
+
   private validateSequenceInput(input: SequenceInput<Action>): void {
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new TypeError("Sequence input must be an object.");
-    const allowed = ["request_id", "seed", "base_snapshot_id", "expected_base_checksum", "actions", "stop_when", "speed"];
+    const allowed = ["request_id", "seed", "base_snapshot_id", "expected_base_checksum", "actions", "stop_when", "expect", "speed"];
     const unknown = Object.keys(input).find((key) => !allowed.includes(key));
     if (unknown) throw new TypeError(`Unknown sequence field: ${unknown}`);
     if (typeof input.request_id !== "string" || !/^[A-Za-z0-9._-]{1,64}$/.test(input.request_id)) {
@@ -367,6 +399,33 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         throw new TypeError("Stop metric must be an exposed number.");
       }
       if (!["eq", "gte", "lte"].includes(stop.operator) || !Number.isFinite(stop.value)) throw new TypeError("Invalid stop operator or value.");
+    }
+    if (input.expect !== undefined) {
+      if (!Array.isArray(input.expect) || input.expect.length > 12) {
+        throw new RangeError("expect must contain at most 12 entries.");
+      }
+      const currentMetrics = this.adapter.metrics(this.state);
+      for (const expectation of input.expect) {
+        if (!expectation || typeof expectation !== "object" || Array.isArray(expectation)
+          || Object.keys(expectation).some((key) => !["metric", "operator", "value"].includes(key))) {
+          throw new TypeError("Invalid expectation fields.");
+        }
+        const actual = currentMetrics[expectation.metric];
+        if (typeof expectation.metric !== "string"
+          || !this.adapter.description.metrics.some((metric) => metric.key === expectation.metric)
+          || !["number", "string", "boolean"].includes(typeof actual)
+          || !["eq", "gte", "lte"].includes(expectation.operator)
+          || !["number", "string", "boolean"].includes(typeof expectation.value)
+          || (typeof expectation.value === "number" && !Number.isFinite(expectation.value))) {
+          throw new TypeError("Invalid metric expectation.");
+        }
+        if (expectation.operator === "eq" && typeof actual !== typeof expectation.value) {
+          throw new TypeError("Expectation equality requires matching metric and value types.");
+        }
+        if (expectation.operator !== "eq" && (typeof actual !== "number" || typeof expectation.value !== "number" || !Number.isFinite(expectation.value))) {
+          throw new TypeError("Expectation comparisons require numeric metric and value types.");
+        }
+      }
     }
   }
 

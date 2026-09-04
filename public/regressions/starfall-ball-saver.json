@@ -1,0 +1,59 @@
+{
+  "format": "huginn/regression-v1",
+  "id": "starfall-ball-saver",
+  "title": "A saved ball is not counted as a drain",
+  "description": "The semantic regression captured after Huginn exposed a real accounting mismatch during the STARFALL ball-saver authoring trial.",
+  "game": {
+    "id": "starfall",
+    "title": "STARFALL",
+    "version": "1.1.0"
+  },
+  "input": {
+    "seed": 12,
+    "actions": [
+      { "type": "launch" },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": true },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": true },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": true },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": true },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": true },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": true },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": true },
+      { "type": "advance", "frames": 30, "left": false, "right": false },
+      { "type": "advance", "frames": 30, "left": true, "right": false },
+      { "type": "advance", "frames": 30, "left": false, "right": false }
+    ],
+    "stop_when": {
+      "metric": "ballSaves",
+      "operator": "gte",
+      "value": 1
+    },
+    "expect": [
+      { "metric": "ballSaves", "operator": "eq", "value": 1 },
+      { "metric": "drains", "operator": "eq", "value": 0 },
+      { "metric": "ballsRemaining", "operator": "eq", "value": 3 },
+      { "metric": "score", "operator": "eq", "value": 425 },
+      { "metric": "lights", "operator": "eq", "value": 2 }
+    ]
+  }
+}

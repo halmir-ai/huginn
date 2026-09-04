@@ -141,6 +141,7 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
     saver.dataset.state = saverState; saverOutput.textContent = saverText;
     saver.setAttribute("aria-label", saverState === "active" ? `Ball saver ${saverText} remaining` : `Ball saver ${saverText.toLowerCase()}`);
     mode.hidden = runtime.control !== "agent";
+    mode.textContent = runtime.busy ? "Agent experiment" : "Agent result ready";
     pause.textContent = runtime.playing ? "Pause" : "Resume";
     pause.disabled = state.phase !== "playing";
     launch.disabled = state.phase === "playing" && runtime.playing;
@@ -148,7 +149,7 @@ export function mountStarfall(root: HTMLElement, runtime: GameRuntime<StarfallSt
     const paused = !runtime.playing && runtime.control === "human" && state.phase === "playing";
     message.textContent = paused ? "Paused. Your orbit is waiting." : state.phase === "over" ? `Final score ${number(state.score)}. One more orbit?` : state.phase === "ready" ? (savedBall ? state.lastEvent : state.stats.launches ? `${state.ballsRemaining} ${state.ballsRemaining === 1 ? "ball" : "balls"} left. Send the next one skyward.` : "Press Space. Chase a new high score.") : state.lastEvent;
     message.classList.toggle("is-save", savedBall);
-    lamp.textContent = runtime.control === "agent" ? "EXPERIMENT IN PROGRESS" : state.phase === "over" ? "ORBIT COMPLETE" : savedBall ? "BALL SAVED" : state.phase === "ready" ? "READY TO LAUNCH" : paused ? "PAUSED" : "BALL IN PLAY";
+    lamp.textContent = runtime.control === "agent" ? (runtime.busy ? "EXPERIMENT IN PROGRESS" : "AGENT RESULT · TAKE CONTROL") : state.phase === "over" ? "ORBIT COMPLETE" : savedBall ? "BALL SAVED" : state.phase === "ready" ? "READY TO LAUNCH" : paused ? "PAUSED" : "BALL IN PLAY";
     section.classList.toggle("sf-paused", paused);
     for (const event of events) {
       if (["bumper", "sling", "multiplier", "save", "drain"].includes(event.type)) flashes.push({ x: event.x, y: event.y, born: performance.now(), type: event.type, value: event.value });

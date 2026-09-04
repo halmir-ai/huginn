@@ -91,6 +91,7 @@ a:focus-visible { outline: 3px solid #f2d789; outline-offset: 4px; }
 
 @media (max-width: 700px) {
   main { padding: 16px 18px 22px; }
+  .brand { display: inline-flex; min-height: 44px; align-items: center; }
   .nav-links { gap: 12px; }
   .nav-links a:nth-child(1), .nav-links a:nth-child(2) { display: none; }
   .hero { padding: 69px 0 55px; }
@@ -101,6 +102,7 @@ a:focus-visible { outline: 3px solid #f2d789; outline-offset: 4px; }
   .evidence { padding: 24px 20px; }
   .result-grid { grid-template-columns: 1fr; }
   .result-card.wide { grid-column: auto; }
+  .hero-meta a, .method-links a, .task-links a, .pilot-note a { display: inline-flex; min-height: 44px; align-items: center; }
   footer { align-items: flex-start; flex-direction: column; }
 }
 

@@ -2,13 +2,14 @@
 
 ## One sentence
 
-**Coding agents can build games; Huginn gives designers and agents a shared,
-repeatable way to investigate how those games behave.**
+**Huginn gives coding agents a typed test port into the live browser games they
+create, turning opaque canvas gameplay into visible, reproducible experiments.**
 
 The user is a solo developer or small game team using coding agents. The
 problem is the gap between generating a convincing artifact and verifying
-its interactive rules. The product is a game adapter plus a visible experiment
-workflow—not a chatbot, an analytics dashboard, or an autonomous QA promise.
+its interactive rules. The product is an optional game adapter plus a visible
+regression workflow—not a chatbot, an analytics dashboard, a required ceremony
+for every edit, or an autonomous QA promise.
 
 ## Why games are a meaningful wedge
 
@@ -65,10 +66,10 @@ See [The WebMCP Challenge](https://webmcp.devpost.com/).
 
 | Criterion | What we show | What would weaken it |
 | --- | --- | --- |
-| WebMCP Leverage | Real discovered tools, saved live state, visible branches and replay | Badge/preset only; a console hook passed off as WebMCP |
-| Execution | One coherent live workflow with readable outcomes and recovery | A library tour; several unfinished game pages |
-| Potential Impact | A solo developer asking a concrete question and getting inspectable evidence | Unsupported adoption numbers or “AI QA for every game” |
-| Creativity & Ambition | Branch-and-replay experiments; optional actual authoring feedback loop | Merely showing an agent make a move |
+| WebMCP Leverage | Real discovered tools turn a live canvas bug into a typed, saved, replayable check | Badge/preset only; a console hook passed off as WebMCP |
+| Execution | STARFALL exposes a real accounting mismatch, a visible passing rerun, and exact replay | A library tour; several unfinished game pages |
+| Potential Impact | A coding agent preserves one important gameplay outcome against later regressions | Unsupported adoption numbers or “AI QA for every game” |
+| Creativity & Ambition | One semantic test port transfers from pinball to Snake without replacing either UI | Merely showing an agent make a move |
 
 The official rubric is evidence about what judges assess, not a formula that
 guarantees winning. [Earlier winner review](../WINNER_REVIEW.md) suggests one
@@ -79,9 +80,9 @@ editorial inferences, not claims about how any private judging decision was made
 
 | Candidate | Honest role today | Deadline decision |
 | --- | --- | --- |
-| COIL | Complete score-chasing Snake game; WebMCP and genuine standalone builds | Hero interaction and human handoff |
-| STARFALL | Complete three-ball pinball game using the same contract | Short generality proof |
-| COIL paired trial | Completed with public source/tasks and unfavorable efficiency result | Honest authoring evidence near the close |
+| STARFALL | Complete three-ball pinball game; real saved-ball accounting mismatch; WebMCP and genuine standalone builds | Hero behavioral-regression story |
+| COIL | Complete score-chasing Snake game using the same contract | Short transfer and human-handoff proof |
+| Completed paired trials | Public source/tasks and unfavorable efficiency results | Honest evidence page; do not make productivity the headline |
 | RTS Lab / Tideglass | Shipped earlier protocol experiments | Backup footage or technical appendix only |
 | Dawn / Regnara / Battle Craft | Existing projects without a completed Huginn retrofit | Future work; do not promise in the film |
 

@@ -36,8 +36,9 @@ describe("WebMCP contract", () => {
       const result = await tools.find((tool) => tool.name === "apply_action_sequence")!.execute({
         request_id: "external-test",
         actions: [{ type: "build_barracks" }],
+        expect: [{ metric: "heartwood", operator: "eq", value: 5 }],
       }, { signal: new AbortController().signal });
-      expect(result).toMatchObject({ status: "completed", appliedSteps: 1 });
+      expect(result).toMatchObject({ status: "completed", appliedSteps: 1, verdict: "passed", checks: [{ passed: true }] });
       expect(activity.map((event) => event.phase)).toEqual(["started", "completed"]);
       expect(await kernel.getState()).toMatchObject({ state: { barracksBuilt: true } });
       expect(logged).toHaveBeenCalledOnce();
@@ -89,10 +90,13 @@ describe("WebMCP contract", () => {
 
     const sequence = tools.find((tool) => tool.name === "apply_action_sequence")!;
     const schema = sequence.inputSchema as {
-      properties: { actions: { maxItems: number } };
+      properties: { actions: { maxItems: number }; expect: { maxItems: number; items: { additionalProperties: boolean } } };
       additionalProperties: boolean;
     };
     expect(schema.properties.actions.maxItems).toBe(50);
+    expect(schema.properties.expect.maxItems).toBe(12);
+    expect(schema.properties.expect.items.additionalProperties).toBe(false);
     expect(schema.additionalProperties).toBe(false);
+    expect(sequence.description).toContain("semantic verdict");
   });
 });

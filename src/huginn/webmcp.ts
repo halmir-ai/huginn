@@ -95,7 +95,7 @@ export function buildToolDefinitions<State, Action, Event, GameMetrics extends M
     {
       name: "apply_action_sequence",
       title: "Run visible game experiment",
-      description: "Apply up to 50 typed actions visibly and sequentially. Each action is checked against current legal actions; cancellation, stop conditions, and errors preserve and report the exact committed prefix.",
+      description: "Apply up to 50 typed actions visibly and sequentially. Each action is checked against current legal actions; cancellation, stop conditions, and errors preserve and report the exact committed prefix. Optional semantic expectations return an explicit semantic verdict.",
       inputSchema: {
         type: "object",
         properties: {
@@ -113,6 +113,20 @@ export function buildToolDefinitions<State, Action, Event, GameMetrics extends M
             },
             required: ["metric", "operator", "value"],
             additionalProperties: false,
+          },
+          expect: {
+            type: "array",
+            maxItems: 12,
+            items: {
+              type: "object",
+              properties: {
+                metric: { type: "string", minLength: 1, maxLength: 64 },
+                operator: { enum: ["eq", "gte", "lte"] },
+                value: { type: ["number", "string", "boolean"] },
+              },
+              required: ["metric", "operator", "value"],
+              additionalProperties: false,
+            },
           },
           speed: { enum: ["fast", "watch"] },
         },

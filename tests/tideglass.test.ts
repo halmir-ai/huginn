@@ -217,8 +217,11 @@ describe("Tideglass Relay refinement", () => {
     expect(snapshot).toEqual(refinement.snapshot);
     expect(snapshot.checksum).not.toBe(baseline.snapshot.checksum);
     expect(refinement.plans).toEqual({ signalRoute, unassistedRoute });
-    expect(reference).toEqual(refinement.reference);
-    expect(contrast).toEqual(refinement.contrast);
+    const withoutSemanticReceipt = ({ verdict: _verdict, checks: _checks, ...historicalShape }: typeof reference) => historicalShape;
+    expect(withoutSemanticReceipt(reference)).toEqual(refinement.reference);
+    expect(withoutSemanticReceipt(contrast)).toEqual(refinement.contrast);
+    expect(reference).toMatchObject({ verdict: "not-requested", checks: [] });
+    expect(contrast).toMatchObject({ verdict: "not-requested", checks: [] });
     expect(reference.metrics).toMatchObject({ watch: 8, delivered: 3, battery: 5, target_met: true });
     expect(contrast.metrics).toMatchObject({ watch: 8, delivered: 3, battery: 2, target_met: true });
     expect(reference.metrics.battery - contrast.metrics.battery).toBe(3);

@@ -11,8 +11,8 @@ mutating tools use strict JSON Schemas and structured results.
 - `get_metrics`: current metrics with definitions supplied by `describe_game`.
 - `list_legal_actions`: only actions valid against the current checksum.
 - `apply_action_sequence`: bounded visible execution with request idempotency,
-  stale-state protection, closed stop conditions, cancellation, and per-step
-  events/metrics/checksums.
+  stale-state protection, closed stop conditions, cancellation, per-step
+  events/metrics/checksums, and optional semantic expectations.
 - `snapshot_game`: stores a bounded canonical snapshot in page memory.
 - `restore_game`: verifies and restores a known snapshot, then renders it.
 
@@ -62,3 +62,42 @@ transition/render/scheduler failures return an error-status prefix and rollback
 receipt; always inspect `status` and `stopReason`. A render failure means a
 committed step might not be visible. Catastrophic adapter initialization or
 snapshot preparation failures may still reject the call.
+
+## Optional semantic expectations
+
+`apply_action_sequence.expect` accepts at most 12 final-metric checks. Each
+check names a documented metric and uses `eq`, `gte`, or `lte`. Equality accepts
+numbers, strings, or booleans of the same type as the metric; ordered comparisons
+are numeric only. The kernel validates the complete expectation envelope before
+it resets, restores, renders, or mutates the game.
+
+Every sequence result includes a `verdict` and `checks` receipt:
+
+- `not-requested`: the caller supplied no expectations.
+- `passed`: the sequence completed or met its stop condition and every
+  expectation matched the final metrics.
+- `failed`: the sequence completed or stopped, but at least one expectation did
+  not match.
+- `inconclusive`: execution was cancelled or ended in an error, so matching
+  intermediate metrics do not count as a regression pass.
+
+The semantic verdict is deliberately separate from tool execution status. A
+valid tool call can return `status: completed` and `verdict: failed`; that is a
+useful behavioral regression, not a protocol error.
+
+## Portable regression scenario
+
+A completed seeded expectation run can be saved as
+`huginn/regression-v1`: game identity and version, seed, typed actions, optional
+stop condition, and semantic expectations. Request IDs and playback speed are
+assigned at replay time, so a fresh run cannot be mistaken for an idempotent
+cached response. Named in-memory snapshots are excluded because they are not
+portable across page sessions.
+
+The two checked-in examples are
+[COIL shield recovery](../public/regressions/coil-shield-recovery.json) and
+[STARFALL saved-ball accounting](../public/regressions/starfall-ball-saver.json).
+The corresponding live receipts—not the portable scenario files—supply exact
+checksums demonstrating same-build, same-seed, same-action replay. Stable metric
+expectations state the behavior that should survive later gameplay changes; a
+version change still requires deliberate fixture review.

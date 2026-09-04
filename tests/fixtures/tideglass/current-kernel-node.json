@@ -1,6 +1,6 @@
 {
   "format": "huginn/current-kernel-node-replay-v1",
-  "sourceDigest": "a20ccd8e3b514867500aa70eeef54acaa46a2febdfdf97878c7815dba6ad587d",
+  "sourceDigest": "afd0e4abf6605960d1d2759d774b9566414696b6ff0601b4687c7f98866a8b9d",
   "sourcePaths": {
     "adapter": "src/demo/tideglass.ts",
     "kernel": "src/huginn/kernel.ts",
@@ -274,7 +274,9 @@
           "station": "breakwater",
           "target_met": true,
           "storm_closed": true
-        }
+        },
+        "verdict": "not-requested",
+        "checks": []
       },
       "replay": {
         "requestId": "atomic-read-fresh-signal",
@@ -515,7 +517,9 @@
           "station": "breakwater",
           "target_met": true,
           "storm_closed": true
-        }
+        },
+        "verdict": "not-requested",
+        "checks": []
       }
     },
     {
@@ -759,7 +763,9 @@
           "station": "breakwater",
           "target_met": true,
           "storm_closed": true
-        }
+        },
+        "verdict": "not-requested",
+        "checks": []
       },
       "replay": {
         "requestId": "atomic-read-fresh-unassisted",
@@ -1000,7 +1006,9 @@
           "station": "breakwater",
           "target_met": true,
           "storm_closed": true
-        }
+        },
+        "verdict": "not-requested",
+        "checks": []
       }
     }
   ],

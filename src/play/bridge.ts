@@ -1,6 +1,7 @@
 import { HuginnKernel } from "../huginn/kernel";
+import { createRegressionScenario, type RegressionScenario } from "../huginn/scenario";
 import { buildToolDefinitions, type ToolActivity } from "../huginn/webmcp";
-import type { GameAdapter, SnapshotRecord } from "../huginn/types";
+import type { GameAdapter, SequenceInput, SequenceResult, SnapshotRecord } from "../huginn/types";
 import type { GameMetrics, GameRuntime } from "./core";
 import "./dock.css";
 
@@ -9,6 +10,8 @@ export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock:
   let humanDispatch = false;
   let request = 0;
   let saved: SnapshotRecord | undefined;
+  let portableRegression: RegressionScenario<A> | undefined;
+  let priorRegression: { signature: string; steps: string; finalChecksum: string } | undefined;
   const receipts: ToolActivity[] = [];
   const adapter: GameAdapter<S, A, E, GameMetrics> = {
     description: runtime.game.description,
@@ -35,15 +38,30 @@ export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock:
   });
   await kernel.initialize();
 
+  const app = document.querySelector<HTMLElement>("#app");
+  const siteRoot = new URL(app?.dataset.siteRoot || "../../", location.href);
+  const scenarioFile = runtime.game.description.id === "coil"
+    ? "coil-shield-recovery.json"
+    : runtime.game.description.id === "starfall" ? "starfall-ball-saver.json" : undefined;
+  const exampleLink = scenarioFile
+    ? `<a href="${new URL(`regressions/${scenarioFile}`, siteRoot).href}">Open this game's example regression JSON ↗</a>`
+    : "";
   dock.className = "agent-dock";
   dock.innerHTML = `<div class="dock-title"><strong>HUGINN</strong><span id="tool-connection">Connecting to the browser…</span></div>
-    <div class="dock-actions"><button type="button" id="checkpoint-save">Save checkpoint</button><button type="button" id="checkpoint-restore" disabled>Restore</button><button type="button" id="receipt-download">Download receipt</button></div>
+    <div class="dock-actions"><button type="button" id="checkpoint-save">Save checkpoint</button><button type="button" id="checkpoint-restore" disabled>Restore</button><button type="button" id="receipt-download">Download receipt</button><button type="button" id="regression-download" disabled>Save regression</button></div>
     <p id="tool-activity" role="status">Play yourself, or ask your browser agent to inspect and experiment.</p>
-    <details><summary>Agent experiment guide</summary><p>Call <code>describe_game</code> and <code>list_legal_actions</code>. Save a checkpoint, run a bounded <code>apply_action_sequence</code>, inspect metrics, then restore and try another plan. Tool mutations pause the human clock; every step still renders on this canvas. Press the game's Play button to take back control.</p><pre id="tool-recent">No agent tool calls yet.</pre></details>`;
+    <p id="regression-status" class="regression-status" data-verdict="not-requested" role="status">Regression checks are optional · build normally, add expectations only when behavior needs proof.</p>
+    <details><summary>Agent experiment guide</summary><p>Call <code>describe_game</code> and <code>list_legal_actions</code>. Run a bounded <code>apply_action_sequence</code>; add optional <code>expect</code> checks to turn an important outcome into a pass/fail regression. Seeded expectation runs can be saved as small replayable JSON files. Tool mutations pause the human clock; every step still renders on this canvas.</p>${exampleLink}<pre id="tool-recent">No agent tool calls yet.</pre></details>`;
   const status = dock.querySelector<HTMLElement>("#tool-activity")!;
   const recent = dock.querySelector<HTMLElement>("#tool-recent")!;
+  const regressionStatus = dock.querySelector<HTMLElement>("#regression-status")!;
   const saveButton = dock.querySelector<HTMLButtonElement>("#checkpoint-save")!;
   const restoreButton = dock.querySelector<HTMLButtonElement>("#checkpoint-restore")!;
+  const regressionButton = dock.querySelector<HTMLButtonElement>("#regression-download")!;
+  const setRegressionStatus = (verdict: "not-requested" | "passed" | "failed" | "inconclusive", message: string) => {
+    regressionStatus.dataset.verdict = verdict;
+    regressionStatus.textContent = message;
+  };
   const observe = (activity: ToolActivity) => {
     receipts.push(structuredClone(activity));
     // Keep the notebook bounded while retaining all calls in a typical demo.
@@ -51,6 +69,70 @@ export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock:
     status.textContent = `WebMCP · ${activity.name} · ${activity.phase}`;
     if (activity.phase === "completed") recent.textContent = JSON.stringify(activity.result, null, 2);
     if (activity.phase === "failed") recent.textContent = activity.error;
+    if (activity.name !== "apply_action_sequence") return;
+    const input = activity.input as unknown as SequenceInput<A>;
+    if (activity.phase === "started") {
+      portableRegression = undefined;
+      regressionButton.disabled = true;
+      if (input.expect?.length) setRegressionStatus("not-requested", `Regression running · ${input.expect.length} semantic checks`);
+      return;
+    }
+    if (activity.phase === "failed") {
+      portableRegression = undefined;
+      regressionButton.disabled = true;
+      setRegressionStatus("inconclusive", "Regression inconclusive · the tool call did not complete");
+      return;
+    }
+    if (activity.phase !== "completed") return;
+    const result = activity.result as SequenceResult<A, E, GameMetrics>;
+    if (result.cached) {
+      portableRegression = undefined;
+      regressionButton.disabled = true;
+      setRegressionStatus("inconclusive", "Cached response · not a fresh regression replay");
+      return;
+    }
+    if (result.verdict === "not-requested") {
+      portableRegression = undefined;
+      regressionButton.disabled = true;
+      setRegressionStatus("not-requested", "Experiment complete · no regression expectations requested");
+      return;
+    }
+    const passed = result.checks.filter(check => check.passed).length;
+    const label = result.verdict === "passed" ? "passed" : result.verdict === "failed" ? "failed" : "inconclusive";
+    setRegressionStatus(result.verdict, `Regression ${label} · ${passed}/${result.checks.length} checks`);
+    if (result.verdict !== "passed") {
+      portableRegression = undefined;
+      regressionButton.disabled = true;
+      return;
+    }
+    const scenario = createRegressionScenario(
+      runtime.game.description,
+      input,
+      `${runtime.game.description.title}: ${input.request_id}`,
+      "Captured from an actual WebMCP apply_action_sequence call.",
+    ) ?? undefined;
+    if (!scenario) {
+      portableRegression = undefined;
+      regressionButton.disabled = true;
+      setRegressionStatus("inconclusive", "Regression passed · add an explicit seed to save and replay it");
+      return;
+    }
+    const signature = JSON.stringify(scenario.input);
+    const steps = JSON.stringify(result.steps);
+    if (priorRegression?.signature === signature) {
+      if (priorRegression.steps !== steps || priorRegression.finalChecksum !== result.finalChecksum) {
+        portableRegression = undefined;
+        regressionButton.disabled = true;
+        setRegressionStatus("inconclusive", "Regression passed, but the fresh replay differed · inspect the receipt");
+        return;
+      }
+      setRegressionStatus("passed", `Fresh replay matched · ${passed}/${result.checks.length} checks · ${result.finalChecksum.slice(0, 12)}`);
+    } else {
+      setRegressionStatus("passed", `Regression passed · ${passed}/${result.checks.length} checks · fresh replay ready`);
+    }
+    priorRegression = { signature, steps, finalChecksum: result.finalChecksum };
+    portableRegression = scenario;
+    regressionButton.disabled = false;
   };
   const definitions = buildToolDefinitions(kernel, adapter.description.actions.map(action => action.inputSchema), observe);
   const lifecycle = new AbortController();
@@ -102,6 +184,16 @@ export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock:
     link.href = url; link.download = `${runtime.game.description.id}-receipt.json`; link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
-  window.addEventListener("pagehide", () => lifecycle.abort(), { once: true });
-  return { kernel, supported, dispose: () => lifecycle.abort() };
+  regressionButton.addEventListener("click", () => {
+    if (!portableRegression) return;
+    const filename = `${portableRegression.id}.json`;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(portableRegression, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url; link.download = filename; link.click();
+    status.textContent = `Regression JSON saved · ${filename}`;
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  const pageHide = () => lifecycle.abort();
+  window.addEventListener("pagehide", pageHide, { once: true });
+  return { kernel, supported, dispose: () => { window.removeEventListener("pagehide", pageHide); lifecycle.abort(); } };
 }
