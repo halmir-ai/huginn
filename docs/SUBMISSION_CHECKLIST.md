@@ -18,8 +18,8 @@ deadline.
 - [x] Integrated and standalone pages exist for all three games.
 - [x] COIL proves native Canvas 2D; THORNWATCH proves PixiJS/WebGL.
 - [x] Exact THORNWATCH asset hashes and CC BY 4.0 terms are documented.
-- [x] Release commit `e34117d` is on `main`; GitHub Pages run
-  [33840083808](https://github.com/halmir-ai/huginn/actions/runs/33840083808)
+- [x] Final implementation-proof commit `0c98c18` is on `main`; GitHub Pages run
+  [33840624126](https://github.com/halmir-ai/huginn/actions/runs/33840624126)
   completed successfully.
 
 ## Release verification
@@ -39,30 +39,33 @@ deadline.
 
 ## Video
 
-- [ ] Record using [TEST_THE_MOMENT_DEMO.md](demo/TEST_THE_MOMENT_DEMO.md) as
-  the only script.
-- [ ] Show ordinary play before tools.
-- [ ] Show actual WebMCP discovery/calls—not only the in-page debugger.
-- [ ] Show named setup, identical experiment base, visible sequence, semantic
+- [x] Record from [TEST_THE_MOMENT_DEMO.md](demo/TEST_THE_MOMENT_DEMO.md) with
+  a tightened 2:52 narration.
+- [x] Show ordinary play before tools.
+- [x] Show actual WebMCP discovery/calls—not only the in-page debugger.
+- [x] Show named setup, identical experiment base, visible sequence, semantic
   result, and state-bound capture.
-- [ ] Show Canvas 2D and PixiJS/WebGL using the same tool surface.
-- [ ] Keep narration accurate: no productivity, balance, or universal-engine
+- [x] Show Canvas 2D and PixiJS/WebGL using the same tool surface.
+- [x] Keep narration accurate: no productivity, balance, or universal-engine
   claim beyond the demonstrated boundary.
-- [ ] Runtime is below three minutes.
-- [ ] Audio is clear; captions are accurate; no secrets or personal tabs appear.
-- [ ] Review at 720p on a phone and at full resolution on a laptop.
-- [ ] Upload early, wait for processing, and set the YouTube video to Public.
+- [x] Runtime is below three minutes: 2:52.3 at 1080p.
+- [x] Audio is normalized to -16.1 LUFS; the caption file matches the narration;
+  no secrets or personal tabs appear.
+- [x] Frame-review at full resolution and a 640 px phone-size preview.
+- [x] YouTube HD processing and copyright checks completed; the video is Public
+  with the authored English caption track published.
 
 ## Devpost
 
-- [ ] Create the Huginn Devpost project.
-- [ ] Title, tagline, description, live URL, and public repository match
+- [x] Create the Huginn Devpost project.
+- [x] Title, tagline, description, live URL, and public repository match
   [devpost-submission.md](../devpost-submission.md).
-- [ ] Select **Individual** and **New**.
-- [ ] Fill the entrant country and every required questionnaire field.
+- [ ] Select **Individual** and **New** during final submission.
+- [ ] Fill the entrant country and every required questionnaire field during
+  final submission.
 - [ ] Add exact testing instructions and supported-client note.
-- [ ] Add public YouTube URL.
-- [ ] Add strong screenshots with readable captions.
+- [x] Attach the final YouTube URL to the Devpost project.
+- [x] Add a branded project thumbnail.
 - [ ] Verify repo, site, and video signed out/incognito.
 - [ ] Submit and verify the My Projects card says **Submitted** in green.
 

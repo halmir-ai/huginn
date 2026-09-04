@@ -1,7 +1,4 @@
-# Huginn — Devpost submission draft
-
-> Draft only. Replace every `TODO`, add the public video URL and screenshots,
-> then run the final readiness check before submitting.
+# Huginn — Devpost submission record
 
 ## Project name
 
@@ -15,7 +12,7 @@ Test the moment, not the grind: a typed WebMCP test port for live browser games.
 
 - Live app: <https://halmir-ai.github.io/huginn/>
 - Public repository: <https://github.com/halmir-ai/huginn>
-- Demo video: **TODO — public YouTube URL, under three minutes**
+- Demo video: <https://youtu.be/2wD7KBtM5fs> (2:52)
 
 ## Short description
 
@@ -148,7 +145,7 @@ No login or credentials are required.
 ## Required form answers
 
 - Submitter type: **Individual**
-- Country of residence: **TODO — entrant must supply**
+- Country of residence: **United States**
 - Organization: **N/A / individual entry**
 - App status: **New**
 - Existing-project extension explanation: **N/A; all implementation is new
@@ -157,8 +154,8 @@ No login or credentials are required.
   the final public deployment**
 - AI tools used: **OpenAI Codex for implementation, testing, and release
   preparation; ChatGPT and Claude for product ideation and critique**
-- How much did you learn?: **TODO — recommended “Significant”**
-- Is AI valuable to your career?: **TODO — recommended “Yes”**
+- How much did you learn?: **Significant**
+- Is AI valuable to your career?: **Yes**
 - How did you hear about the hackathon?: **Devpost**
 - Newsletter opt-in: **Yes**
 
@@ -171,7 +168,7 @@ feedback. The entrant selected the product direction, supplied and authorized
 the reused art, evaluated playability and visual quality, and is responsible for
 the final demo, claims, and submission.
 
-## Screenshot plan
+## Visual collateral
 
 1. **Hero:** THORNWATCH during a live wave with painted towers and enemies;
    debugger compactly showing a passing experiment.
@@ -185,18 +182,15 @@ the final demo, claims, and submission.
 Keep text readable at Devpost thumbnail size. Do not use old prototype or
 efficiency-study imagery.
 
-## Video
+## Video record
 
-Use [the final demo script](docs/demo/TEST_THE_MOMENT_DEMO.md). Target 2:50,
-hard ceiling 2:58. The video must be public on YouTube, include clear audio and
-accurate captions, and show actual WebMCP calls in a supported browser. Review
-the final upload signed out and at 720p on a phone before adding its URL.
+The final 2:52 cut follows
+[the final demo script](docs/demo/TEST_THE_MOMENT_DEMO.md), includes normalized
+audio and an accurate caption file, and shows actual WebMCP calls in Codex's
+in-app browser. Public URL: <https://youtu.be/2wD7KBtM5fs>.
 
-## Final blockers before submission
+## Finalization status
 
-- TODO: entrant country.
-- TODO: confirm the two subjective questionnaire answers above.
-- TODO: public YouTube URL.
-- TODO: upload screenshots and complete the Devpost project form.
-- TODO: explicit final-submit confirmation, then verify the project is marked
-  **Submitted**.
+- Devpost project: <https://devpost.com/software/huginn>
+- Final submission fields and testing instructions are recorded above.
+- Submission status is verified live before this record is frozen.

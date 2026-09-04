@@ -10,6 +10,9 @@ Huginn uses WebMCP to expose that live state as a small, bounded tool surface.
 The human watches the real game render while the agent inspects, branches,
 captures, and replays the exact gameplay moment under discussion.
 
+**[Watch the 2:52 demo](https://youtu.be/2wD7KBtM5fs)** ·
+**[Open the live app](https://halmir-ai.github.io/huginn/)**
+
 ## Play the submission
 
 | Game | Genre | Renderer | Integrated | No-Huginn build |
