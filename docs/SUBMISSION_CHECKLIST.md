@@ -60,18 +60,25 @@ deadline.
 - [x] Create the Huginn Devpost project.
 - [x] Title, tagline, description, live URL, and public repository match
   [devpost-submission.md](../devpost-submission.md).
-- [ ] Select **Individual** and **New** during final submission.
-- [ ] Fill the entrant country and every required questionnaire field during
+- [x] Select **Individual** and **New** during final submission.
+- [x] Fill the entrant country and every required questionnaire field during
   final submission.
-- [ ] Add exact testing instructions and supported-client note.
+- [x] Add exact testing instructions and supported-client note.
 - [x] Attach the final YouTube URL to the Devpost project.
 - [x] Add a branded project thumbnail.
-- [ ] Verify repo, site, and video signed out/incognito.
-- [ ] Submit and verify the My Projects card says **Submitted** in green.
+- [x] Verify the public repo and MIT license through the unauthenticated GitHub
+  API, all six game URLs over HTTPS, and the public video through YouTube's
+  unauthenticated oEmbed endpoint.
+- [x] Submit and verify Devpost reports `state: published` with a non-null
+  `submitted_at` for The WebMCP Challenge.
 
 ## Freeze
 
-- [ ] Record the final commit SHA, Pages run, video URL, and Devpost URL.
-- [ ] Make no post-deadline edits.
-- [ ] Keep the public repo, live site, and video unchanged and available through
-  the September 21, 2026 judging deadline.
+- [x] Submission content commit: `a07727d`; Pages run
+  [33843867144](https://github.com/halmir-ai/huginn/actions/runs/33843867144)
+  passed; video: <https://youtu.be/2wD7KBtM5fs>; Devpost:
+  <https://devpost.com/software/huginn>.
+- [x] Freeze begins after this closeout record. Make no post-deadline edits.
+
+Keep the public repo, live site, and video unchanged and available through the
+September 21, 2026 judging deadline.

@@ -193,4 +193,5 @@ in-app browser. Public URL: <https://youtu.be/2wD7KBtM5fs>.
 
 - Devpost project: <https://devpost.com/software/huginn>
 - Final submission fields and testing instructions are recorded above.
-- Submission status is verified live before this record is frozen.
+- Status: **Submitted**, verified live through Devpost (`submission_id` 1170305;
+  submitted September 3, 2026 at 11:25 PM PT).
