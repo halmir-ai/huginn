@@ -18,21 +18,23 @@ deadline.
 - [x] Integrated and standalone pages exist for all three games.
 - [x] COIL proves native Canvas 2D; THORNWATCH proves PixiJS/WebGL.
 - [x] Exact THORNWATCH asset hashes and CC BY 4.0 terms are documented.
-- [ ] Final cleanup commit is on `main` and GitHub Pages deployment is green.
+- [x] Release commit `e34117d` is on `main`; GitHub Pages run
+  [33840083808](https://github.com/halmir-ai/huginn/actions/runs/33840083808)
+  completed successfully.
 
 ## Release verification
 
-- [ ] `npm run check` passes on the final commit.
-- [ ] `npm run build` passes and audits all standalone dependency graphs.
-- [ ] `npm pack --dry-run` includes all four documented library entries.
-- [ ] Every README and demo-guide local link resolves.
-- [ ] Public COIL, STARFALL, and THORNWATCH pages load signed out.
-- [ ] A compatible in-app browser discovers eight tools on the final public
+- [x] `npm run check` passes: 17 files, 104 tests.
+- [x] `npm run build` passes and audits all standalone dependency graphs.
+- [x] `npm pack --dry-run` includes all four documented library entries.
+- [x] Every tracked Markdown local link resolves.
+- [x] Public integrated and standalone pages for all three games return 200.
+- [x] A compatible in-app browser discovers eight tools on the final public
   COIL and THORNWATCH builds.
-- [ ] The final COIL Level 2 experiment returns its expected events and metrics.
-- [ ] The final THORNWATCH strong/weak branches return their expected metrics
+- [x] The final COIL Level 2 experiment returns its expected events and metrics.
+- [x] The final THORNWATCH strong/weak branches return their expected metrics
   from an identical base checksum.
-- [ ] `capture_game` shows a PNG preview whose state checksum matches the
+- [x] `capture_game` shows a PNG preview whose state checksum matches the
   final THORNWATCH state.
 
 ## Video

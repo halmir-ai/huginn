@@ -153,8 +153,8 @@ No login or credentials are required.
 - App status: **New**
 - Existing-project extension explanation: **N/A; all implementation is new
   hackathon-period work. Reused art is explicitly documented.**
-- Compatible clients tested: **Codex in-app browser with built-in WebMCP;
-  final ChatGPT in-app or Chrome 149+ smoke result to add before submission**
+- Compatible clients tested: **Codex in-app browser with built-in WebMCP on
+  the final public deployment**
 - AI tools used: **OpenAI Codex for implementation, testing, and release
   preparation; ChatGPT and Claude for product ideation and critique**
 - How much did you learn?: **TODO — recommended “Significant”**
@@ -196,7 +196,6 @@ the final upload signed out and at 720p on a phone before adding its URL.
 
 - TODO: entrant country.
 - TODO: confirm the two subjective questionnaire answers above.
-- TODO: final release commit and public Pages smoke.
 - TODO: public YouTube URL.
 - TODO: upload screenshots and complete the Devpost project form.
 - TODO: explicit final-submit confirmation, then verify the project is marked

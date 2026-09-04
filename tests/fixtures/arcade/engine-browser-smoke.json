@@ -1,9 +1,10 @@
 {
   "format": "huginn/engine-browser-smoke-v1",
-  "capturedAt": "2026-09-04T04:55:56Z",
+  "capturedAt": "2026-09-04T05:27:47Z",
   "browser": "Codex in-app browser",
-  "origin": "http://127.0.0.1:4196",
-  "method": "Actual document.modelContext discovery and tool calls through the in-app browser WebMCP capability after the renderer-settle and before/after state-checksum guards were enabled",
+  "origin": "https://halmir-ai.github.io/huginn/",
+  "buildCommit": "e34117d2204b8e639aae6b19e535e57281987d0e",
+  "method": "Actual document.modelContext discovery and tool calls through the in-app browser WebMCP capability against the final public deployment",
   "evidenceScope": "Metadata manually recorded from the visible browser tool results. PNG bytes are not retained in this fixture; reproduce the capture on the public pages rather than treating these hashes as independently verifiable artifacts.",
   "sharedToolNames": [
     "describe_game",
@@ -19,25 +20,25 @@
     {
       "id": "coil",
       "renderer": "native Canvas 2D",
-      "page": "/games/coil/",
+      "page": "/?build=e34117d",
       "capture": {
-        "captureId": "frame-mtmhba47-1",
-        "stateChecksum": "c9a345f3b59a1cd74bd7f699b9f3c3445720e60ff9436ddba6671768a80ddcd4",
-        "imageChecksum": "dff74f206efd88f81bb444f673e92bcc74cdc1c5a3394f2e0b4d7856f05451e9",
+        "captureId": "frame-mtmiirqa-1",
+        "stateChecksum": "5f739d05d44b38a70005685f9dd5c32bdaca9e615b2803599fb430fff53b522e",
+        "imageChecksum": "98e627ca3819673dd3392bda307437928f16c0a475c298b2536b94abc3587b21",
         "width": 824,
         "height": 656,
         "mimeType": "image/png",
-        "bytes": 435552,
+        "bytes": 460842,
         "previewVisible": true
       }
     },
     {
       "id": "thornwatch",
       "renderer": "PixiJS 8 / WebGL",
-      "page": "/games/thornwatch/",
+      "page": "/games/thornwatch/?build=e34117d",
       "experiment": {
         "setupId": "meadow-opening",
-        "requestId": "qa-capture-settled",
+        "requestId": "release-thorn-near-e34117d",
         "status": "completed",
         "verdict": "passed",
         "finalChecksum": "ae99308464bedefa2976de75453531ee697e1a9f195c8b8769131e93c536306e",
@@ -53,7 +54,7 @@
         }
       },
       "capture": {
-        "captureId": "frame-mtmhd53o-1",
+        "captureId": "frame-mtmihwca-1",
         "stateChecksum": "ae99308464bedefa2976de75453531ee697e1a9f195c8b8769131e93c536306e",
         "imageChecksum": "db902283798c4c132e9fde7d9ec8ec70c840c36d0c78eace9b51354c9a77fba9",
         "width": 1152,
