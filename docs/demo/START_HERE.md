@@ -17,10 +17,7 @@ recovery instructions, audio checklist, and claim limits.
    the ordinary-play montage
 5. [Tool contract](../TOOL_CONTRACT.md), [integration guide](../INTEGRATION.md),
    and [architecture](../ARCHITECTURE.md)
-6. [Historical regression script](REGRESSION_DEMO_SCRIPT.md) (useful prior
-   material; not the current recording source of truth)
-
-Do not record from the historical script. Do not begin final capture until the
+Do not begin final capture until the
 public origin contains both accepted features, the two public regression JSONs,
 and a fresh supported-browser run passes the expected metrics.
 
@@ -61,9 +58,6 @@ for an authored moment; the evidence does not establish lower authoring cost.
 
 ## Keep the evidence honest
 
-The historical feature-trial pages remain useful context: [COIL result](COIL_FEATURE_TRIAL_RESULTS.md),
-[STARFALL result](STARFALL_FEATURE_TRIAL_RESULTS.md), and [arcade playability
-evidence](ARCADE_PLAYTEST.md). Do not turn their timing, token, or code-change
-measurements into a productivity claim. Do not present an old receipt as a
-current checksum; retain the live downloaded JSON and receipt from the actual
-take.
+Do not claim timing, token, or code-change savings: those are not what this
+demo measures. Do not present an old receipt as a current checksum; retain the
+live downloaded JSON and receipt from the actual take.

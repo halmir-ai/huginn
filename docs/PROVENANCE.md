@@ -19,18 +19,13 @@ pre-existing game.
 
 ## Pre-existing selected game art
 
-RTS Lab uses eight exact-copy PNGs selected on August 30, 2026 from the owner's
-pre-existing Gameplay Collections v1 library. The user explicitly authorized
-publishing this selected subset under CC BY 4.0. Source collection manifests
-record each set as `ready`, `painted-rpg`, and `built-in-imagegen`.
-
 THORNWATCH uses eleven exact-copy PNGs selected on September 3, 2026 from the
 same owner's Painted RPG generation library: a terrain source, three towers,
 three enemy silhouettes, a gate, and three effects. The user explicitly
-authorized reuse and publication. Neither selection was transformed.
+authorized reuse and publication. The selection was not transformed.
 
-The selections are recorded in `public/assets/rts-lab/sources.json` and
-`public/assets/thornwatch/sources.json` with source paths, exact SHA-256 hashes,
-and manifest paths. `docs/ASSET_LICENSE.md` applies only to those listed hashes;
-all new reducers, rendering composition, adapters, WebMCP, and experiment code
-remain hackathon-period work under the repository's MIT license.
+The selection is recorded in `public/assets/thornwatch/sources.json` with source
+paths, exact SHA-256 hashes, and manifest paths. `docs/ASSET_LICENSE.md` applies
+only to those listed hashes; all new reducers, rendering composition, adapters,
+WebMCP, and experiment code remain hackathon-period work under the repository's
+MIT license.

@@ -1,134 +1,58 @@
-# Submission plan
+# Huginn submission freeze plan
 
-## Current implementation checkpoint — September 3 final build
+The WebMCP Challenge deadline is **Friday, September 4, 2026 at 1:00 AM PT**
+after the announced 12-hour extension. Huginn is feature-frozen. Until the
+deadline, only release verification, demo production, submission copy, and
+critical fixes are in scope.
 
-COIL, STARFALL, and THORNWATCH are playable game-first examples. COIL includes
-three real campaign levels and authored mechanic setups; THORNWATCH includes
-three routes and reproducible tower-plan branches. Every integrated page exposes
-seven core experiment tools plus optional `capture_game`; every standalone
-bundle is audited to contain no protocol runtime.
+## Locked product
 
-The engine-generality claim is now fulfilled narrowly and concretely: COIL and
-STARFALL use native Canvas 2D, while THORNWATCH uses PixiJS 8/WebGL behind the
-same adapter contract. An actual Codex in-app-browser smoke run covers
-discovery, execution, and state-bound PNG capture on both renderer families;
-the retained fixture is explicitly manually recorded metadata, while the live
-public pages are the reproducible evidence surface. The
-current recording source is [TEST_THE_MOMENT_DEMO.md](demo/TEST_THE_MOMENT_DEMO.md).
-Do not claim token, wall-time, iteration, or code-change savings.
+Huginn is an optional typed test port for live browser games. The submission
+contains:
 
-The recovery checkpoints and original Dawn/RTS plan below are retained as
-history, not current delivery requirements.
+- a protocol-independent experiment kernel;
+- a separate imperative WebMCP registration layer;
+- an optional visible debugger and game-capture capability;
+- three playable games with keyboard, pointer, and touch controls;
+- no-Huginn standalone builds for all three games;
+- native Canvas 2D and PixiJS/WebGL engine evidence;
+- curated late-game setups and portable semantic regression scenarios;
+- a complete integration guide and coding-agent instrumentation contract.
 
-## Recovery checkpoint — September 2, evening Pacific
+The submission claim is deliberately narrow: Huginn makes selected gameplay
+moments visible, addressable, and reproducible for a coding agent. It does not
+claim lower token use, faster authoring, automatic balance, or a replacement
+for human play.
 
-The original two-game milestones below were missed during the offline period.
-RTS Lab is live; Dawn has not been imported or integrated. Do not present the
-old plan as delivered work. The bounded recovery increment makes real external
-WebMCP calls drive the live notebook, restores seed metadata correctly, and
-prepares the [single-game recording kit](RECORDING_KIT.md).
+## Final proof
 
-Recommended deadline scope: record the verified RTS flow now; keep the existing-
-game retrofit as future work, not an overnight dependency. No dominant-strategy
-or balance-fix claim is supported by the present demo. The historical two-game
-scope below remains context for the product, not the current recording script.
+The under-three-minute video uses:
 
-Official deadline rechecked through Devpost on September 2: September 3 at
-1 PM Pacific. Latest organizer advice: working product in the first 10–15
-seconds, real agent tools as the centerpiece, short replaceable clips, and no
-changes to the repo/live site/video after the deadline. Keep judge access free
-and unrestricted through September 21 at 5 PM Pacific.
+1. an ordinary-play montage of COIL, STARFALL, and THORNWATCH;
+2. a COIL Level 2 branch from one named setup and identical base checksum;
+3. a THORNWATCH two-plan comparison from one setup and identical base checksum;
+4. a state-bound `capture_game` PNG on the PixiJS/WebGL result;
+5. the Canvas-versus-Pixi architecture boundary and standalone-build proof.
 
-## Original two-game plan (not delivered)
+The exact narration, prompts, expected metrics, and recovery steps are in
+[the final demo guide](demo/TEST_THE_MOMENT_DEMO.md).
 
-## Thesis
+## Release order
 
-Agents should run experiments on games, not merely click at them. A game designer
-can ask Huginn to branch from a known state, run a bounded strategy, watch it play
-out, compare metrics, and reproduce the finding from the same seed. The
-submission proves both adoption paths: Huginn can retrofit an existing game and
-can be the test contract a new agent-built game implements from its first reducer.
-
-## Primary hero: retrofit an existing game
-
-1. Open Dawn of People and ask the agent to describe the live game.
-2. Ask whether a chosen opening creates an economic disadvantage.
-3. The agent obtains legal actions and calls one bounded action sequence.
-4. Every committed action visibly updates the game and experiment HUD.
-5. The agent snapshots, restores, and tests a counterfactual from identical state.
-6. Matching checksums prove reproducibility; metric semantics explain the result.
-
-## Generality proof: build agent-legible from the start
-
-Create RTS Lab inside the Huginn submission using a small, provenance-tracked
-subset of the project's original generated strategy art and new hackathon-period
-game code. It is deliberately tiny: one 16×12 battlefield, two teams, workers,
-one resource economy, one production building, one combat unit per side, and a
-closed build-order action vocabulary.
-
-The coding-agent workflow implements the Huginn adapter with the reducer, then a
-browser agent uses the same tool names as Dawn to compare economy-first and
-military-rush openings, restore the identical initial snapshot, and identify a
-dominant strategy. A balance adjustment is made outside WebMCP, then the agent
-reruns the same seed to verify the improvement. Commit history and provenance
-distinguish reused CC BY 4.0 art from new game and WebMCP implementation.
-
-## Protected gates
-
-- Snapshot → restore preserves the canonical simulation checksum and legal actions.
-- Same seed + same actions produces identical per-step events, metrics, and hashes.
-- An illegal action is never applied or silently skipped.
-- Each successful action produces one visible renderer/HUD update.
-- Browser cancellation returns the exact committed prefix.
-- The production URL is discoverable and callable in ChatGPT's in-app browser.
-- Dawn and RTS Lab register the same core contract from separate game adapters.
-- The landing URL links directly to both runnable games without setup or login.
-- Reused Dawn and RTS assets have explicit ownership, license, and provenance.
-- Public repo, detectable MIT license, provenance notes, live HTTPS URL, and a
-  narrated public demo under three minutes are all valid without authentication.
-
-## Two-game scope fuse
-
-Dawn remains the required submission. RTS Lab stays only if, by September 1
-at 8:00 AM, it has all of the following:
-
-- one rendered battlefield with workers, bases, resources, and visible combat;
-- deterministic reducer, legal actions, snapshot/restore, and checksums;
-- one complete two-branch experiment through the shared WebMCP tools;
-- same-origin deployment beside Dawn and documented asset provenance;
-- no new tool family, service, authentication, or bespoke agent prompt.
-
-If any condition misses the cutoff, RTS Lab becomes a post-hackathon example
-and the Dawn video proceeds unchanged.
-
-## Schedule (deadline: September 3, 2026 at 1:00 PM PT)
-
-The video is a scored product surface, not end-of-project documentation. No new
-feature is allowed to consume its protected production window.
-
-- August 30: public skeleton, exact tool contract, deterministic runner spike;
-  lock the video thesis, hero moment, and acceptance checklist. Deploy the first
-  public RTS Lab slice immediately so compatible-browser and asset-path failures
-  happen before the Dawn retrofit.
-- August 31 by noon: Dawn adapter, legal actions, snapshot/restore, visible HUD,
-  and determinism gates. By 6:00 PM, deploy the golden experiment candidate.
-  Time-box RTS Lab to ten hours and reuse the contract without extensions.
-- September 1 by 8:00 AM: apply the two-game scope fuse. By 10:00 AM, complete
-  a dress rehearsal in the actual ChatGPT in-app browser. Feature freeze at
-  noon. Capture short clips and finish a complete rough cut that evening.
-- September 2: cold-judge review, retakes, final edit, narration mix, captions,
-  phone/laptop playback QA, and public YouTube upload by 3:00 PM. Finish the
-  Devpost page, screenshots, and testing instructions that evening.
-- September 3: 8:00 AM incognito link rehearsal, 9:30 AM code/content freeze,
-  and submission by 11:00 AM. No primary recording or feature work.
-
-See [VIDEO_PLAN.md](VIDEO_PLAN.md) for the shot plan and quality gates and
-[WINNER_REVIEW.md](WINNER_REVIEW.md) for the evidence behind them.
+1. Keep the repo limited to the locked product and current documentation.
+2. Run `npm run check`, `npm run build`, and `npm pack --dry-run`.
+3. Push the exact release commit to the feature branch and `main`.
+4. Wait for GitHub Pages, then repeat tool discovery and one mutating experiment
+   on the public origin in a compatible in-app browser.
+5. Record, edit, caption, upload, and review the public YouTube video.
+6. Complete the Devpost fields, verify all links signed out, submit, and confirm
+   the project is marked **Submitted**.
+7. Make no changes to the repo, video, live site, or submission after the
+   deadline. Keep all materials public and working through judging.
 
 ## Explicit cuts
 
-Regnara, a full Battle Craft web port, analytics dashboards, multiplayer,
-backend/auth, an autonomous planner, cloud saves, live source-code editing
-through WebMCP, and a generic adapter marketplace are out of scope. RTS Lab gets
-no campaign, free-form pathfinding, technology tree, fog of war, multiplayer,
-level editor, or independent replay product.
+No new games, tools, backends, authentication, autonomous planner, level editor,
+analytics dashboard, generic adapter marketplace, or live source-code editing.
+Discarded prototypes and old efficiency comparisons are not part of the final
+release.

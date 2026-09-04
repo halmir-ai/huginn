@@ -8,15 +8,12 @@ useful to a human game designer.
 
 ## Product boundary
 
-- RTS Lab and Tideglass retain historical experiments. Emberfall and Ironwood
-  were rejected as submission candidates after owner review. Current game-first
-  examples are COIL (campaign Snake), STARFALL (three-ball pinball), and
-  THORNWATCH (tower defense). Human playability comes before protocol evidence.
+- The submission examples are COIL (campaign Snake), STARFALL (three-ball
+  pinball), and THORNWATCH (tower defense). Human playability comes before
+  protocol evidence; abandoned prototypes do not belong in the release tree.
 - Integrated examples reuse the same kernel and seven core WebMCP tools, plus
   the generic `capture_game` host capability. Arcade `/plain/` builds exclude
-  the protocol runtime entirely; the older `webmcp=off` pilot disables
-  registration only. Do not conflate these controls.
-  Page-command counts are not model tokens or feature-authoring measurements.
+  the protocol runtime entirely.
 - The deterministic kernel is authoritative; rendering never mutates sim state.
 - Every mutation must validate against the current legal-action set.
 - WebMCP sequences use prefix semantics: stop before the first invalid action and
@@ -26,8 +23,7 @@ useful to a human game designer.
 - Keep tool inputs bounded and closed-schema. Do not accept code, selectors,
   arbitrary predicates, URLs, filesystem paths, or network targets.
 - Code is MIT. Only explicitly selected, hashed, provenance-tracked art under
-  `public/assets/rts-lab/` and `public/assets/thornwatch/` is licensed CC BY
-  4.0.
+  `public/assets/thornwatch/` is licensed CC BY 4.0.
 
 ## Source boundaries
 

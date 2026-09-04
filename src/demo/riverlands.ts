@@ -38,7 +38,7 @@ export const riverlandsDescription: GameDescription = {
   id: "huginn-riverlands-fixture",
   title: "Riverlands kernel fixture",
   version: "0.1.0",
-  summary: "A deliberately small deterministic economy used to validate Huginn before Dawn integration.",
+  summary: "A deliberately small deterministic economy fixture used to validate the Huginn kernel.",
   rules: [
     "Gathering yields 2–4 resources from the seeded simulation RNG.",
     "A house costs 5 wood and adds room for two people.",

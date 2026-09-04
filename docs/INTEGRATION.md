@@ -8,7 +8,7 @@ structured state and typed actions, never pixels or DOM selectors.
 
 | Starting point | Use | Reference |
 | --- | --- | --- |
-| Existing game with a reducer/save model | Implement `GameAdapter`, then connect `@halmir/huginn/webmcp` | [Tideglass adapter](../src/demo/tideglass.ts) |
+| Existing game with a reducer/save model | Implement `GameAdapter`, then connect `@halmir/huginn/webmcp` | [adapter example below](#existing-engine-implement-the-adapter) |
 | New game or a game you can make reducer-first | Implement `GameDefinition`, use the small `GameRuntime`, then optionally mount the debugger | [COIL game](../src/games/coil/game.ts) and [entry](../src/play/coil-entry.ts) |
 | Tests or another transport | Use `HuginnKernel` directly; do not import WebMCP or the debugger | [kernel tests](../tests/kernel.test.ts) |
 

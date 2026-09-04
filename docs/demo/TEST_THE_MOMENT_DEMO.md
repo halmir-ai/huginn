@@ -273,7 +273,7 @@ End on the positioning line and the public repository URL.
 ## Claims we must not make
 
 - Do not claim lower token use, fewer code changes, lower wall time, or faster
-  authoring. The completed paired trials did not establish those outcomes.
+  authoring. This demo does not measure those outcomes.
 - Do not claim one seed or one wave proves balance, fun, visual quality, or a
   universally best strategy.
 - Do not call setups hidden cheats, arbitrary state injection, or a parallel

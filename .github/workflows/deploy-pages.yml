@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - codex/video-strategy
   workflow_dispatch:
 
 permissions:
@@ -28,7 +27,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
       - name: Verify source
         run: npm run check
       - name: Build site

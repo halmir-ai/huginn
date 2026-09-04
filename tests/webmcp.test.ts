@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import { createRiverlandsAdapter, riverlandsDescription } from "../src/demo/riverlands";
 import { HuginnKernel } from "../src/huginn/kernel";
 import { buildToolDefinitions, registerWebMcpTools, type GameFrameCapture, type ToolActivity } from "../src/webmcp";
-import { createRtsLabAdapter, rtsLabDescription } from "../src/demo/rts-lab";
 
 describe("WebMCP contract", () => {
   it("cleans up partial registration and detects the actual method", async () => {
@@ -25,9 +24,9 @@ describe("WebMCP contract", () => {
   });
 
   it("reports actual external tool lifecycle and preserves results when observers fail", async () => {
-    const kernel = new HuginnKernel(createRtsLabAdapter(), 12, async () => {});
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
     const activity: ToolActivity[] = [];
-    const tools = buildToolDefinitions(kernel, rtsLabDescription.actions.map((action) => action.inputSchema), (event) => {
+    const tools = buildToolDefinitions(kernel, riverlandsDescription.actions.map((action) => action.inputSchema), (event) => {
       activity.push(event);
       if (event.phase === "completed") throw new Error("Display failure");
     });
@@ -35,12 +34,12 @@ describe("WebMCP contract", () => {
     try {
       const result = await tools.find((tool) => tool.name === "apply_action_sequence")!.execute({
         request_id: "external-test",
-        actions: [{ type: "build_barracks" }],
-        expect: [{ metric: "heartwood", operator: "eq", value: 5 }],
+        actions: [{ type: "gather_food" }],
+        expect: [{ metric: "food", operator: "gte", value: 9 }],
       }, { signal: new AbortController().signal });
       expect(result).toMatchObject({ status: "completed", appliedSteps: 1, verdict: "passed", checks: [{ passed: true }] });
       expect(activity.map((event) => event.phase)).toEqual(["started", "completed"]);
-      expect(await kernel.getState()).toMatchObject({ state: { barracksBuilt: true } });
+      expect(await kernel.getState()).toMatchObject({ state: { food: 9 } });
       expect(logged).toHaveBeenCalledOnce();
     } finally {
       logged.mockRestore();
@@ -163,7 +162,7 @@ describe("WebMCP contract", () => {
   });
 
   it("reports rejected restores without announcing completion", async () => {
-    const kernel = new HuginnKernel(createRtsLabAdapter(), 12, async () => {});
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
     const activity: ToolActivity[] = [];
     const restore = buildToolDefinitions(kernel, [], (event) => activity.push(event)).find((tool) => tool.name === "restore_game")!;
     await expect(restore.execute({ snapshot_id: "missing" }, { signal: new AbortController().signal })).rejects.toThrow("Unknown snapshot");
@@ -171,12 +170,12 @@ describe("WebMCP contract", () => {
   });
 
   it("does not allow the observer to mutate the input or authoritative result", async () => {
-    const kernel = new HuginnKernel(createRtsLabAdapter(), 12, async () => {});
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
     const tool = buildToolDefinitions(kernel, [], (event) => {
       event.input.request_id = "corrupted";
       if (event.phase === "completed") (event.result as { appliedSteps: number }).appliedSteps = 999;
     }).find((definition) => definition.name === "apply_action_sequence")!;
-    const result = await tool.execute({ request_id: "unchanged", actions: [{ type: "build_barracks" }] }, { signal: new AbortController().signal });
+    const result = await tool.execute({ request_id: "unchanged", actions: [{ type: "gather_food" }] }, { signal: new AbortController().signal });
     expect(result).toMatchObject({ requestId: "unchanged", appliedSteps: 1 });
   });
 
