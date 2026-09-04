@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "collection": "Huginn THORNWATCH selected art",
+  "license": "CC-BY-4.0",
+  "attribution": "Huginn project contributors",
+  "selectionAuthorized": "2026-09-03",
+  "generation": {
+    "mode": "built-in-imagegen",
+    "provider": "OpenAI",
+    "model": "not recorded by source manifests"
+  },
+  "assets": [
+    {
+      "destination": "terrain.png",
+      "role": "painted loam battlefield texture",
+      "source": "variants/painted-rpg/loam/source/generated.png",
+      "sha256": "409962f30d32fc69ba4fa80125e414a5c59a6cb45b0076ca69314ad0d7e372e8",
+      "manifest": "variants/painted-rpg/loam/variant.json"
+    },
+    {
+      "destination": "archer.png",
+      "role": "archer tower",
+      "source": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/sprites/08-archer-tower.png",
+      "sha256": "44ea1b7dd09cc659644f8d64ddf4984d50e43891217b0c1520b4cf5912b24255",
+      "manifest": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "mage.png",
+      "role": "mage tower",
+      "source": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/sprites/09-mage-tower.png",
+      "sha256": "ced00c0e68e1330ddaaa3224db82b1a342a6d86539fb9dc528910cf672167984",
+      "manifest": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "ballista.png",
+      "role": "ballista workshop",
+      "source": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/sprites/10-siege-workshop.png",
+      "sha256": "46ef648ceddac99f5cdda7c277058d5b29acb869c0b58830ef51ff61fcf8b54e",
+      "manifest": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "goblin.png",
+      "role": "light raider",
+      "source": "libraries/gameplay-collections-v1/sets/characters/characters-rts-fantasy-armies-painted-rpg/sprites/12-goblin-scout.png",
+      "sha256": "a03f17953bc18cb2a7c9cbfd388639fe521f3066d082fc5ff0be811c09948b67",
+      "manifest": "libraries/gameplay-collections-v1/sets/characters/characters-rts-fantasy-armies-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "raider.png",
+      "role": "standard raider",
+      "source": "libraries/gameplay-collections-v1/sets/characters/characters-rts-fantasy-armies-painted-rpg/sprites/11-orc-grunt.png",
+      "sha256": "c3394814b3bfbc345b9856ea740094c11a8fff845c20ba663f821ebc06b8f316",
+      "manifest": "libraries/gameplay-collections-v1/sets/characters/characters-rts-fantasy-armies-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "troll.png",
+      "role": "heavy raider",
+      "source": "libraries/gameplay-collections-v1/sets/characters/characters-rts-fantasy-armies-painted-rpg/sprites/13-forest-troll.png",
+      "sha256": "c69eb606004786d1164c4ff25a316a0f68bbd00863ee94852b7c113bd62303c3",
+      "manifest": "libraries/gameplay-collections-v1/sets/characters/characters-rts-fantasy-armies-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "gate.png",
+      "role": "defended command hall",
+      "source": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/sprites/12-command-hall.png",
+      "sha256": "0bd44eb942298148edcb0cd75793df47b41d9e2fc01ddd59a9345d22c908d79d",
+      "manifest": "libraries/gameplay-collections-v1/sets/buildings/buildings-high-fantasy-fortifications-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "impact.png",
+      "role": "melee impact",
+      "source": "libraries/gameplay-collections-v1/sets/effects/effects-fantasy-combat-painted-rpg/sprites/01-sword-slash.png",
+      "sha256": "482539cf3324d156c0c0af09ae0d148836ccb0ac5b7951d2ea1bbe05d35895df",
+      "manifest": "libraries/gameplay-collections-v1/sets/effects/effects-fantasy-combat-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "arrow.png",
+      "role": "archer shot effect",
+      "source": "libraries/gameplay-collections-v1/sets/effects/effects-fantasy-combat-painted-rpg/sprites/02-arrow-volley.png",
+      "sha256": "fa8e431dba0d514c029e02930cb37f2bea2e308a754110029ac2d0360972f2ef",
+      "manifest": "libraries/gameplay-collections-v1/sets/effects/effects-fantasy-combat-painted-rpg/manifest.json"
+    },
+    {
+      "destination": "fireball.png",
+      "role": "mage shot effect",
+      "source": "libraries/gameplay-collections-v1/sets/effects/effects-fantasy-combat-painted-rpg/sprites/03-fireball.png",
+      "sha256": "206aa2096e53e2961ff648893ea9d0cf5c9804ba9649c3acb4d75e924adcb382",
+      "manifest": "libraries/gameplay-collections-v1/sets/effects/effects-fantasy-combat-painted-rpg/manifest.json"
+    }
+  ]
+}

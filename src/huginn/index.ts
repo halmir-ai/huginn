@@ -17,6 +17,8 @@ export type {
   ExpectationCheck,
   GameAdapter,
   GameDescription,
+  GameSetup,
+  GameSetupDescription,
   LegalAction,
   MetricDefinition,
   MetricExpectation,

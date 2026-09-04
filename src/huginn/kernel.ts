@@ -55,6 +55,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     const value = structuredClone(this.adapter.serialize(this.state));
     const metrics = structuredClone(this.adapter.metrics(this.state));
     const legalActionCount = this.adapter.listLegalActions(this.state).length;
+    const setups = this.setupDescriptions();
     return {
       protocolVersion: "huginn/experiment-v1",
       game: this.adapter.description,
@@ -69,7 +70,9 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
         semanticExpectations: true,
         maxExpectationsPerSequence: 12,
         snapshotRetention: "latest-explicit-checkpoint",
+        namedSetups: setups.length > 0,
       },
+      setups,
       current: {
         seed,
         checksum: await checksum(value),
@@ -211,7 +214,25 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
 
       const rollback = await this.captureSnapshot(false, input.base_snapshot_id);
 
-      if (input.seed !== undefined) {
+      if (input.setup_id !== undefined) {
+        const seed = input.seed ?? this.seed;
+        this.assertSeed(seed);
+        const setup = this.requireSetup(input.setup_id);
+        const created = setup.createState(seed);
+        const serialized = structuredClone(this.adapter.serialize(created));
+        const restored = this.adapter.deserialize(structuredClone(serialized));
+        if (!canonicalEqual(this.adapter.serialize(restored), serialized)) {
+          throw new Error(`Setup did not survive the game save codec canonically: ${setup.id}`);
+        }
+        this.seed = seed;
+        this.state = restored;
+        await this.adapter.render(this.state, {
+          kind: "reset",
+          events: [],
+          requestId: input.request_id,
+          setupId: setup.id,
+        });
+      } else if (input.seed !== undefined) {
         this.assertSeed(input.seed);
         this.seed = input.seed;
         this.state = this.adapter.initialState(input.seed);
@@ -373,7 +394,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
 
   private validateSequenceInput(input: SequenceInput<Action>): void {
     if (!input || typeof input !== "object" || Array.isArray(input)) throw new TypeError("Sequence input must be an object.");
-    const allowed = ["request_id", "seed", "base_snapshot_id", "expected_base_checksum", "actions", "stop_when", "expect", "speed"];
+    const allowed = ["request_id", "setup_id", "seed", "base_snapshot_id", "expected_base_checksum", "actions", "stop_when", "expect", "speed"];
     const unknown = Object.keys(input).find((key) => !allowed.includes(key));
     if (unknown) throw new TypeError(`Unknown sequence field: ${unknown}`);
     if (typeof input.request_id !== "string" || !/^[A-Za-z0-9._-]{1,64}$/.test(input.request_id)) {
@@ -382,8 +403,12 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
     if (!Array.isArray(input.actions) || input.actions.length > MAX_ACTIONS) {
       throw new RangeError(`actions must contain at most ${MAX_ACTIONS} entries.`);
     }
-    if (input.seed !== undefined && input.base_snapshot_id !== undefined) {
-      throw new TypeError("Provide seed or base_snapshot_id, not both.");
+    if (input.setup_id !== undefined && (typeof input.setup_id !== "string" || !/^[A-Za-z0-9._-]{1,64}$/.test(input.setup_id))) {
+      throw new TypeError("setup_id must be 1–64 safe identifier characters.");
+    }
+    if (input.setup_id !== undefined) this.requireSetup(input.setup_id);
+    if (input.base_snapshot_id !== undefined && (input.seed !== undefined || input.setup_id !== undefined)) {
+      throw new TypeError("Provide setup_id or base_snapshot_id, not both; seed may accompany setup_id.");
     }
     if (input.seed !== undefined) this.assertSeed(input.seed);
     if (input.base_snapshot_id !== undefined && (typeof input.base_snapshot_id !== "string" || input.base_snapshot_id.length < 1 || input.base_snapshot_id.length > 128)) {
@@ -448,5 +473,26 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
       const oldestId = this.requestCache.keys().next().value as string | undefined;
       if (oldestId) this.requestCache.delete(oldestId);
     }
+  }
+
+  private setupDescriptions() {
+    const seen = new Set<string>();
+    return (this.adapter.setups ?? []).map((setup) => {
+      if (typeof setup.id !== "string" || !/^[A-Za-z0-9._-]{1,64}$/.test(setup.id) || seen.has(setup.id)
+        || typeof setup.title !== "string" || !setup.title.trim()
+        || typeof setup.description !== "string" || !setup.description.trim()
+        || typeof setup.createState !== "function") {
+        throw new Error(`Invalid or duplicate game setup: ${setup.id}`);
+      }
+      seen.add(setup.id);
+      return { id: setup.id, title: setup.title, description: setup.description };
+    });
+  }
+
+  private requireSetup(id: string) {
+    this.setupDescriptions();
+    const setup = (this.adapter.setups ?? []).find((candidate) => candidate.id === id);
+    if (!setup) throw new Error(`Unknown setup: ${id}`);
+    return setup;
   }
 }

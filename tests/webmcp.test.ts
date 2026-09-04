@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRiverlandsAdapter, riverlandsDescription } from "../src/demo/riverlands";
 import { HuginnKernel } from "../src/huginn/kernel";
-import { buildToolDefinitions, registerWebMcpTools, type ToolActivity } from "../src/webmcp";
+import { buildToolDefinitions, registerWebMcpTools, type GameFrameCapture, type ToolActivity } from "../src/webmcp";
 import { createRtsLabAdapter, rtsLabDescription } from "../src/demo/rts-lab";
 
 describe("WebMCP contract", () => {
@@ -71,6 +71,97 @@ describe("WebMCP contract", () => {
     }
   });
 
+  it("captures a bounded visible frame paired to the exact live state checksum", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
+    const frame: GameFrameCapture = {
+      captureId: "capture-1",
+      imageChecksum: "a".repeat(64),
+      width: 960,
+      height: 540,
+      mimeType: "image/png",
+      bytes: 12_345,
+      previewVisible: true,
+    };
+    const captureFrame = vi.fn(async () => frame);
+    const capture = buildToolDefinitions(kernel, [], undefined, captureFrame)
+      .find((tool) => tool.name === "capture_game")!;
+
+    await expect(capture.execute({}, { signal: new AbortController().signal })).resolves.toEqual({
+      ...frame,
+      stateChecksum: (await kernel.getState()).checksum,
+    });
+    expect(captureFrame).toHaveBeenCalledOnce();
+    expect(capture.annotations?.readOnlyHint).not.toBe(true);
+  });
+
+  it("rejects frame evidence when canonical state changes while the renderer settles", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
+    const capture = buildToolDefinitions(kernel, [], undefined, async () => {
+      await kernel.reset(13);
+      return {
+        captureId: "capture-raced",
+        imageChecksum: "d".repeat(64),
+        width: 960,
+        height: 540,
+        mimeType: "image/png",
+        bytes: 12_345,
+        previewVisible: true,
+      };
+    }).find((tool) => tool.name === "capture_game")!;
+
+    await expect(capture.execute({}, { signal: new AbortController().signal }))
+      .rejects.toThrow("state changed during frame capture");
+  });
+
+  it("requires a host mutation boundary before registering visual capture", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
+    vi.stubGlobal("document", { modelContext: { registerTool: vi.fn() } });
+    try {
+      await expect(registerWebMcpTools(kernel, [], undefined, {
+        captureFrame: async () => ({
+          captureId: "capture-unlocked",
+          imageChecksum: "c".repeat(64),
+          width: 1,
+          height: 1,
+          mimeType: "image/png",
+          bytes: 1,
+          previewVisible: true,
+        }),
+      })).rejects.toThrow("requires runMutation");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("serializes capture with game mutations and rejects invalid frame evidence", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
+    const registered: { name: string; execute: (input: Record<string, unknown>, options: { signal: AbortSignal }) => Promise<unknown> }[] = [];
+    const order: string[] = [];
+    vi.stubGlobal("document", { modelContext: { registerTool: async (tool: typeof registered[number]) => { registered.push(tool); } } });
+    try {
+      await registerWebMcpTools(kernel, [], undefined, {
+        captureFrame: async () => ({
+          captureId: "capture-invalid",
+          imageChecksum: "not-a-checksum",
+          width: 1,
+          height: 1,
+          mimeType: "image/png",
+          bytes: 1,
+          previewVisible: true,
+        }),
+        runMutation: async (operation) => {
+          order.push("lock");
+          try { return await operation(); } finally { order.push("unlock"); }
+        },
+      });
+      const capture = registered.find((tool) => tool.name === "capture_game")!;
+      await expect(capture.execute({}, { signal: new AbortController().signal })).rejects.toThrow("image checksum");
+      expect(order).toEqual(["lock", "unlock"]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("reports rejected restores without announcing completion", async () => {
     const kernel = new HuginnKernel(createRtsLabAdapter(), 12, async () => {});
     const activity: ToolActivity[] = [];
@@ -114,13 +205,26 @@ describe("WebMCP contract", () => {
 
     const sequence = tools.find((tool) => tool.name === "apply_action_sequence")!;
     const schema = sequence.inputSchema as {
-      properties: { actions: { maxItems: number }; expect: { maxItems: number; items: { additionalProperties: boolean } } };
+      properties: { setup_id: { pattern: string }; actions: { maxItems: number }; expect: { maxItems: number; items: { additionalProperties: boolean } } };
       additionalProperties: boolean;
     };
+    expect(schema.properties.setup_id.pattern).toBe("^[A-Za-z0-9._-]{1,64}$");
     expect(schema.properties.actions.maxItems).toBe(50);
     expect(schema.properties.expect.maxItems).toBe(12);
     expect(schema.properties.expect.items.additionalProperties).toBe(false);
     expect(schema.additionalProperties).toBe(false);
+    expect(sequence.description).toContain("named setup");
     expect(sequence.description).toContain("semantic verdict");
+
+    const withCapture = buildToolDefinitions(kernel, [], undefined, async () => ({
+      captureId: "capture-2",
+      imageChecksum: "b".repeat(64),
+      width: 640,
+      height: 360,
+      mimeType: "image/png",
+      bytes: 8_192,
+      previewVisible: true,
+    }));
+    expect(withCapture.map((tool) => tool.name)).toContain("capture_game");
   });
 });

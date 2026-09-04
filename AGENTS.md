@@ -10,11 +10,12 @@ useful to a human game designer.
 
 - RTS Lab and Tideglass retain historical experiments. Emberfall and Ironwood
   were rejected as submission candidates after owner review. Current game-first
-  candidates are COIL (evolved Snake) and STARFALL (three-ball pinball). Human
-  playability must pass before paired feature-authoring trials begin.
-- Integrated examples reuse the same kernel and seven WebMCP tools. Arcade
-  `/plain/` builds exclude the protocol runtime entirely; the older `webmcp=off`
-  pilot disables registration only. Do not conflate these controls.
+  examples are COIL (campaign Snake), STARFALL (three-ball pinball), and
+  THORNWATCH (tower defense). Human playability comes before protocol evidence.
+- Integrated examples reuse the same kernel and seven core WebMCP tools, plus
+  the generic `capture_game` host capability. Arcade `/plain/` builds exclude
+  the protocol runtime entirely; the older `webmcp=off` pilot disables
+  registration only. Do not conflate these controls.
   Page-command counts are not model tokens or feature-authoring measurements.
 - The deterministic kernel is authoritative; rendering never mutates sim state.
 - Every mutation must validate against the current legal-action set.
@@ -25,7 +26,8 @@ useful to a human game designer.
 - Keep tool inputs bounded and closed-schema. Do not accept code, selectors,
   arbitrary predicates, URLs, filesystem paths, or network targets.
 - Code is MIT. Only explicitly selected, hashed, provenance-tracked art under
-  `public/assets/rts-lab/` is licensed CC BY 4.0.
+  `public/assets/rts-lab/` and `public/assets/thornwatch/` is licensed CC BY
+  4.0.
 
 ## Source boundaries
 

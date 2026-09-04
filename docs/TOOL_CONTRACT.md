@@ -12,15 +12,34 @@ it does not define a second tool contract.
 ## Tools
 
 - `describe_game`: rules, victory/failure conditions, metric semantics, action
-  vocabulary, capability limits, seed, turn, and checksum.
+  vocabulary, curated named setups, capability limits, seed, turn, and checksum.
 - `get_game_state`: canonical structured simulation state, never pixels.
 - `get_metrics`: current metrics with definitions supplied by `describe_game`.
 - `list_legal_actions`: only actions valid against the current checksum.
 - `apply_action_sequence`: bounded visible execution with request idempotency,
-  stale-state protection, closed stop conditions, cancellation, per-step
-  events/metrics/checksums, and optional semantic expectations.
+  optional named-setup initialization, stale-state protection, closed stop
+  conditions, cancellation, per-step events/metrics/checksums, and optional
+  semantic expectations.
 - `snapshot_game`: stores a bounded canonical snapshot in page memory.
+- `capture_game` (optional host capability): encodes the current canvas as a
+  bounded PNG, displays one current preview, and returns its dimensions, byte
+  count, image checksum, and the exact canonical state checksum. It is visual
+  evidence, not a restorable state snapshot.
 - `restore_game`: verifies and restores a known snapshot, then renders it.
+
+The seven core tools are engine-independent. Current integrated example pages
+also supply `capture_game`, for eight discovered tools. Hosts without a canvas
+or without a safe frame-capture path can omit it without changing the kernel
+or the other tool schemas.
+
+`capture_game` returns compact JSON metadata rather than embedding a base64 PNG
+in the tool result. The host must make the captured frame visible in the page,
+cap it at 8 MiB and 8192 pixels per axis, and return a SHA-256 image checksum.
+The reference debugger serializes capture with other mutations so the paired
+state checksum cannot race the human game clock. It also waits for a settled
+browser paint and compares canonical checksums before and after the frame
+callback. A custom callback must provide the equivalent renderer flush; a
+state change makes the tool reject the evidence.
 
 Snapshots retain both canonical simulation state (including adapter RNG state)
 and the kernel's seed metadata. Both restore paths validate canonical
@@ -46,6 +65,14 @@ and checksums. Build-order comparisons additionally require matching first-step
 base checksums and ending cycles. Single-seed outcomes are not balance proofs.
 
 ## Sequence semantics
+
+`setup_id` selects a curated state constructor published by the game adapter.
+It may be paired with a seed and is mutually exclusive with
+`base_snapshot_id`. The caller cannot supply state fields. Huginn constructs
+the setup, requires it to round-trip through the game's ordinary save codec,
+commits its seed, and visibly renders it before applying the first action. This
+lets an agent test a late campaign or combat moment without replaying unrelated
+content while keeping setup authority in game code.
 
 Sequences commit one action at a time. Each action is checked against the legal
 set for the then-current state. On cancellation, a stop condition, or an invalid
@@ -94,15 +121,17 @@ useful behavioral regression, not a protocol error.
 ## Portable regression scenario
 
 A completed seeded expectation run can be saved as
-`huginn/regression-v1`: game identity and version, seed, typed actions, optional
-stop condition, and semantic expectations. Request IDs and playback speed are
-assigned at replay time, so a fresh run cannot be mistaken for an idempotent
-cached response. Named in-memory snapshots are excluded because they are not
-portable across page sessions.
+`huginn/regression-v1`: game identity and version, seed, optional portable
+`setup_id`, typed actions, optional stop condition, and semantic expectations.
+Request IDs and playback speed are assigned at replay time, so a fresh run
+cannot be mistaken for an idempotent cached response. Named in-memory snapshots
+are excluded because they are not portable across page sessions.
 
-The two checked-in examples are
-[COIL shield recovery](../public/regressions/coil-shield-recovery.json) and
-[STARFALL saved-ball accounting](../public/regressions/starfall-ball-saver.json).
+The checked-in examples include
+[COIL's Level 2 signal-gate setup](../public/regressions/coil-level-2-shield.json),
+[THORNWATCH's near-road defense](../public/regressions/thornwatch-meadow-defense.json),
+[COIL's original shield recovery](../public/regressions/coil-shield-recovery.json),
+and [STARFALL saved-ball accounting](../public/regressions/starfall-ball-saver.json).
 The corresponding live receipts—not the portable scenario files—supply exact
 checksums demonstrating same-build, same-seed, same-action replay. Stable metric
 expectations state the behavior that should survive later gameplay changes; a

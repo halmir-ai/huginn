@@ -29,23 +29,55 @@ export type ToolActivity =
 
 export type ActivityObserver = (activity: ToolActivity) => void;
 
+/** Compact evidence for a frame that is rendered visibly by the host page. */
+export interface GameFrameCapture {
+  captureId: string;
+  imageChecksum: string;
+  width: number;
+  height: number;
+  mimeType: "image/png";
+  bytes: number;
+  previewVisible: true;
+}
+
+/**
+ * Capture the renderer only after it has painted the frozen canonical state.
+ * The WebMCP wrapper rejects the result if that state changes before return.
+ */
+export type FrameCapture = () => Promise<GameFrameCapture>;
+
 export interface ConnectHuginnWebMcpOptions {
   initialSeed?: number;
   schedule?: HuginnScheduler;
   onActivity?: ActivityObserver;
   runMutation?: MutationRunner;
+  captureFrame?: FrameCapture;
 }
 
 export type MutationRunner = (operation: () => Promise<unknown>) => Promise<unknown>;
 
 export interface RegisterWebMcpOptions {
   runMutation?: MutationRunner;
+  captureFrame?: FrameCapture;
+}
+
+function validateFrameCapture(value: GameFrameCapture): GameFrameCapture {
+  if (!value || typeof value !== "object") throw new Error("Frame capture did not return metadata");
+  if (!/^[A-Za-z0-9._-]{1,128}$/.test(value.captureId)) throw new Error("Frame capture returned an invalid capture ID");
+  if (!/^[a-f0-9]{64}$/.test(value.imageChecksum)) throw new Error("Frame capture returned an invalid image checksum");
+  if (!Number.isInteger(value.width) || value.width < 1 || value.width > 8192) throw new Error("Frame capture width is outside the supported range");
+  if (!Number.isInteger(value.height) || value.height < 1 || value.height > 8192) throw new Error("Frame capture height is outside the supported range");
+  if (value.mimeType !== "image/png") throw new Error("Frame capture must use image/png");
+  if (!Number.isInteger(value.bytes) || value.bytes < 1 || value.bytes > 8 * 1024 * 1024) throw new Error("Frame capture is outside the 8 MiB limit");
+  if (value.previewVisible !== true) throw new Error("Frame capture must be shown visibly on the page");
+  return structuredClone(value);
 }
 
 export function buildToolDefinitions<State, Action, Event, GameMetrics extends Metrics>(
   kernel: HuginnKernel<State, Action, Event, GameMetrics>,
   actionSchemas: Record<string, unknown>[],
   onActivity?: ActivityObserver,
+  captureFrame?: FrameCapture,
 ): ModelContextTool[] {
   const readOnly = { readOnlyHint: true };
   const actionItems = actionSchemas.length === 1 ? actionSchemas[0] : { oneOf: actionSchemas };
@@ -54,7 +86,7 @@ export function buildToolDefinitions<State, Action, Event, GameMetrics extends M
     {
       name: "describe_game",
       title: "Describe game",
-      description: "Explain this live game's rules, goals, metrics, action vocabulary, experiment limits, seed, checksum, and capabilities before planning a test.",
+      description: "Explain this live game's rules, goals, metrics, action vocabulary, curated named setups, experiment limits, seed, checksum, and capabilities before planning a test.",
       inputSchema: emptySchema,
       execute: async () => kernel.describeGame(),
       annotations: readOnly,
@@ -90,6 +122,21 @@ export function buildToolDefinitions<State, Action, Event, GameMetrics extends M
       inputSchema: emptySchema,
       execute: async () => kernel.createSnapshot(),
     },
+    ...(captureFrame ? [{
+      name: "capture_game",
+      title: "Capture visible game frame",
+      description: "Capture the live game canvas as a bounded PNG, show that frame visibly in the page debugger, and return compact image metadata paired with the exact canonical state checksum. This is visual evidence, not a restorable state snapshot.",
+      inputSchema: emptySchema,
+      execute: async () => {
+        const before = await kernel.getState();
+        const frame = validateFrameCapture(await captureFrame());
+        const after = await kernel.getState();
+        if (before.checksum !== after.checksum) {
+          throw new Error("Canonical game state changed during frame capture; discard the visual evidence and retry");
+        }
+        return { ...frame, stateChecksum: after.checksum };
+      },
+    } satisfies ModelContextTool] : []),
     {
       name: "restore_game",
       title: "Restore game",
@@ -108,11 +155,12 @@ export function buildToolDefinitions<State, Action, Event, GameMetrics extends M
     {
       name: "apply_action_sequence",
       title: "Run visible game experiment",
-      description: "Apply up to 50 typed actions visibly and sequentially. Each action is checked against current legal actions; cancellation, stop conditions, and errors preserve and report the exact committed prefix. Optional semantic expectations return an explicit semantic verdict.",
+      description: "Optionally begin from a curated named setup, then apply up to 50 typed actions visibly and sequentially. Each action is checked against current legal actions; cancellation, stop conditions, and errors preserve and report the exact committed prefix. Optional semantic expectations return an explicit semantic verdict.",
       inputSchema: {
         type: "object",
         properties: {
           request_id: { type: "string", pattern: "^[A-Za-z0-9._-]{1,64}$" },
+          setup_id: { type: "string", pattern: "^[A-Za-z0-9._-]{1,64}$" },
           seed: { type: "integer", minimum: 0, maximum: 2147483647 },
           base_snapshot_id: { type: "string", minLength: 1, maxLength: 128 },
           expected_base_checksum: { type: "string", pattern: "^[a-f0-9]{64}$" },
@@ -184,9 +232,12 @@ export async function registerWebMcpTools<State, Action, Event, GameMetrics exte
 ): Promise<{ supported: boolean; toolNames: string[]; dispose: () => void }> {
   const context = typeof document === "undefined" ? undefined : document.modelContext;
   if (typeof context?.registerTool !== "function") return { supported: false, toolNames: [], dispose: () => {} };
+  if (options.captureFrame && !options.runMutation) {
+    throw new Error("captureFrame requires runMutation so pixels and canonical state are captured atomically");
+  }
 
   const controller = new AbortController();
-  const definitions = buildToolDefinitions(kernel, actionSchemas, onActivity);
+  const definitions = buildToolDefinitions(kernel, actionSchemas, onActivity, options.captureFrame);
   const registeredDefinitions = options.runMutation
     ? definitions.map((definition) => ({
         ...definition,
@@ -196,9 +247,10 @@ export async function registerWebMcpTools<State, Action, Event, GameMetrics exte
               options.runMutation!(() => definition.execute(input, toolOptions)),
       }))
     : definitions;
+  if (!document.modelContext) throw new Error("WebMCP context disappeared before registration");
   try {
     for (const definition of registeredDefinitions) {
-      await context.registerTool(definition, { signal: controller.signal });
+      await document.modelContext.registerTool(definition, { signal: controller.signal });
     }
   } catch (error) {
     controller.abort();
@@ -229,7 +281,7 @@ export async function connectHuginnWebMcp<State, Action, Event, GameMetrics exte
     kernel,
     adapter.description.actions.map((action) => action.inputSchema),
     options.onActivity,
-    { runMutation: options.runMutation },
+    { runMutation: options.runMutation, captureFrame: options.captureFrame },
   );
   return {
     kernel,

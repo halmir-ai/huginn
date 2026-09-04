@@ -96,6 +96,14 @@ const description: GameDescription = {
 
 const adapter: GameAdapter<State, Action, Event, GameMetrics> = {
   description,
+  setups: [
+    {
+      id: "boss-wave",
+      title: "Boss wave at the final gate",
+      description: "Begin at the authored checkpoint used to test the boss mechanic.",
+      createState: (seed) => createBossWaveState(seed),
+    },
+  ],
   initialState: (seed) => createInitialState(seed),
   listLegalActions: (state) => legalActionsFor(state),
   reduce: (state, action) => reduceGame(state, action),
@@ -113,9 +121,10 @@ window.addEventListener("pagehide", huginn.dispose, { once: true });
 ```
 
 `connectHuginnWebMcp` initializes the kernel, generates schemas for the seven
-tools from `description.actions`, and registers them when the browser supports
-WebMCP. `supported: false` is a normal result in an ordinary browser; the game
-must remain playable.
+core tools from `description.actions`, and registers them when the browser
+supports WebMCP. Supply the optional `captureFrame` host callback to add the
+generic eighth tool, `capture_game`. `supported: false` is a normal result in
+an ordinary browser; the game must remain playable.
 
 ### Keep one state authority
 
@@ -178,6 +187,41 @@ its import and element to ship a game with no agent-facing UI. See the
 [STARFALL standalone entry](../src/play/starfall-plain.ts) for a build whose
 full dependency graph contains no Huginn or WebMCP runtime.
 
+## Test the moment, not the grind
+
+Long campaigns often hide the state a coding agent actually needs behind many
+minutes of play: a Level 3 obstacle, an expiring buff, a late tower-defense
+wave, or a nearly-complete quest. Add optional, authored `setups` to the
+adapter or `GameDefinition` for those moments.
+
+`describe_game` lists their ids, titles, and intent. The agent selects one in
+the existing hero tool:
+
+```ts
+await huginn.kernel.applyActionSequence({
+  request_id: "boss-balance-a",
+  setup_id: "boss-wave",
+  seed: 12,
+  actions: [
+    { type: "place_tower", pad: 7, tower: "mage" },
+    { type: "start_wave" },
+    { type: "advance", frames: 30 },
+  ],
+  expect: [{ metric: "baseHp", operator: "gte", value: 1 }],
+});
+```
+
+A setup is not arbitrary state injection. It is trusted game code, selected by
+a bounded id, constructed from a seed, round-tripped through the normal save
+codec, and visibly rendered before the first action. `setup_id` may accompany
+`seed`, but it cannot accompany `base_snapshot_id`. This preserves the shared
+generic tool surface and keeps test-only coordinates, gold, health, or
+inventory out of the public schema.
+
+Use a small catalog of decision-relevant moments. Do not create a setup for
+every level frame or every visual change. For counterfactuals, initialize one
+setup, snapshot it, and run multiple legal plans from that same checksum.
+
 ## Adapter invariants
 
 1. `initialState(seed)` contains every piece of state needed to reproduce play,
@@ -211,11 +255,48 @@ booleans. This keeps the tool surface small without changing natural controls.
 
 `@halmir/huginn/debugger` is evidence UI, not the protocol. It displays actual
 tool activity, saves/restores an in-memory checkpoint, downloads receipts, and
-saves a passing seeded expectation run as `huginn/regression-v1`. Removing the
-debugger must not change the core or WebMCP contract.
+saves a passing seeded expectation run as `huginn/regression-v1`. Its integrated
+composition also supplies `capture_game`: it encodes the current canvas as a
+bounded PNG, shows one current preview in the dock, and returns image metadata
+paired to the canonical state checksum. It freezes game mutations, waits for
+the renderer to paint, and rejects the evidence if canonical state changes
+during capture. The PNG itself stays in the page rather than bloating the JSON
+tool result. Removing the debugger must not change the core or the seven core
+WebMCP tools.
 
 For a custom UI, call `registerWebMcpTools` yourself and consume `ToolActivity`
 events. A display failure must not alter an authoritative tool result.
+
+For a direct existing-engine integration, pass `captureFrame` to
+`connectHuginnWebMcp`. The callback owns engine-specific readback and the
+visible preview; it returns only bounded metadata:
+
+```ts
+const huginn = await connectHuginnWebMcp(adapter, {
+  initialSeed: 12,
+  runMutation: (operation) => pauseGameClockWhile(operation),
+  captureFrame: async () => {
+    await engine.flushFrame(); // Paint the frozen canonical state first.
+    const png = await encodeCurrentCanvasAsPng();
+    showLatestCapturePreview(png);
+    return {
+      captureId: nextCaptureId(),
+      imageChecksum: await sha256(png),
+      width: gameCanvas.width,
+      height: gameCanvas.height,
+      mimeType: "image/png",
+      bytes: png.size,
+      previewVisible: true,
+    };
+  },
+});
+```
+
+Canvas 2D can use `HTMLCanvasElement.toBlob`. PixiJS can expose its application
+canvas and must preserve the drawing buffer if browser readback is required.
+The complete zero-configuration reference path is
+[`attachHuginnDebugger`](../src/debugger/index.ts); THORNWATCH shows the PixiJS
+composition in [`view.ts`](../src/games/thornwatch/view.ts).
 
 ## Verification before claiming integration
 
@@ -223,11 +304,13 @@ events. A display failure must not alter an authoritative tool result.
 | --- | --- |
 | Snapshot fidelity | Snapshot → restore returns the identical canonical checksum and legal actions |
 | Seeded determinism | Same seed + same actions produces identical per-step actions, events, metrics, and checksums twice |
+| Named setup fidelity | Every authored setup survives `serialize` → `deserialize`, renders visibly, and replays from the same seed |
 | Legal safety | An unavailable action is rejected before it mutates state |
 | Visible execution | Every committed action produces one renderer update |
 | Prefix semantics | Cancel, stop, and error receipts name the exact committed prefix |
 | Human parity | Keyboard/pointer/touch uses the same transition semantics as tools |
-| Browser integration | All seven tools are discoverable and callable on the deployed URL in a WebMCP browser |
+| Browser integration | Seven core tools—and `capture_game` when enabled—are discoverable and callable on the deployed URL in a WebMCP browser |
+| Engine independence | The same tool contract works through at least two real renderer families without importing either engine into core |
 | Optionality | A plain build remains playable and contains no protocol runtime |
 
 Inside this repository, run:

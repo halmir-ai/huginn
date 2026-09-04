@@ -1,6 +1,6 @@
 import { HuginnKernel } from "../huginn/kernel";
 import { createRegressionScenario, type RegressionScenario } from "../huginn/scenario";
-import { registerWebMcpTools, type ToolActivity } from "../webmcp";
+import { registerWebMcpTools, type GameFrameCapture, type ToolActivity } from "../webmcp";
 import type { GameAdapter, SequenceInput, SequenceResult, SnapshotRecord } from "../huginn/types";
 import type { GameMetrics, GameRuntime } from "../game-runtime";
 import "./dock.css";
@@ -12,9 +12,14 @@ export async function attachHuginnDebugger<S, A, E>(runtime: GameRuntime<S, A, E
   let saved: SnapshotRecord | undefined;
   let portableRegression: RegressionScenario<A> | undefined;
   let priorRegression: { signature: string; steps: string; finalChecksum: string } | undefined;
+  let captureUrl: string | undefined;
+  let captureCount = 0;
+  let disposed = false;
+  const captureUrls = new Set<string>();
   const receipts: ToolActivity[] = [];
   const adapter: GameAdapter<S, A, E, GameMetrics> = {
     description: runtime.game.description,
+    setups: runtime.game.setups,
     initialState: seed => runtime.game.initialState(seed),
     listLegalActions: state => runtime.game.legalActions(state),
     reduce: (state, action) => runtime.game.reduce(state, action),
@@ -41,8 +46,12 @@ export async function attachHuginnDebugger<S, A, E>(runtime: GameRuntime<S, A, E
   const app = document.querySelector<HTMLElement>("#app");
   const siteRoot = new URL(app?.dataset.siteRoot || "../../", location.href);
   const scenarioFile = runtime.game.description.id === "coil"
-    ? "coil-shield-recovery.json"
-    : runtime.game.description.id === "starfall" ? "starfall-ball-saver.json" : undefined;
+    ? "coil-level-2-shield.json"
+    : runtime.game.description.id === "starfall"
+      ? "starfall-ball-saver.json"
+      : runtime.game.description.id === "thornwatch"
+        ? "thornwatch-meadow-defense.json"
+        : undefined;
   const exampleLink = scenarioFile
     ? `<a href="${new URL(`regressions/${scenarioFile}`, siteRoot).href}">Open this game's example regression JSON ↗</a>`
     : "";
@@ -51,13 +60,75 @@ export async function attachHuginnDebugger<S, A, E>(runtime: GameRuntime<S, A, E
     <div class="dock-actions"><button type="button" id="checkpoint-save">Save checkpoint</button><button type="button" id="checkpoint-restore" disabled>Restore</button><button type="button" id="receipt-download">Download receipt</button><button type="button" id="regression-download" disabled>Save regression</button></div>
     <p id="tool-activity" role="status">Play yourself, or ask your browser agent to inspect and experiment.</p>
     <p id="regression-status" class="regression-status" data-verdict="not-requested" role="status">Regression checks are optional · build normally, add expectations only when behavior needs proof.</p>
-    <details><summary>Agent experiment guide</summary><p>Call <code>describe_game</code> and <code>list_legal_actions</code>. Run a bounded <code>apply_action_sequence</code>; add optional <code>expect</code> checks to turn an important outcome into a pass/fail regression. Seeded expectation runs can be saved as small replayable JSON files. Tool mutations pause the human clock; every step still renders on this canvas.</p>${exampleLink}<pre id="tool-recent">No agent tool calls yet.</pre></details>`;
+    <figure id="game-capture" class="game-capture" hidden><img alt="Latest game frame captured by the browser agent"><figcaption></figcaption></figure>
+    <details><summary>Agent experiment guide</summary><p>Call <code>describe_game</code> and <code>list_legal_actions</code>. If the game publishes a named setup, use its <code>setup_id</code> to test that authored moment without replaying unrelated progression. Run a bounded <code>apply_action_sequence</code>; add optional <code>expect</code> checks to turn an important outcome into a pass/fail regression. Call <code>capture_game</code> when a rendered frame is material evidence. Seeded expectation runs can be saved as small replayable JSON files. Tool mutations pause the human clock; setup initialization and every step still render on this canvas.</p>${exampleLink}<pre id="tool-recent">No agent tool calls yet.</pre></details>`;
   const status = dock.querySelector<HTMLElement>("#tool-activity")!;
   const recent = dock.querySelector<HTMLElement>("#tool-recent")!;
   const regressionStatus = dock.querySelector<HTMLElement>("#regression-status")!;
   const saveButton = dock.querySelector<HTMLButtonElement>("#checkpoint-save")!;
   const restoreButton = dock.querySelector<HTMLButtonElement>("#checkpoint-restore")!;
   const regressionButton = dock.querySelector<HTMLButtonElement>("#regression-download")!;
+  const capturePreview = dock.querySelector<HTMLElement>("#game-capture")!;
+  const captureImage = capturePreview.querySelector<HTMLImageElement>("img")!;
+  const captureCaption = capturePreview.querySelector<HTMLElement>("figcaption")!;
+  const releaseCaptureUrl = (url: string | undefined) => {
+    if (!url || !captureUrls.delete(url)) return;
+    URL.revokeObjectURL(url);
+  };
+  const waitForSettledPaint = () => new Promise<void>((resolve) => {
+    // The simulation remains frozen by GameRuntime.runExclusive while both the
+    // native Canvas RAF loops and Pixi's ticker get a complete paint boundary.
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+  const captureFrame = async (): Promise<GameFrameCapture> => {
+    if (disposed) throw new Error("The game debugger was disposed before frame capture");
+    const canvas = app?.querySelector<HTMLCanvasElement>("canvas");
+    if (!canvas) throw new Error("No live game canvas is available to capture");
+    await waitForSettledPaint();
+    if (disposed) throw new Error("The game debugger was disposed during frame capture");
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(
+      value => value ? resolve(value) : reject(new Error("The live game canvas could not be encoded")),
+      "image/png",
+    ));
+    if (disposed) throw new Error("The game debugger was disposed during frame capture");
+    if (blob.size > 8 * 1024 * 1024) throw new Error("The captured PNG exceeds the 8 MiB limit");
+    const imageChecksum = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer()))]
+      .map(byte => byte.toString(16).padStart(2, "0"))
+      .join("");
+    if (disposed) throw new Error("The game debugger was disposed during frame capture");
+    const nextUrl = URL.createObjectURL(blob);
+    captureUrls.add(nextUrl);
+    const priorUrl = captureUrl;
+    captureUrl = nextUrl;
+    captureImage.src = nextUrl;
+    capturePreview.hidden = false;
+    try {
+      await captureImage.decode();
+      if (disposed) throw new Error("The game debugger was disposed during frame capture");
+    } catch (error) {
+      releaseCaptureUrl(nextUrl);
+      if (captureUrl === nextUrl) captureUrl = priorUrl;
+      if (!disposed && priorUrl) captureImage.src = priorUrl;
+      else if (!disposed) {
+        captureImage.removeAttribute("src");
+        capturePreview.hidden = true;
+      }
+      if (disposed) throw error;
+      throw new Error("The captured PNG could not be displayed in the page debugger");
+    }
+    releaseCaptureUrl(priorUrl);
+    const captureId = `frame-${Date.now().toString(36)}-${++captureCount}`;
+    captureCaption.textContent = `${canvas.width}×${canvas.height} PNG · ${imageChecksum.slice(0, 12)}`;
+    return {
+      captureId,
+      imageChecksum,
+      width: canvas.width,
+      height: canvas.height,
+      mimeType: "image/png",
+      bytes: blob.size,
+      previewVisible: true,
+    };
+  };
   const setRegressionStatus = (verdict: "not-requested" | "passed" | "failed" | "inconclusive", message: string) => {
     regressionStatus.dataset.verdict = verdict;
     regressionStatus.textContent = message;
@@ -138,14 +209,14 @@ export async function attachHuginnDebugger<S, A, E>(runtime: GameRuntime<S, A, E
     kernel,
     adapter.description.actions.map(action => action.inputSchema),
     observe,
-    { runMutation: operation => runtime.runExclusive(operation) },
+    { runMutation: operation => runtime.runExclusive(operation), captureFrame },
   ).catch((error: unknown) => {
     status.textContent = `Tool registration failed: ${error instanceof Error ? error.message : String(error)}`;
     return { supported: false, toolNames: [] as string[], dispose: () => {} };
   });
   const supported = registration.supported;
   dock.querySelector("#tool-connection")!.textContent = supported
-    ? "Connected · 7 live browser tools"
+    ? `Connected · ${registration.toolNames.length} live browser tools`
     : "Human play ready · use a WebMCP-compatible browser for agent tools";
   saveButton.addEventListener("click", async () => {
     try {
@@ -183,7 +254,14 @@ export async function attachHuginnDebugger<S, A, E>(runtime: GameRuntime<S, A, E
     status.textContent = `Regression JSON saved · ${filename}`;
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
-  const pageHide = () => registration.dispose();
+  const pageHide = () => {
+    if (disposed) return;
+    disposed = true;
+    registration.dispose();
+    for (const url of [...captureUrls]) releaseCaptureUrl(url);
+    captureUrl = undefined;
+    captureImage.removeAttribute("src");
+  };
   window.addEventListener("pagehide", pageHide, { once: true });
-  return { kernel, supported, dispose: () => { window.removeEventListener("pagehide", pageHide); registration.dispose(); } };
+  return { kernel, supported, dispose: () => { window.removeEventListener("pagehide", pageHide); pageHide(); } };
 }

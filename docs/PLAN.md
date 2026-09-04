@@ -1,19 +1,24 @@
 # Submission plan
 
-## Current implementation checkpoint — September 2, late evening Pacific
+## Current implementation checkpoint — September 3 final build
 
-RTS Lab and Tideglass Relay are now playable examples sharing the same seven
-tools. Tideglass was authored in an isolated Codex task, followed by an
-explicitly requested, measured battery-budget revision. Both games have full
-ordinary controls and WebMCP-off comparison modes. The paired browser probe
-matched all 46 state transitions; see [results](demo/COMPARISON_RESULTS.md),
-[authoring baseline](demo/TIDEGLASS_RELAY.md), and
-[actual revision](demo/TIDEGLASS_REFINEMENT.md).
+COIL, STARFALL, and THORNWATCH are playable game-first examples. COIL includes
+three real campaign levels and authored mechanic setups; THORNWATCH includes
+three routes and reproducible tower-plan branches. Every integrated page exposes
+seven core experiment tools plus optional `capture_game`; every standalone
+bundle is audited to contain no protocol runtime.
 
-Keep the scope at these two examples and protect the filming window. The
-original Dawn retrofit and broad engine-generality claim remain unfulfilled.
-The earlier recovery checkpoint and original schedule below are history, not
-current delivery requirements. No token or coding-iteration savings are claimed.
+The engine-generality claim is now fulfilled narrowly and concretely: COIL and
+STARFALL use native Canvas 2D, while THORNWATCH uses PixiJS 8/WebGL behind the
+same adapter contract. An actual Codex in-app-browser smoke run covers
+discovery, execution, and state-bound PNG capture on both renderer families;
+the retained fixture is explicitly manually recorded metadata, while the live
+public pages are the reproducible evidence surface. The
+current recording source is [TEST_THE_MOMENT_DEMO.md](demo/TEST_THE_MOMENT_DEMO.md).
+Do not claim token, wall-time, iteration, or code-change savings.
+
+The recovery checkpoints and original Dawn/RTS plan below are retained as
+history, not current delivery requirements.
 
 ## Recovery checkpoint — September 2, evening Pacific
 

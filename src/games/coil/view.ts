@@ -1,5 +1,5 @@
 import type { GameMountOptions, GameRuntime } from "../../game-runtime";
-import { BONUS_STEPS, GRID_HEIGHT, GRID_WIDTH, levelFor, opposite, stepDurationMs, vectors } from "./game";
+import { BONUS_STEPS, COIL_LEVELS, GRID_HEIGHT, GRID_WIDTH, campaignLevelFor, levelProgressFor, levelWalls, opposite, speedLevelFor, stepDurationMs, vectors } from "./game";
 import type { Cell, CoilAction, CoilEvent, CoilState, Direction } from "./game";
 import "./view.css";
 
@@ -24,9 +24,9 @@ export function isNativeButtonActivationKey(key: string, code: string): boolean 
 export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, CoilAction, CoilEvent>, _options: GameMountOptions): () => void {
   root.innerHTML = `<section class="coil" aria-label="COIL arcade game">
     <header class="coil-header"><div class="coil-brand"><span class="coil-mark" aria-hidden="true"></span><div><h1>COIL</h1><p>AFTER HOURS ARCADE</p></div></div><div class="coil-run-info"><span class="coil-live-dot"></span><span>ONE MORE RUN.</span></div><button class="coil-pause coil-icon-button" type="button" aria-label="Pause game" title="Pause · Space"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5v14M16 5v14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button></header>
-    <div class="coil-playfield"><div class="coil-scorebar"><div class="coil-score-block"><span>SCORE</span><strong class="coil-score">0000</strong></div><div class="coil-best-block"><span>PERSONAL BEST</span><strong class="coil-best">0000</strong></div><div class="coil-speed-block"><span>SPEED</span><strong><span class="coil-level">01</span><i class="coil-speed-bars" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b></i></strong></div></div>
+    <div class="coil-playfield"><div class="coil-scorebar"><div class="coil-score-block"><span>SCORE</span><strong class="coil-score">0000</strong></div><div class="coil-best-block"><span>PERSONAL BEST</span><strong class="coil-best">0000</strong></div><div class="coil-speed-block"><span>LEVEL</span><strong><span class="coil-level">01</span><i class="coil-speed-bars" aria-hidden="true"><b></b><b></b><b></b><b></b><b></b><b></b></i></strong></div></div>
       <div class="coil-board"><canvas width="${W}" height="${H}" tabindex="0" aria-label="Snake board. Arrow keys or WASD turn. Q arms the emergency shield. Space starts, pauses, and retries. Swipe on the board or use the direction buttons below."></canvas>
-        <div class="coil-overlay"><div class="coil-overlay-card"><span class="coil-eyebrow">THE NIGHT IS YOUNG</span><h2>Stay hungry.<br>Stay alive.</h2><p class="coil-overlay-copy">An old obsession. A new high score.<br>Chase coral. Risk it for gold.</p><button type="button" class="coil-primary"><span>LET’S PLAY</span><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="coil-overlay-hint">ARROWS / WASD TO TURN · SPACE TO START</span></div></div>
+        <div class="coil-overlay"><div class="coil-overlay-card"><span class="coil-eyebrow">THREE LEVELS. ONE LIFE.</span><h2>Stay hungry.<br>Stay alive.</h2><p class="coil-overlay-copy">Cross the Signal Gates. Survive the Night Maze.<br>Chase coral. Risk it for gold.</p><button type="button" class="coil-primary"><span>LET’S PLAY</span><svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="coil-overlay-hint">ARROWS / WASD TO TURN · SPACE TO START</span></div></div>
         <div class="coil-countdown" hidden aria-live="polite"><strong>3</strong><span>FIND YOUR FLOW</span></div>
         <div class="coil-toast" hidden></div>
       </div>
@@ -226,6 +226,8 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
     const now = performance.now();
     if (kind === "reset" || kind === "restore") {
       previous = next; movedAt = 0; bursts = []; clearInput(); shieldRequested = false; shieldRecovery = false; countdownAt = null; deathAt = 0; started = next.tick > 0; runBest = best;
+    } else if (events.some(event => event.type === "level-start")) {
+      previous = next; movedAt = 0; clearInput(); shieldRequested = false; shieldRecovery = false;
     } else if (next.tick !== state.tick) {
       previous = state; movedAt = now;
       // Batched or restored moves should not interpolate through unrelated cells.
@@ -244,13 +246,15 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
       try { localStorage.setItem("coil.best.v1", String(best)); } catch { /* Session-only best is still useful. */ }
     }
     scoreText.textContent = pad(state.score); bestText.textContent = pad(best);
-    levelText.textContent = String(levelFor(state)).padStart(2, "0"); lengthText.textContent = `LENGTH ${String(state.snake.length).padStart(2, "0")}`;
+    const campaignLevel = campaignLevelFor(state);
+    levelText.textContent = String(campaignLevel).padStart(2, "0"); lengthText.textContent = `${COIL_LEVELS[campaignLevel - 1].title.toUpperCase()} · LENGTH ${String(state.snake.length).padStart(2, "0")}`;
     shieldButton.disabled = state.phase !== "playing" || state.shieldCharges === 0 || runtime.control !== "human";
     shieldStatus.textContent = state.shieldStepsLeft > 0 ? `ARMED · ${state.shieldStepsLeft} ADVANCES LEFT` : state.shieldCharges ? "READY · 1 CHARGE" : "USED · RESTART TO RECHARGE";
     section.classList.toggle("coil-shield-armed", state.shieldStepsLeft > 0);
-    progressLabel.textContent = `${5 - state.foodsEaten % 5} FRUIT TO GOLD`;
-    section.querySelectorAll<HTMLElement>(".coil-fruit-progress b").forEach((dot, i) => dot.classList.toggle("lit", i < state.foodsEaten % 5));
-    section.querySelectorAll<HTMLElement>(".coil-speed-bars b").forEach((bar, i) => bar.classList.toggle("lit", i < Math.min(6, levelFor(state))));
+    const progress = levelProgressFor(state) % 5;
+    progressLabel.textContent = campaignLevel < 3 ? `${5 - progress} FRUIT TO LEVEL ${campaignLevel + 1}` : `${5 - progress} FRUIT TO GOLD`;
+    section.querySelectorAll<HTMLElement>(".coil-fruit-progress b").forEach((dot, i) => dot.classList.toggle("lit", i < progress));
+    section.querySelectorAll<HTMLElement>(".coil-speed-bars b").forEach((bar, i) => bar.classList.toggle("lit", i < Math.min(6, speedLevelFor(state))));
     goldTimer.hidden = !state.bonus;
     if (state.bonus) {
       goldTimer.querySelector("strong")!.textContent = `${(state.bonus.remaining * stepDurationMs(state) / 1000).toFixed(1)}s`;
@@ -261,6 +265,7 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
     for (const event of events) {
       if (event.type === "food" || event.type === "bonus") bursts.push({ ...center(event), points: event.points, gold: event.type === "bonus", born: now });
       if (event.type === "speed-up") { showToast(`SPEED ${String(event.level).padStart(2, "0")} · GOLD IS LIVE`, true); announce(`Speed level ${event.level}. Golden fruit on the board, worth 50 points.`); }
+      if (event.type === "level-start") { showToast(`LEVEL ${String(event.level).padStart(2, "0")} · ${event.title.toUpperCase()}`, true); announce(`Level ${event.level}. ${event.title}. Shield replenished.`); }
       if (event.type === "bonus") { showToast("GOLD RUSH. +50", true); announce("Golden fruit. 50 points."); }
       if (event.type === "shield-armed") { showToast("SHIELD ARMED · 10 ADVANCES"); announce("Emergency shield armed for the next ten cell advances. Charge used."); }
       if (event.type === "shield-blocked") { clearInput(); showToast("SHIELD BLOCKED THE HIT · TURN NOW"); announce("Shield blocked the collision. Protection used. Choose a legal direction, then resume."); }
@@ -349,6 +354,14 @@ export function mountCoil(root: HTMLElement, runtime: GameRuntime<CoilState, Coi
     ctx!.strokeRect(PAD - .5, PAD - .5, GRID_WIDTH * CELL + 1, GRID_HEIGHT * CELL + 1);
     ctx!.strokeStyle = state.phase === "dead" ? "#ff8c8e" : "#63c9b5"; ctx!.lineWidth = 2;
     for (const [x, y, dx, dy] of [[PAD, PAD, 1, 1], [W - PAD, PAD, -1, 1], [PAD, H - PAD, 1, -1], [W - PAD, H - PAD, -1, -1]]) { ctx!.beginPath(); ctx!.moveTo(x + dx * 12, y); ctx!.lineTo(x, y); ctx!.lineTo(x, y + dy * 12); ctx!.stroke(); }
+    for (const wall of levelWalls(campaignLevelFor(state))) {
+      const x = PAD + wall.x * CELL + 3, y = PAD + wall.y * CELL + 3;
+      const glow = ctx!.createLinearGradient(x, y, x + CELL - 6, y + CELL - 6);
+      glow.addColorStop(0, "rgba(105,174,190,.36)"); glow.addColorStop(1, "rgba(41,91,111,.58)");
+      ctx!.fillStyle = glow; ctx!.shadowColor = "rgba(120,220,224,.18)"; ctx!.shadowBlur = 9;
+      ctx!.beginPath(); ctx!.roundRect(x, y, CELL - 6, CELL - 6, 5); ctx!.fill(); ctx!.shadowBlur = 0;
+      ctx!.strokeStyle = "rgba(178,239,235,.2)"; ctx!.lineWidth = 1; ctx!.stroke();
+    }
     if (state.food) drawFruit(state.food, t, false);
     if (state.bonus) drawFruit(state.bonus, t, true, state.bonus.remaining);
     drawSnake(t);

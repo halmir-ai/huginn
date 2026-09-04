@@ -1,6 +1,6 @@
 {
   "format": "huginn/current-kernel-node-replay-v1",
-  "sourceDigest": "1ef26820e16e3c4edff395a27b3648e30e2c7dbf48a523459b4174e2c277dd48",
+  "sourceDigest": "263159d877c9737c18fe2a19dcf97e905590acb8bb4db360033c69bd744d5b16",
   "sourcePaths": {
     "adapter": "src/demo/tideglass.ts",
     "kernel": "src/huginn/kernel.ts",

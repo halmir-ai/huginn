@@ -24,6 +24,73 @@ describe("canonical state", () => {
 });
 
 describe("HuginnKernel", () => {
+  it("discovers named setups and starts a reproducible experiment from one", async () => {
+    const rendered: string[] = [];
+    const base = createRiverlandsAdapter((_state, context) => {
+      rendered.push(`${context.kind}:${context.setupId ?? "ordinary"}`);
+    });
+    const adapter = {
+      ...base,
+      setups: [{
+        id: "house-ready",
+        title: "House-ready economy",
+        description: "Skip gathering and begin with enough wood to test housing.",
+        createState(seed: number) {
+          return { ...base.initialState(seed), wood: 7 };
+        },
+      }],
+    };
+    const first = new HuginnKernel(adapter, 12, noDelay);
+    const second = new HuginnKernel(adapter, 99, noDelay);
+
+    const described = await first.describeGame();
+    expect(described.capabilities.namedSetups).toBe(true);
+    expect(described.setups).toEqual([{
+      id: "house-ready",
+      title: "House-ready economy",
+      description: "Skip gathering and begin with enough wood to test housing.",
+    }]);
+
+    const input = {
+      setup_id: "house-ready",
+      seed: 44,
+      actions: [{ type: "build_house" }] as RiverlandsAction[],
+      expect: [{ metric: "housing", operator: "eq" as const, value: 5 }],
+    };
+    const runA = await first.applyActionSequence({ request_id: "setup-a", ...input });
+    const runB = await second.applyActionSequence({ request_id: "setup-b", ...input });
+    expect(runA).toMatchObject({ status: "completed", verdict: "passed", metrics: { wood: 2, housing: 5 } });
+    expect(runB.steps).toEqual(runA.steps);
+    expect(runB.finalChecksum).toBe(runA.finalChecksum);
+    expect((await first.describeGame()).current.seed).toBe(44);
+    expect(rendered).toEqual([
+      "reset:house-ready", "action:ordinary",
+      "reset:house-ready", "action:ordinary",
+    ]);
+  });
+
+  it("rejects unknown or conflicting named setups before mutation", async () => {
+    const base = createRiverlandsAdapter();
+    const adapter = {
+      ...base,
+      setups: [{
+        id: "house-ready",
+        title: "House-ready economy",
+        description: "Begin with enough wood to test housing.",
+        createState: (seed: number) => ({ ...base.initialState(seed), wood: 7 }),
+      }],
+    };
+    const kernel = new HuginnKernel(adapter, 12, noDelay);
+    const before = await kernel.getState();
+    await expect(kernel.applyActionSequence({
+      request_id: "missing-setup", setup_id: "not-there", actions: [],
+    })).rejects.toThrow("Unknown setup");
+    await expect(kernel.applyActionSequence({
+      request_id: "conflicting-setup", setup_id: "house-ready", base_snapshot_id: "snapshot-1", actions: [],
+    })).rejects.toThrow("setup_id or base_snapshot_id");
+    expect(await kernel.getState()).toEqual(before);
+  });
+
   it("keeps a read receipt atomic when a live game resets during async hashing", async () => {
     const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, noDelay);
     const initial = await kernel.getState();

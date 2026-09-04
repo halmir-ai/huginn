@@ -8,6 +8,7 @@ export interface RegressionScenario<Action> {
   game: Pick<GameDescription, "id" | "title" | "version">;
   input: {
     seed: number;
+    setup_id?: string;
     actions: Action[];
     stop_when?: StopCondition;
     expect: MetricExpectation[];
@@ -24,6 +25,7 @@ export function createRegressionScenario<Action>(
   description?: string,
 ): RegressionScenario<Action> | null {
   if (!safeRequestId(input.request_id)
+    || (input.setup_id !== undefined && !safeRequestId(input.setup_id))
     || typeof input.seed !== "number" || !Number.isSafeInteger(input.seed) || input.seed < 0 || input.seed > 0x7fffffff
     || input.base_snapshot_id !== undefined || input.expected_base_checksum !== undefined
     || !Array.isArray(input.expect) || input.expect.length === 0) return null;
@@ -35,6 +37,7 @@ export function createRegressionScenario<Action>(
     game: { id: game.id, title: game.title, version: game.version },
     input: {
       seed: input.seed,
+      ...(input.setup_id === undefined ? {} : { setup_id: input.setup_id }),
       actions: structuredClone(input.actions),
       ...(input.stop_when === undefined ? {} : { stop_when: structuredClone(input.stop_when) }),
       expect: structuredClone(input.expect),
@@ -51,6 +54,7 @@ export function sequenceInputFromScenario<Action>(
     request_id: requestId,
     speed,
     seed: scenario.input.seed,
+    ...(scenario.input.setup_id === undefined ? {} : { setup_id: scenario.input.setup_id }),
     actions: structuredClone(scenario.input.actions),
     ...(scenario.input.stop_when === undefined ? {} : { stop_when: structuredClone(scenario.input.stop_when) }),
     expect: structuredClone(scenario.input.expect),

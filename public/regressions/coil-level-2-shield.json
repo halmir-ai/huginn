@@ -1,0 +1,24 @@
+{
+  "format": "huginn/regression-v1",
+  "id": "regression-coil-level-2-shield",
+  "title": "COIL: Level 2 signal-gate recovery",
+  "description": "Start at the authored Level 2 gate, arm the shield, and verify that the first obstacle impact is survived.",
+  "game": {
+    "id": "coil",
+    "title": "COIL",
+    "version": "1.2.0"
+  },
+  "input": {
+    "seed": 12,
+    "setup_id": "level-2-gate",
+    "actions": [
+      { "type": "shield" },
+      { "type": "advance", "steps": 1 }
+    ],
+    "expect": [
+      { "metric": "campaignLevel", "operator": "eq", "value": 2 },
+      { "metric": "alive", "operator": "eq", "value": true },
+      { "metric": "shieldStepsLeft", "operator": "eq", "value": 0 }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "format": "huginn/regression-v1",
+  "id": "regression-thornwatch-meadow-defense",
+  "title": "THORNWATCH: near-road first-wave defense",
+  "description": "From the authored Meadow Opening, place one fast and one long-range tower near the road and resolve exactly 90 combat frames.",
+  "game": {
+    "id": "thornwatch",
+    "title": "THORNWATCH",
+    "version": "1.0.0"
+  },
+  "input": {
+    "seed": 12,
+    "setup_id": "meadow-opening",
+    "actions": [
+      { "type": "place_tower", "pad": 29, "tower": "archer" },
+      { "type": "place_tower", "pad": 30, "tower": "ballista" },
+      { "type": "start_wave" },
+      { "type": "advance", "frames": 30 },
+      { "type": "advance", "frames": 30 },
+      { "type": "advance", "frames": 30 }
+    ],
+    "expect": [
+      { "metric": "phase", "operator": "eq", "value": "build" },
+      { "metric": "wave", "operator": "eq", "value": 1 },
+      { "metric": "baseHp", "operator": "eq", "value": 18 },
+      { "metric": "kills", "operator": "eq", "value": 3 },
+      { "metric": "leaks", "operator": "eq", "value": 1 }
+    ]
+  }
+}

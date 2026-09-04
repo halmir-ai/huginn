@@ -1,10 +1,11 @@
-import type { GameDescription, LegalAction, Metrics } from "../huginn/types";
+import type { GameDescription, GameSetup, LegalAction, Metrics } from "../huginn/types";
 
 /** Ordinary reference game runtime. This module has no agent/protocol dependencies. */
 export type GameMetrics = Metrics;
 export type { GameDescription, LegalAction };
 export interface GameDefinition<S, A, E> {
   description: GameDescription;
+  setups?: readonly GameSetup<S>[];
   initialState(seed: number): S;
   legalActions(state: S): LegalAction<A>[];
   reduce(state: S, action: A): { state: S; events: E[] };

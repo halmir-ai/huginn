@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { GameRuntime } from "../src/game-runtime";
-import { BONUS_STEPS, GRID_HEIGHT, GRID_WIDTH, coilGame, levelFor, opposite, stepDurationMs, vectors } from "../src/games/coil/game";
+import { BONUS_STEPS, GRID_HEIGHT, GRID_WIDTH, campaignLevelFor, coilGame, levelFor, levelWalls, opposite, stepDurationMs, vectors } from "../src/games/coil/game";
 import type { Cell, CoilAction, CoilState, Direction } from "../src/games/coil/game";
 
 const step = (state: CoilState, action: CoilAction): CoilState => coilGame.reduce(state, action).state;
@@ -14,7 +14,7 @@ const firstFruitPlan: CoilAction[] = [
 ];
 
 function routeToFood(state: CoilState): Direction[] {
-  const occupied = new Set(state.snake.map(cellKey));
+  const occupied = new Set([...state.snake, ...levelWalls(campaignLevelFor(state))].map(cellKey));
   const queue: { cell: Cell; path: Direction[] }[] = [{ cell: state.snake[0], path: [] }];
   const visited = new Set<string>([cellKey(state.snake[0])]);
   for (let index = 0; index < queue.length; index++) {
@@ -51,6 +51,11 @@ function checkOccupancy(state: CoilState) {
     expect(cellKey(state.bonus)).not.toBe(state.food && cellKey(state.food));
     expect(state.bonus.x).toBeGreaterThanOrEqual(0); expect(state.bonus.x).toBeLessThan(GRID_WIDTH);
     expect(state.bonus.y).toBeGreaterThanOrEqual(0); expect(state.bonus.y).toBeLessThan(GRID_HEIGHT);
+  }
+  for (const wall of levelWalls(campaignLevelFor(state))) {
+    expect(state.snake.some(cell => cellKey(cell) === cellKey(wall))).toBe(false);
+    expect(Boolean(state.food && cellKey(state.food) === cellKey(wall))).toBe(false);
+    expect(Boolean(state.bonus && cellKey(state.bonus) === cellKey(wall))).toBe(false);
   }
 }
 
@@ -115,20 +120,22 @@ describe("COIL mechanics", () => {
   it("grows, awards points, speeds up every fifth fruit, and spawns a timed golden fruit", () => {
     const before = almostFifth(); expect(coilGame.deserialize(before)).toEqual(before);
     const result = coilGame.reduce(before, { type: "advance", steps: 1 });
-    expect(result.state.snake).toHaveLength(10); expect(result.state.foodsEaten).toBe(5); expect(result.state.score).toBe(50);
+    expect(result.state.snake).toHaveLength(5); expect(result.state.foodsEaten).toBe(5); expect(result.state.score).toBe(50);
     expect(levelFor(result.state)).toBe(2); expect(stepDurationMs(result.state)).toBe(140);
+    expect(campaignLevelFor(result.state)).toBe(2);
     expect(result.state.bonus?.remaining).toBe(BONUS_STEPS);
-    expect(result.events.map(event => event.type)).toEqual(["food", "speed-up", "bonus-spawn"]);
+    expect(result.events.map(event => event.type)).toEqual(["food", "level-complete", "level-start", "speed-up", "bonus-spawn"]);
     checkOccupancy(result.state);
     expect(stepDurationMs({ foodsEaten: 100 })).toBe(64);
   });
 
   it("awards 50 bonus points without growth, including on its last available step", () => {
     const state = step(almostFifth(), { type: "advance", steps: 1 });
+    state.snake = Array.from({ length: 5 }, (_, index) => ({ x: 15 - index, y: 11 }));
     state.bonus = { x: 16, y: 11, remaining: 1 }; state.food = { x: 20, y: 5 };
     const result = coilGame.reduce(coilGame.deserialize(state), { type: "advance", steps: 1 });
     expect(result.state.score).toBe(100); expect(result.state.bonusesEaten).toBe(1);
-    expect(result.state.snake).toHaveLength(10); expect(result.state.bonus).toBeNull();
+    expect(result.state.snake).toHaveLength(5); expect(result.state.bonus).toBeNull();
     expect(result.events).toContainEqual({ type: "bonus", x: 16, y: 11, points: 50 });
     expect(coilGame.deserialize(result.state)).toEqual(result.state);
   });
@@ -168,7 +175,7 @@ describe("COIL mechanics", () => {
     const runtime = new GameRuntime(coilGame, 12), before = structuredClone(runtime.state);
     runtime.play(); runtime.pause(); expect(runtime.state).toEqual(before);
     expect(runtime.playing).toBe(false); expect(Object.keys(runtime.state)).not.toContain("paused");
-    expect(coilGame.metrics(before)).toEqual({ score: 0, length: 5, foodsEaten: 0, bonusesEaten: 0, level: 1, stepDurationMs: 148, bonusStepsLeft: 0, shieldCharges: 1, shieldStepsLeft: 0, tick: 0, alive: true });
+    expect(coilGame.metrics(before)).toEqual({ score: 0, length: 5, foodsEaten: 0, bonusesEaten: 0, campaignLevel: 1, levelTitle: "Open Circuit", levelProgress: 0, speedLevel: 1, stepDurationMs: 148, bonusStepsLeft: 0, shieldCharges: 1, shieldStepsLeft: 0, tick: 0, alive: true });
     for (const schema of coilGame.description.actions) expect(schema.inputSchema.additionalProperties).toBe(false);
   });
 });

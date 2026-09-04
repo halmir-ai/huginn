@@ -99,7 +99,7 @@ describe("COIL emergency shield", () => {
 
   it.each([1, 2])("spends bonus time but awards nothing on a blocked collision with %i bonus steps left", remaining => {
     const before = coilGame.deserialize({
-      ...atWall(), snake: Array.from({ length: 10 }, (_, i) => ({ x: 27 - i, y: 11 })),
+      ...atWall(), snake: Array.from({ length: 5 }, (_, i) => ({ x: 27 - i, y: 11 })),
       foodsEaten: 5, score: 50, bonus: { x: 20, y: 20, remaining },
     });
     const result = coilGame.reduce(step(before, shield), advance);
@@ -112,15 +112,15 @@ describe("COIL emergency shield", () => {
 
   it("preserves normal food and bonus rewards during safe shielded movement", () => {
     const before = coilGame.deserialize({
-      ...coilGame.initialState(12), snake: Array.from({ length: 10 }, (_, i) => ({ x: 15 - i, y: 11 })),
+      ...coilGame.initialState(12), snake: Array.from({ length: 5 }, (_, i) => ({ x: 15 - i, y: 11 })),
       foodsEaten: 5, score: 50, tick: 30, bonus: { x: 16, y: 11, remaining: 2 }, food: { x: 17, y: 11 },
     });
     const bonus = step(step(before, shield), advance);
     expect(bonus).toMatchObject({ score: 100, bonusesEaten: 1, shieldStepsLeft: 9 });
-    expect(bonus.snake).toHaveLength(10);
+    expect(bonus.snake).toHaveLength(5);
     const food = step(bonus, advance);
     expect(food).toMatchObject({ score: 110, foodsEaten: 6, shieldStepsLeft: 8 });
-    expect(food.snake).toHaveLength(11);
+    expect(food.snake).toHaveLength(6);
     expect(coilGame.deserialize(food)).toEqual(food);
   });
 

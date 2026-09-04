@@ -37,16 +37,32 @@ export interface Transition<State, Event> {
   events: Event[];
 }
 
+/**
+ * A curated, game-owned state from which an agent can begin an experiment.
+ * Setups are code-defined and validated by the normal save codec; callers can
+ * select an id but can never inject arbitrary state.
+ */
+export interface GameSetup<State> {
+  id: string;
+  title: string;
+  description: string;
+  createState(seed: number): State;
+}
+
+export type GameSetupDescription = Pick<GameSetup<never>, "id" | "title" | "description">;
+
 export interface RenderContext<Action, Event> {
   kind: "reset" | "action" | "restore";
   action?: Action;
   events: Event[];
   step?: number;
   requestId?: string;
+  setupId?: string;
 }
 
 export interface GameAdapter<State, Action, Event, GameMetrics extends Metrics> {
   readonly description: GameDescription;
+  readonly setups?: readonly GameSetup<State>[];
   initialState(seed: number): State;
   listLegalActions(state: State): LegalAction<Action>[];
   reduce(state: State, action: Action): Transition<State, Event>;
@@ -73,6 +89,7 @@ export interface MetricExpectation {
 export interface SequenceInput<Action> {
   request_id: string;
   actions: Action[];
+  setup_id?: string;
   seed?: number;
   base_snapshot_id?: string;
   expected_base_checksum?: string;

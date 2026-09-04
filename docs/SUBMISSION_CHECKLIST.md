@@ -18,16 +18,17 @@ free and unrestricted through September 21 at 5 PM Pacific.
   successfully calls the same tools. Connected Chrome currently reports
   WebMCP unavailable; automated access to its flags page is blocked. This is
   not a blocker for the verified Codex built-in-browser route.
-- [x] A clean-session rehearsal confirms assets, gameplay, snapshot/restore,
-  and the golden experiment work on the deployed origin.
+- [ ] After this final deploy, a clean-session rehearsal must confirm assets,
+  gameplay, snapshot/restore, both renderer families, `capture_game`, and the
+  two golden setup experiments on the public origin.
 
 ## Public repository
 
 - [x] Public repository: <https://github.com/halmir-ai/huginn>.
-- [x] All RTS Lab source, selected assets, provenance, and local instructions
-  are present in the repository.
-- [x] Top-level MIT `LICENSE` exists; selected RTS art is separately documented
-  under CC BY 4.0.
+- [x] All game source, selected RTS/THORNWATCH assets, provenance manifests,
+  and local instructions are present in the repository.
+- [x] Top-level MIT `LICENSE` exists; selected game art is separately documented
+  under CC BY 4.0 with exact hashes.
 - [x] GitHub visibly detects the MIT license in the repository header/About area.
 - [x] The imperative WebMCP registration is easy to find in
   `src/webmcp/index.ts`; it calls `registerTool` with name, description,
@@ -40,21 +41,24 @@ free and unrestricted through September 21 at 5 PM Pacific.
 - [ ] Explain why live in-browser game state makes playtesting a strong WebMCP
   use case rather than a backend or ordinary DOM-automation problem.
 - [ ] Explain the user-experience improvement: natural-language experiments,
-  visible execution, legal actions, and immediate structured results.
+  visible execution, legal actions, immediate structured results, and a visual
+  capture paired to canonical state.
 - [ ] State what the designer and agent can now do together: branch a live
   timeline, run counterfactual build orders from the same initial RNG state,
   and replay the same plan. Do not claim an unshown balance change or Dawn
   retrofit; different plans can consume RNG draws differently.
 - [ ] Briefly explain the implementation: game adapter, canonical state,
   checksums, snapshot/restore, strict tools, committed-prefix sequences, and
-  visible rendering.
+  visible rendering. Name the native Canvas 2D and PixiJS/WebGL examples as the
+  bounded engine-agnostic proof.
 
 ## Public demo video
 
 - [ ] Public YouTube URL, under three minutes, with clear narration or audio.
 - [ ] The working product and core value appear within the first 15 seconds.
 - [ ] The video visibly proves tool discovery, legal actions, live execution,
-  same-snapshot branching, deterministic evidence, and the public URLs.
+  same-setup branching, deterministic evidence, checksum-paired capture,
+  Canvas/Pixi renderer parity, and the public URLs.
 - [ ] Captions, audio mix, phone playback, 720p YouTube compression, and an
   incognito public-link check all pass.
 
