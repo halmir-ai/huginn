@@ -1,12 +1,8 @@
-/** Ordinary game runtime. This module has no agent/protocol dependencies. */
-export type GameMetrics = Record<string, number | string | boolean>;
-export interface LegalAction<A> { action: A; label: string; reason: string }
-export interface GameDescription {
-  id: string; title: string; version: string; summary: string;
-  rules: string[]; victoryConditions: string[]; failureConditions: string[];
-  metrics: { key: string; label: string; description: string; badWhen?: string }[];
-  actions: { type: string; description: string; inputSchema: Record<string, unknown> }[];
-}
+import type { GameDescription, LegalAction, Metrics } from "../huginn/types";
+
+/** Ordinary reference game runtime. This module has no agent/protocol dependencies. */
+export type GameMetrics = Metrics;
+export type { GameDescription, LegalAction };
 export interface GameDefinition<S, A, E> {
   description: GameDescription;
   initialState(seed: number): S;

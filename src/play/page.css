@@ -1,0 +1,8 @@
+.game-navigation{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 auto;padding:10px 20px;max-width:1440px;box-sizing:border-box;background:#090e18;color:#b7c7bd;font:12px/1.4 system-ui,sans-serif}
+.game-navigation a{display:inline-flex;align-items:center;min-height:36px;padding:2px 8px;border-radius:5px;color:inherit;text-decoration:none}
+.game-navigation a:hover{color:#f0d597;background:#ffffff0a}
+.game-navigation a:focus-visible{outline:2px solid #b5f5df;outline-offset:3px}
+.game-navigation .brand{font-weight:800;letter-spacing:.18em}
+.game-navigation .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.plain-notice{max-width:1400px;margin:12px auto;padding:12px 20px;color:#b3c4b6;border-top:1px solid #344139;font:13px/1.5 system-ui,sans-serif}
+@media(max-width:600px){.game-navigation{display:block;padding:4px 10px 8px}.game-navigation .brand{min-height:44px}.game-navigation .nav-links{flex-wrap:wrap;gap:2px 8px;overflow:visible}.game-navigation .nav-links a{flex:none;min-height:44px;white-space:nowrap}}

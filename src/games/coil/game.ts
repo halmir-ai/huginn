@@ -1,4 +1,4 @@
-import type { GameDefinition, LegalAction } from "../../play/core";
+import type { GameDefinition, LegalAction } from "../../game-runtime";
 
 export const GRID_WIDTH = 28;
 export const GRID_HEIGHT = 22;

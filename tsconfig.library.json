@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "dist/library/types",
+    "rootDir": "src",
+    "types": ["vite/client"]
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/huginn/**/*.ts",
+    "src/webmcp/**/*.ts",
+    "src/game-runtime/**/*.ts",
+    "src/debugger/**/*.ts"
+  ]
+}

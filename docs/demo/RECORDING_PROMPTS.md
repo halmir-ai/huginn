@@ -101,7 +101,7 @@ checksums must always come from actual results in that tab.
 
 ## Capture the implementation, not a wall of code
 
-Open `src/huginn/webmcp.ts` at the actual `registerTool` call. Capture roughly
+Open `src/webmcp/index.ts` at the actual `registerTool` call. Capture roughly
 12–18 readable lines showing name, description, inputSchema, and execute.
 Open `src/huginn/types.ts` at `GameAdapter`. The message is “wrap the game's
 own state and transitions,” not “a magic forty-line universal adapter.”

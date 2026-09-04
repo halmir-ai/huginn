@@ -1,10 +1,10 @@
 {
   "format": "huginn/current-kernel-node-replay-v1",
-  "sourceDigest": "afd0e4abf6605960d1d2759d774b9566414696b6ff0601b4687c7f98866a8b9d",
+  "sourceDigest": "1ef26820e16e3c4edff395a27b3648e30e2c7dbf48a523459b4174e2c277dd48",
   "sourcePaths": {
     "adapter": "src/demo/tideglass.ts",
     "kernel": "src/huginn/kernel.ts",
-    "webmcp": "src/huginn/webmcp.ts",
+    "webmcp": "src/webmcp/index.ts",
     "canonical": "src/huginn/canonical.ts"
   },
   "rulesVersion": "0.2.0-refinement",

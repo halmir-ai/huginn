@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GameRuntime } from "../src/play/core";
+import { GameRuntime } from "../src/game-runtime";
 import { coilGame } from "../src/games/coil/game";
 import type { CoilAction, CoilState } from "../src/games/coil/game";
 

@@ -9,7 +9,7 @@ import {
 import { HuginnKernel } from "./huginn/kernel";
 import { checksum } from "./huginn/canonical";
 import type { RenderContext } from "./huginn/types";
-import { registerWebMcpTools, type ToolActivity } from "./huginn/webmcp";
+import { registerWebMcpTools, type ToolActivity } from "./webmcp";
 import { compareRuns, economyActions, rushActions, type RtsResult, type RunReceipt } from "./demo/experiment-notebook";
 import { InteractionLedger, webMcpEnabled } from "./demo/interaction-ledger";
 

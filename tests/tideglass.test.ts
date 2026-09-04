@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { canonicalJson, checksum } from "../src/huginn/canonical";
 import { HuginnKernel } from "../src/huginn/kernel";
-import { buildToolDefinitions } from "../src/huginn/webmcp";
+import { buildToolDefinitions } from "../src/webmcp";
 import {
   HUGINN_BASE, TIDEGLASS_VERSION, connectTideglassWebMcp, createTideglassAdapter, signalRoute, unassistedRoute,
   type TideglassAction,
 } from "../src/demo/tideglass";
 import adapterSource from "../src/demo/tideglass.ts?raw";
 import kernelSource from "../src/huginn/kernel.ts?raw";
-import webMcpSource from "../src/huginn/webmcp.ts?raw";
+import webMcpSource from "../src/webmcp/index.ts?raw";
 import canonicalSource from "../src/huginn/canonical.ts?raw";
 import baseline from "./fixtures/tideglass/baseline.json";
 import baselineRaw from "./fixtures/tideglass/baseline.json?raw";

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { coilGame } from "../src/games/coil/game";
 import type { CoilEvent } from "../src/games/coil/game";
 import { isNativeButtonActivationKey, pauseHumanAfterShieldBlock } from "../src/games/coil/view";
-import { GameRuntime } from "../src/play/core";
+import { GameRuntime } from "../src/game-runtime";
 
 const blocked: CoilEvent[] = [{ type: "shield-blocked", cause: "wall", x: 28, y: 11 }];
 

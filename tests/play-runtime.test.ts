@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GameRuntime, type GameDefinition } from "../src/play/core";
+import { GameRuntime, type GameDefinition } from "../src/game-runtime";
 
 const game: GameDefinition<{ value: number }, { type: "step" }, string> = {
   description: { id: "test", title: "Test", version: "1", summary: "test", rules: [], victoryConditions: [], failureConditions: [], metrics: [], actions: [] },

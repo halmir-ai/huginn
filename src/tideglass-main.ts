@@ -7,11 +7,11 @@ import {
 import { canonicalEqual, checksum } from "./huginn/canonical";
 import { HuginnKernel } from "./huginn/kernel";
 import type { RenderContext, SequenceResult, SnapshotRecord } from "./huginn/types";
-import type { ToolActivity } from "./huginn/webmcp";
+import type { ToolActivity } from "./webmcp";
 import { InteractionLedger, webMcpEnabled } from "./demo/interaction-ledger";
 import adapterSource from "./demo/tideglass.ts?raw";
 import kernelSource from "./huginn/kernel.ts?raw";
-import webMcpSource from "./huginn/webmcp.ts?raw";
+import webMcpSource from "./webmcp/index.ts?raw";
 import canonicalSource from "./huginn/canonical.ts?raw";
 
 type Run = SequenceResult<TideglassAction, TideglassEvent, TideglassMetrics>;

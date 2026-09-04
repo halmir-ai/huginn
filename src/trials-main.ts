@@ -78,7 +78,7 @@ app.innerHTML = `
         <li><code>apply_action_sequence</code> + optional <code>expect</code><span>Run visible actions and ask for a semantic pass/fail verdict only when behavior needs proof.</span></li>
         <li><code>restore_game</code> + fresh replay<span>Return to the same state and prove the fix against the same actions and random seed.</span></li>
       </ol>
-      <p class="method-links"><a href="${github}/blob/main/src/play/bridge.ts">Inspect the bridge library ↗</a> <span aria-hidden="true">·</span> <a href="${github}">Browse the source repository ↗</a></p>
+      <p class="method-links"><a href="${github}/blob/main/src/huginn/index.ts">Inspect the core library ↗</a> <span aria-hidden="true">·</span> <a href="${github}/blob/main/src/webmcp/index.ts">Inspect WebMCP ↗</a> <span aria-hidden="true">·</span> <a href="${github}">Browse the source repository ↗</a></p>
     </section>
 
     <section class="evidence" aria-labelledby="evidence-title">

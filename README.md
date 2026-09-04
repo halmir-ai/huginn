@@ -29,8 +29,60 @@ caller may also attach semantic metric expectations and receive a separate
 `passed`, `failed`, or `inconclusive` gameplay verdict without changing whether
 the tool itself executed successfully.
 The imperative registration boundary is intentionally easy to inspect in
-[src/play/bridge.ts](src/play/bridge.ts), with shared tool definitions in
-[src/huginn/webmcp.ts](src/huginn/webmcp.ts).
+[src/webmcp/index.ts](src/webmcp/index.ts). The optional in-page debugger is a
+separate consumer in [src/debugger/index.ts](src/debugger/index.ts); neither is
+part of the protocol-independent core.
+
+## Add Huginn to a game
+
+Install the source package directly from GitHub while the library is pre-release:
+
+```sh
+npm install github:halmir-ai/huginn#main
+```
+
+The package exposes four intentionally separate imports:
+
+| Import | Responsibility | Browser protocol required? |
+| --- | --- | --- |
+| `@halmir/huginn` | Deterministic experiment kernel, adapter types, checksums, regression scenarios | No |
+| `@halmir/huginn/webmcp` | Seven tool definitions and `document.modelContext` registration | Yes |
+| `@halmir/huginn/game-runtime` | Small protocol-free reference runtime for reducer-first games | No |
+| `@halmir/huginn/debugger` | Optional dock, checkpoint controls, receipts, and visible regression status | Yes |
+
+See the [dependency-boundary diagram](docs/ARCHITECTURE.md) for the exact import
+direction and the rule that keeps standalone games protocol-free.
+
+For an existing engine, implement `GameAdapter` and connect only the transport:
+
+```ts
+import type { GameAdapter } from "@halmir/huginn";
+import { connectHuginnWebMcp } from "@halmir/huginn/webmcp";
+
+const adapter: GameAdapter<State, Action, Event, GameMetrics> = /* your adapter */;
+const huginn = await connectHuginnWebMcp(adapter, { initialSeed: 12 });
+window.addEventListener("pagehide", huginn.dispose, { once: true });
+```
+
+For a new reducer-first game, the reference runtime and debugger reduce the
+composition to three calls while keeping ordinary play independent:
+
+```ts
+import { GameRuntime } from "@halmir/huginn/game-runtime";
+import { attachHuginnDebugger } from "@halmir/huginn/debugger";
+import "@halmir/huginn/debugger.css";
+
+const runtime = new GameRuntime(myGameDefinition, 12);
+mountMyGame(canvas, runtime);
+await attachHuginnDebugger(runtime, document.querySelector("#huginn")!);
+```
+
+The [complete integration guide](docs/INTEGRATION.md) covers existing engines,
+new games, human/agent clock ownership, action design, and verification. The
+[agent integration contract](docs/AGENT_INTEGRATION.md) is a ready-to-paste
+brief for Codex or another coding agent. `npm run build:library` emits and
+smoke-tests all four package entry points; the website build separately proves
+that standalone games contain no protocol runtime.
 
 ## Status
 
@@ -132,14 +184,14 @@ Read the rules and legal actions, snapshot seed 12, run Signal route to watch
 and battery. Replay Unassisted and verify every step. Do not click the UI-plan
 presets or claim that one seed establishes balance.”
 
-To add a game, inspect the protocol-independent `GameDefinition` in
-[src/play/core.ts](src/play/core.ts), the complete
-[COIL rules](src/games/coil/game.ts), and [optional bridge](src/play/bridge.ts).
-For another engine, the lower-level `GameAdapter` interface lives in
-[src/huginn/types.ts](src/huginn/types.ts). The adapter supplies deterministic
-initial state, legal actions, transitions, metrics, canonical save/restore and
-rendering; the shared layer supplies the seven browser tools. Game and adapter
-logic are intentionally counted together, not advertised as trivial overhead.
+To add Huginn to a game, start with the [integration guide](docs/INTEGRATION.md).
+It has distinct paths for a new reducer-first game and an existing Canvas,
+PixiJS, Phaser, or WebGL engine. Coding agents can follow the copy/paste
+[agent instrumentation contract](docs/AGENT_INTEGRATION.md). The complete
+[COIL rules](src/games/coil/game.ts) and its tiny
+[integrated entry](src/play/coil-entry.ts) are the reference implementation.
+Game and adapter logic are intentionally counted together, not advertised as
+trivial overhead.
 
 ## Verify
 

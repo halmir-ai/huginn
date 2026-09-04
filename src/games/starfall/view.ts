@@ -1,4 +1,4 @@
-import type { GameMountOptions, GameRuntime } from "../../play/core";
+import type { GameMountOptions, GameRuntime } from "../../game-runtime";
 import { BUMPERS, FLIPPER, RAILS, TABLE, flipperSegment } from "./game";
 import type { StarfallAction, StarfallEvent, StarfallState } from "./game";
 import "./view.css";

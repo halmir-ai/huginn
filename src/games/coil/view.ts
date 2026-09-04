@@ -1,4 +1,4 @@
-import type { GameMountOptions, GameRuntime } from "../../play/core";
+import type { GameMountOptions, GameRuntime } from "../../game-runtime";
 import { BONUS_STEPS, GRID_HEIGHT, GRID_WIDTH, levelFor, opposite, stepDurationMs, vectors } from "./game";
 import type { Cell, CoilAction, CoilEvent, CoilState, Direction } from "./game";
 import "./view.css";

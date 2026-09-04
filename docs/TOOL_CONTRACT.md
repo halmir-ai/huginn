@@ -3,6 +3,12 @@
 Huginn uses the imperative WebMCP API directly. Read tools are marked read-only;
 mutating tools use strict JSON Schemas and structured results.
 
+The implementation is split deliberately: the transport-independent kernel is
+exported from [`src/huginn/`](../src/huginn/), while tool construction and the
+only `document.modelContext` registration boundary live in
+[`src/webmcp/`](../src/webmcp/). The optional debugger consumes activity events;
+it does not define a second tool contract.
+
 ## Tools
 
 - `describe_game`: rules, victory/failure conditions, metric semantics, action

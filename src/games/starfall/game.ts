@@ -1,4 +1,4 @@
-import type { GameDefinition, LegalAction } from "../../play/core";
+import type { GameDefinition, LegalAction } from "../../game-runtime";
 
 export const TABLE = { width: 560, height: 780, ballRadius: 9, dt: 1 / 120, gravity: 510 } as const;
 export const FLIPPER = { leftX: 154, rightX: 374, y: 655, length: 95, radius: 10, rest: 0.4, raised: -0.48, speed: 14 } as const;

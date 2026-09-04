@@ -6,7 +6,7 @@ import { starfallGame, type StarfallAction, type StarfallEvent, type StarfallSta
 import { HuginnKernel } from "../src/huginn/kernel";
 import { sequenceInputFromScenario, type RegressionScenario } from "../src/huginn/scenario";
 import type { GameAdapter } from "../src/huginn/types";
-import type { GameDefinition, GameMetrics } from "../src/play/core";
+import type { GameDefinition, GameMetrics } from "../src/game-runtime";
 
 const noDelay = async () => {};
 

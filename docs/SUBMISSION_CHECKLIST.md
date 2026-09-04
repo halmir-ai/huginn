@@ -30,7 +30,7 @@ free and unrestricted through September 21 at 5 PM Pacific.
   under CC BY 4.0.
 - [x] GitHub visibly detects the MIT license in the repository header/About area.
 - [x] The imperative WebMCP registration is easy to find in
-  `src/huginn/webmcp.ts`; it calls `registerTool` with name, description,
+  `src/webmcp/index.ts`; it calls `registerTool` with name, description,
   closed JSON Schema, and an executable handler.
 - [ ] Default branch contains the final submission commit and all links in the
   README work from an incognito session.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GameRuntime } from "../src/play/core";
+import { GameRuntime } from "../src/game-runtime";
 import { BONUS_STEPS, GRID_HEIGHT, GRID_WIDTH, coilGame, levelFor, opposite, stepDurationMs, vectors } from "../src/games/coil/game";
 import type { Cell, CoilAction, CoilState, Direction } from "../src/games/coil/game";
 

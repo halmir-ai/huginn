@@ -1,7 +1,7 @@
 import { canonicalEqual } from "../huginn/canonical";
 import type { HuginnKernel } from "../huginn/kernel";
 import type { GameAdapter, GameDescription, LegalAction, RenderContext } from "../huginn/types";
-import { registerWebMcpTools, type ToolActivity } from "../huginn/webmcp";
+import { registerWebMcpTools, type ToolActivity } from "../webmcp";
 
 export const TIDEGLASS_VERSION = "0.2.0-refinement";
 export const HUGINN_BASE = "a71cacb92e107cd4c8ab0ef1afcf8f709233b60c";

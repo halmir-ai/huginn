@@ -11,7 +11,7 @@ try {
   const { HuginnKernel } = await server.ssrLoadModule("/src/huginn/kernel.ts");
   const { checksum } = await server.ssrLoadModule("/src/huginn/canonical.ts");
   const { createTideglassAdapter, signalRoute, unassistedRoute, TIDEGLASS_VERSION } = await server.ssrLoadModule("/src/demo/tideglass.ts");
-  const paths = { adapter: "src/demo/tideglass.ts", kernel: "src/huginn/kernel.ts", webmcp: "src/huginn/webmcp.ts", canonical: "src/huginn/canonical.ts" };
+  const paths = { adapter: "src/demo/tideglass.ts", kernel: "src/huginn/kernel.ts", webmcp: "src/webmcp/index.ts", canonical: "src/huginn/canonical.ts" };
   const sources = Object.fromEntries(await Promise.all(Object.entries(paths).map(async ([key, path]) => [key, await readFile(resolve(root, path), "utf8")])));
   const fresh = (seed = 12) => new HuginnKernel(createTideglassAdapter(), seed, async () => {});
   const kernel = fresh();

@@ -16,13 +16,16 @@ const MAX_ACTIONS = 50;
 const MAX_SNAPSHOTS = 12;
 const MAX_REQUEST_CACHE = 20;
 
-type Scheduler = (delayMs: number) => Promise<void>;
+export type HuginnScheduler = (delayMs: number) => Promise<void>;
 
-const browserScheduler: Scheduler = (delayMs) =>
+const defaultScheduler: HuginnScheduler = (delayMs) =>
   new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      window.setTimeout(resolve, delayMs);
-    });
+    const wait = () => globalThis.setTimeout(resolve, delayMs);
+    if (typeof globalThis.requestAnimationFrame === "function") {
+      globalThis.requestAnimationFrame(wait);
+    } else {
+      wait();
+    }
   });
 
 export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
@@ -37,7 +40,7 @@ export class HuginnKernel<State, Action, Event, GameMetrics extends Metrics> {
   constructor(
     private readonly adapter: GameAdapter<State, Action, Event, GameMetrics>,
     initialSeed = 12,
-    private readonly schedule: Scheduler = browserScheduler,
+    private readonly schedule: HuginnScheduler = defaultScheduler,
   ) {
     this.seed = initialSeed;
     this.state = adapter.initialState(initialSeed);

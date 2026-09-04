@@ -1,12 +1,12 @@
 import { HuginnKernel } from "../huginn/kernel";
 import { createRegressionScenario, type RegressionScenario } from "../huginn/scenario";
-import { buildToolDefinitions, type ToolActivity } from "../huginn/webmcp";
+import { registerWebMcpTools, type ToolActivity } from "../webmcp";
 import type { GameAdapter, SequenceInput, SequenceResult, SnapshotRecord } from "../huginn/types";
-import type { GameMetrics, GameRuntime } from "./core";
+import type { GameMetrics, GameRuntime } from "../game-runtime";
 import "./dock.css";
 
-/** This is the only integration edge. Plain games never import this module. */
-export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock: HTMLElement) {
+/** Opinionated reference composition. Plain games never import this module. */
+export async function attachHuginnDebugger<S, A, E>(runtime: GameRuntime<S, A, E>, dock: HTMLElement) {
   let humanDispatch = false;
   let request = 0;
   let saved: SnapshotRecord | undefined;
@@ -134,26 +134,16 @@ export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock:
     portableRegression = scenario;
     regressionButton.disabled = false;
   };
-  const definitions = buildToolDefinitions(kernel, adapter.description.actions.map(action => action.inputSchema), observe);
-  const lifecycle = new AbortController();
-  let supported = false;
-  if (typeof document.modelContext?.registerTool === "function") {
-    try {
-      for (const definition of definitions) {
-        const execute = definition.execute;
-        await document.modelContext.registerTool({
-          ...definition,
-          execute: (input, options) => definition.annotations?.readOnlyHint
-            ? execute(input, options)
-            : runtime.runExclusive(() => execute(input, options)),
-        }, { signal: lifecycle.signal });
-      }
-      supported = true;
-    } catch (error) {
-      lifecycle.abort();
-      status.textContent = `Tool registration failed: ${error instanceof Error ? error.message : String(error)}`;
-    }
-  }
+  const registration = await registerWebMcpTools(
+    kernel,
+    adapter.description.actions.map(action => action.inputSchema),
+    observe,
+    { runMutation: operation => runtime.runExclusive(operation) },
+  ).catch((error: unknown) => {
+    status.textContent = `Tool registration failed: ${error instanceof Error ? error.message : String(error)}`;
+    return { supported: false, toolNames: [] as string[], dispose: () => {} };
+  });
+  const supported = registration.supported;
   dock.querySelector("#tool-connection")!.textContent = supported
     ? "Connected · 7 live browser tools"
     : "Human play ready · use a WebMCP-compatible browser for agent tools";
@@ -175,7 +165,7 @@ export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock:
   dock.querySelector("#receipt-download")!.addEventListener("click", async () => {
     const receipt = {
       format: "huginn/playable-game-receipt-v1", game: runtime.game.description,
-      registeredTools: supported ? definitions.map(tool => tool.name) : [],
+      registeredTools: registration.toolNames,
       tools: receipts, current: await kernel.getState(), metrics: await kernel.getMetrics(),
       note: "Actual WebMCP calls only. Human play and local checkpoint buttons are not counted as agent calls. Tokens are not measured here.",
     };
@@ -193,7 +183,7 @@ export async function attachHuginn<S, A, E>(runtime: GameRuntime<S, A, E>, dock:
     status.textContent = `Regression JSON saved · ${filename}`;
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
-  const pageHide = () => lifecycle.abort();
+  const pageHide = () => registration.dispose();
   window.addEventListener("pagehide", pageHide, { once: true });
-  return { kernel, supported, dispose: () => { window.removeEventListener("pagehide", pageHide); lifecycle.abort(); } };
+  return { kernel, supported, dispose: () => { window.removeEventListener("pagehide", pageHide); registration.dispose(); } };
 }

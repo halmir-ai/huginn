@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRiverlandsAdapter, riverlandsDescription } from "../src/demo/riverlands";
 import { HuginnKernel } from "../src/huginn/kernel";
-import { buildToolDefinitions, registerWebMcpTools, type ToolActivity } from "../src/huginn/webmcp";
+import { buildToolDefinitions, registerWebMcpTools, type ToolActivity } from "../src/webmcp";
 import { createRtsLabAdapter, rtsLabDescription } from "../src/demo/rts-lab";
 
 describe("WebMCP contract", () => {
@@ -44,6 +44,30 @@ describe("WebMCP contract", () => {
       expect(logged).toHaveBeenCalledOnce();
     } finally {
       logged.mockRestore();
+    }
+  });
+
+  it("lets a host serialize every mutating tool without coupling the debugger to modelContext", async () => {
+    const kernel = new HuginnKernel(createRiverlandsAdapter(), 12, async () => {});
+    const registered: { name: string; execute: (input: Record<string, unknown>, options: { signal: AbortSignal }) => Promise<unknown> }[] = [];
+    const order: string[] = [];
+    vi.stubGlobal("document", { modelContext: { registerTool: async (tool: typeof registered[number]) => { registered.push(tool); } } });
+    try {
+      const registration = await registerWebMcpTools(
+        kernel,
+        riverlandsDescription.actions.map((action) => action.inputSchema),
+        undefined,
+        { runMutation: async (operation) => { order.push("lock"); const result = await operation(); order.push("unlock"); return result; } },
+      );
+      const read = registered.find((tool) => tool.name === "get_metrics")!;
+      const mutate = registered.find((tool) => tool.name === "apply_action_sequence")!;
+      await read.execute({}, { signal: new AbortController().signal });
+      expect(order).toEqual([]);
+      await mutate.execute({ request_id: "serialized", actions: [{ type: "gather" }] }, { signal: new AbortController().signal });
+      expect(order).toEqual(["lock", "unlock"]);
+      registration.dispose();
+    } finally {
+      vi.unstubAllGlobals();
     }
   });
 

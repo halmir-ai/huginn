@@ -2,13 +2,52 @@
   "name": "@halmir/huginn",
   "version": "0.1.0",
   "description": "A typed test port for visible, reproducible experiments in live browser games.",
+  "homepage": "https://halmir-ai.github.io/huginn/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/halmir-ai/huginn.git"
+  },
   "type": "module",
+  "main": "./dist/library/core.js",
+  "types": "./dist/library/types/huginn/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/library/types/huginn/index.d.ts",
+      "import": "./dist/library/core.js"
+    },
+    "./webmcp": {
+      "types": "./dist/library/types/webmcp/index.d.ts",
+      "import": "./dist/library/webmcp.js"
+    },
+    "./game-runtime": {
+      "types": "./dist/library/types/game-runtime/index.d.ts",
+      "import": "./dist/library/game-runtime.js"
+    },
+    "./debugger": {
+      "types": "./dist/library/types/debugger/index.d.ts",
+      "import": "./dist/library/debugger.js"
+    },
+    "./debugger.css": "./dist/library/debugger.css"
+  },
+  "files": [
+    "dist/library",
+    "docs/AGENT_INTEGRATION.md",
+    "docs/ARCHITECTURE.md",
+    "docs/INTEGRATION.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build && node tools/audit-plain-bundles.mjs dist",
+    "build": "tsc --noEmit && vite build && npm run build:library && node tools/audit-plain-bundles.mjs dist",
+    "build:library": "vite build --config vite.library.config.ts && tsc -p tsconfig.library.json && node tools/check-library-exports.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "tsc --noEmit && vitest run"
+    "check": "tsc --noEmit && vitest run",
+    "prepare": "npm run build:library"
   },
   "keywords": [
     "webmcp",

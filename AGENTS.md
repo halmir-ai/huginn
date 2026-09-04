@@ -27,6 +27,22 @@ useful to a human game designer.
 - Code is MIT. Only explicitly selected, hashed, provenance-tracked art under
   `public/assets/rts-lab/` is licensed CC BY 4.0.
 
+## Source boundaries
+
+- `src/huginn/` is the protocol-independent experiment library. It must not
+  import WebMCP, the debugger, game examples, or page code.
+- `src/webmcp/` is the browser transport and the only public layer that knows
+  about `document.modelContext`.
+- `src/game-runtime/` is a small protocol-free reference runtime shared by
+  ordinary human play and integrated examples.
+- `src/debugger/` is the optional dock, receipts, and reference composition.
+- `src/games/` contains real example game rules and views; `src/play/` contains
+  only page composition entry points. Plain entries must not import Huginn,
+  WebMCP, or debugger code.
+
+Follow `docs/INTEGRATION.md` for human adoption and
+`docs/AGENT_INTEGRATION.md` when a coding agent instruments a game.
+
 ## Verify
 
 Run `npm run check` for routine changes and `npm run build` before deployment.

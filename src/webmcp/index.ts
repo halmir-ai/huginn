@@ -1,7 +1,7 @@
-import type { HuginnKernel } from "./kernel";
-import type { Metrics, SequenceInput, ToolExecutionOptions } from "./types";
+import { HuginnKernel, type HuginnScheduler } from "../huginn/kernel";
+import type { GameAdapter, Metrics, SequenceInput, ToolExecutionOptions } from "../huginn/types";
 
-interface ModelContextTool {
+export interface ModelContextTool {
   name: string;
   title?: string;
   description: string;
@@ -10,7 +10,7 @@ interface ModelContextTool {
   annotations?: { readOnlyHint?: boolean; untrustedContentHint?: boolean };
 }
 
-interface ModelContext {
+export interface ModelContext {
   registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal; exposedTo?: string[] }): Promise<void>;
 }
 
@@ -27,7 +27,20 @@ export type ToolActivity =
   | { phase: "completed"; name: string; input: Record<string, unknown>; result: unknown }
   | { phase: "failed"; name: string; input: Record<string, unknown>; error: string };
 
-type ActivityObserver = (activity: ToolActivity) => void;
+export type ActivityObserver = (activity: ToolActivity) => void;
+
+export interface ConnectHuginnWebMcpOptions {
+  initialSeed?: number;
+  schedule?: HuginnScheduler;
+  onActivity?: ActivityObserver;
+  runMutation?: MutationRunner;
+}
+
+export type MutationRunner = (operation: () => Promise<unknown>) => Promise<unknown>;
+
+export interface RegisterWebMcpOptions {
+  runMutation?: MutationRunner;
+}
 
 export function buildToolDefinitions<State, Action, Event, GameMetrics extends Metrics>(
   kernel: HuginnKernel<State, Action, Event, GameMetrics>,
@@ -167,14 +180,24 @@ export async function registerWebMcpTools<State, Action, Event, GameMetrics exte
   kernel: HuginnKernel<State, Action, Event, GameMetrics>,
   actionSchemas: Record<string, unknown>[],
   onActivity?: ActivityObserver,
+  options: RegisterWebMcpOptions = {},
 ): Promise<{ supported: boolean; toolNames: string[]; dispose: () => void }> {
-  const context = document.modelContext;
+  const context = typeof document === "undefined" ? undefined : document.modelContext;
   if (typeof context?.registerTool !== "function") return { supported: false, toolNames: [], dispose: () => {} };
 
   const controller = new AbortController();
   const definitions = buildToolDefinitions(kernel, actionSchemas, onActivity);
+  const registeredDefinitions = options.runMutation
+    ? definitions.map((definition) => ({
+        ...definition,
+        execute: definition.annotations?.readOnlyHint
+          ? definition.execute
+          : (input: Record<string, unknown>, toolOptions: ToolExecutionOptions) =>
+              options.runMutation!(() => definition.execute(input, toolOptions)),
+      }))
+    : definitions;
   try {
-    for (const definition of definitions) {
+    for (const definition of registeredDefinitions) {
       await context.registerTool(definition, { signal: controller.signal });
     }
   } catch (error) {
@@ -185,5 +208,31 @@ export async function registerWebMcpTools<State, Action, Event, GameMetrics exte
     supported: true,
     toolNames: definitions.map((tool) => tool.name),
     dispose: () => controller.abort(),
+  };
+}
+
+/**
+ * Convenience path for a game that already exposes a complete GameAdapter.
+ * Core execution remains usable without this browser transport.
+ */
+export async function connectHuginnWebMcp<State, Action, Event, GameMetrics extends Metrics>(
+  adapter: GameAdapter<State, Action, Event, GameMetrics>,
+  options: ConnectHuginnWebMcpOptions = {},
+) {
+  const kernel = new HuginnKernel(
+    adapter,
+    options.initialSeed ?? 12,
+    options.schedule,
+  );
+  await kernel.initialize();
+  const registration = await registerWebMcpTools(
+    kernel,
+    adapter.description.actions.map((action) => action.inputSchema),
+    options.onActivity,
+    { runMutation: options.runMutation },
+  );
+  return {
+    kernel,
+    ...registration,
   };
 }
